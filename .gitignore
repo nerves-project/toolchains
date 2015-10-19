@@ -1,2 +1,5 @@
 work
 *.tgz
+*.xz
+*.gz
+*.bz2

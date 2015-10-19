@@ -10,6 +10,7 @@ NERVES_TOOLCHAIN_TAG=`git describe --always --dirty`
 HOST_ARCH=`uname -m`
 
 # Clean up an old build
+chmod -R u+w $WORK_DIR
 rm -fr $WORK_DIR
 
 mkdir -p $WORK_DIR
@@ -42,4 +43,4 @@ rm -f $TARGET_TUPLE/build.log.bz2
 
 # Assemble the tarball for the toolchain
 echo "$NERVES_TOOLCHAIN_TAG" > $TARGET_TUPLE/nerves-toolchain.tag
-tar cfz ../../gcc-nerves-$TARGET_TUPLE-linux-$NERVES_TOOLCHAIN_TAG.tgz $TARGET_TUPLE
+tar cfz ../../gcc-nerves-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tgz $TARGET_TUPLE
