@@ -22,6 +22,7 @@ hdiutil attach $WORK_DMG
 ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
 
 mkdir -p $WORK_DIR/usr
+ln -s $BASE_DIR/dl $WORK_DIR/dl
 
 # Build and install ct-ng to the work directory
 cd $WORK_DIR
@@ -49,6 +50,6 @@ chmod +w $TARGET_TUPLE && rm -f $TARGET_TUPLE/build.log.bz2
 
 # Assemble the tarball for the toolchain
 echo "$NERVES_TOOLCHAIN_TAG" > $TARGET_TUPLE/nerves-toolchain.tag
-tar cfz ../../gcc-nerves-$TARGET_TUPLE-osx-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tgz $TARGET_TUPLE
+tar cfz $BASE_DIR/gcc-nerves-$TARGET_TUPLE-osx-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tgz $TARGET_TUPLE
 
 echo Done!
