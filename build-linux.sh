@@ -39,7 +39,7 @@ cd $WORK_DIR/x-tools
 TARGET_TUPLE=`ls`
 
 # Clean up the build product
-rm -f $TARGET_TUPLE/build.log.bz2
+chmod +w $TARGET_TUPLE && rm -f $TARGET_TUPLE/build.log.bz2
 
 # Assemble the tarball for the toolchain
 echo "$NERVES_TOOLCHAIN_TAG" > $TARGET_TUPLE/nerves-toolchain.tag
