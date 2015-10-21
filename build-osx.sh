@@ -21,28 +21,28 @@ rm -fr $WORK_DIR $WORK_DMG
 hdiutil create -size 10g -fs "Case-sensitive Journaled HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
 hdiutil attach $WORK_DMG
 ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
-#
+
 mkdir -p $WORK_DIR/usr
 ln -s $BASE_DIR/dl $WORK_DIR/dl
-#
-# # Build and install ct-ng to the work directory
+
+# Build and install ct-ng to the work directory
 cd $WORK_DIR
 git clone https://github.com/crosstool-ng/crosstool-ng.git
 cd crosstool-ng
 git checkout $CTNG_TAG
-#
+
 ./bootstrap
 ./configure --prefix=$WORK_DIR/usr
 make
 make install
-#
-# # Build the toolchain
+
+# Build the toolchain
 mkdir -p $WORK_DIR/build
 cd $WORK_DIR/build
 cp $BASE_DIR/configs/osx.config .config
 CC=/usr/local/bin/gcc-5 CXX=/usr/local/bin/c++-5 $WORK_DIR/usr/bin/ct-ng build
-#
-# # Figure out the target's tuple. It's the name of the only directory.
+
+# Figure out the target's tuple. It's the name of the only directory.
 cd $WORK_DIR/x-tools
 TARGET_TUPLE=`ls`
 PRODUCT_DMG_VOLNAME=nerves-gcc-$TARGET_TUPLE-osx-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG
@@ -50,11 +50,12 @@ PRODUCT_DMG=$BASE_DIR/$PRODUCT_DMG_VOLNAME.dmg
 
 # Clean up the build product
 chmod +w $TARGET_TUPLE && rm -f $TARGET_TUPLE/build.log.bz2
+
 # Assemble the tarball for the toolchain
 echo "$NERVES_TOOLCHAIN_TAG" > $TARGET_TUPLE/nerves-toolchain.tag
 cd $BUILD_DIR
 
-#Create final DMG with compiler tools in it
+# Create final DMG with compiler tools in it
 rm -fr $PRODUCT_DMG
 hdiutil create -fs "Case-sensitive Journaled HFS+" -srcFolder $WORK_DIR/x-tools/$TARGET_TUPLE -volname $PRODUCT_DMG_VOLNAME $PRODUCT_DMG
 hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
