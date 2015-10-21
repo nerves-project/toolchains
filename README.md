@@ -24,6 +24,10 @@ brew update
 brew tap homebrew/dupes
 brew install gawk binutils xz wget automake
 brew install libtool autoconf gnu-sed mpfr gmp gcc
+brew install grep -—with-default-names
+brew install --universal gettext
+brew link --force gettext
+
 ```
 
 Run `build-osx.sh` and wait.
