@@ -43,4 +43,4 @@ chmod +w $TARGET_TUPLE && rm -f $TARGET_TUPLE/build.log.bz2
 
 # Assemble the tarball for the toolchain
 echo "$NERVES_TOOLCHAIN_TAG" > $TARGET_TUPLE/nerves-toolchain.tag
-tar cfz ../../gcc-nerves-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tgz $TARGET_TUPLE
+tar cfz ../../nerves-gcc-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tgz $TARGET_TUPLE
