@@ -21,11 +21,14 @@ GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the c
 init()
 {
     # Clean up an old build
-    chmod -R u+w $WORK_DIR
-    rm -fr $WORK_DIR
+    if [ -e $WORK_DIR ]; then
+        chmod -R u+w $WORK_DIR
+        rm -fr $WORK_DIR
+    fi
 
     mkdir -p $WORK_DIR
-    mkdir -p $INSTALL_DIR
+    mkdir -p $ERL_INSTALL_DIR
+    mkdir -p $GCC_INSTALL_DIR
     mkdir -p $DL_DIR
 }
 
