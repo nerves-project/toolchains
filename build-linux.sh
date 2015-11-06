@@ -120,8 +120,8 @@ assemble_tarball()
     xz $TARBALL_PATH
 }
 
-#init
-#build_gcc
-#build_erlang
+init
+build_gcc
+build_erlang
 assemble_tarball
 
