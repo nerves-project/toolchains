@@ -3,7 +3,9 @@
 set -e
 
 ERLANG_VERSION=18.1
+ELIXIR_VERSION=1.1.1
 CTNG_TAG=625f7e66b43c8629c7ca27b062ff7adad9c2b859
+
 BASE_DIR=`pwd`
 WORK_DIR=$BASE_DIR/work
 DL_DIR=$BASE_DIR/dl
@@ -15,8 +17,9 @@ HOST_ARCH=`uname -m`
 LOCAL_INSTALL_DIR=$WORK_DIR/usr
 
 # Install directories for the tools we make
-ERL_INSTALL_DIR=$WORK_DIR/erl
 GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the config file
+ERL_INSTALL_DIR=$WORK_DIR/erlang-install
+ELIXIR_INSTALL_DIR=$WORK_DIR/elixir-install
 
 init()
 {
@@ -85,6 +88,9 @@ build_erlang()
     tar xf $DL_DIR/$ERLANG_TAR_GZ
     cd $ERLANG_SRC
 
+    # Apply patches
+    patch -p1 < $BASE_DIR/patches/0001-Make-erl-relocatable.patch
+
     # Disabling HiPE is the most important part, since we don't support HiPE
     # in Nerves. It is crucial that erlc not precompile anything or else the
     # BEAM files won't run on the target.
@@ -103,8 +109,21 @@ build_erlang()
         --without-orber --without-cosTransactions --without-cosEvent --without-cosTime \
         --without-cosNotification --without-cosProperty --without-cosFileTransfer \
         --without-cosEventDomain --without-ose
-    make
+    make -j6
     make install
+}
+
+build_elixir()
+{
+    # Build and install ct-ng to the work directory
+    cd $WORK_DIR
+
+    ELIXIR_ZIP=elixir-$ELIXIR_VERSION-precompiled.zip
+    [ -e $DL_DIR/$ELIXIR_ZIP ] || wget -O $DL_DIR/$ELIXIR_ZIP https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+
+    # Elixir is so easy to "install"
+    rm -fr $ELIXIR_INSTALL_DIR
+    unzip -d $ELIXIR_INSTALL_DIR $DL_DIR/$ELIXIR_ZIP
 }
 
 assemble_tarball()
@@ -118,13 +137,15 @@ assemble_tarball()
 
     echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $TARBALL_PATH $TARXZ_PATH
-    tar c -C $GCC_INSTALL_DIR -f $TARBALL_PATH $TARGET_TUPLE
-    tar r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^erl,$TARGET_TUPLE," erl
+    tar c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,nerves-toolchain," $TARGET_TUPLE
+    tar r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^erlang-install,nerves-toolchain," erlang-install
+    tar r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^elixir-install,nerves-toolchain," elixir-install
     xz $TARBALL_PATH
 }
 
 init
 build_gcc
 build_erlang
+build_elixir
 assemble_tarball
 
