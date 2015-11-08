@@ -85,6 +85,7 @@ build_gcc()
 {
     # Build and install ct-ng to the work directory
     cd $WORK_DIR
+    ln -sf $DL_DIR dl
     rm -fr crosstool-ng
     git clone https://github.com/crosstool-ng/crosstool-ng.git
     cd crosstool-ng
