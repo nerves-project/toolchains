@@ -13,7 +13,7 @@ Install the following packages:
 sudo apt-get install TBD
 ```
 
-Run `build-linux.sh` and wait.
+Run `build.sh` and wait.
 
 ## OSX
 
@@ -30,7 +30,7 @@ brew link --force gettext
 
 ```
 
-Run `build-osx.sh` and wait.
+Run `build.sh` and wait.
 
 ## Windows
 
