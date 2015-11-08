@@ -12,6 +12,7 @@ DL_DIR=$BASE_DIR/dl
 
 NERVES_TOOLCHAIN_TAG=`git describe --always --dirty`
 HOST_ARCH=`uname -m`
+HOST_OS=`uname -s`
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
 LOCAL_INSTALL_DIR=$WORK_DIR/usr
@@ -21,15 +22,45 @@ GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the c
 ERL_INSTALL_DIR=$WORK_DIR/erlang-install
 ELIXIR_INSTALL_DIR=$WORK_DIR/elixir-install
 
+if [ $HOST_OS = "Darwin" ]; then
+    # Mac-specific updates
+
+    # We run out of file handles when building for Mac
+    ulimit -n 512
+
+    # Need to specify the OpenSSL location
+    ERLANG_CONFIGURE_ARGS=--with-ssl=/usr/local/bin
+
+    CTNG_CONFIG=$BASE_DIR/configs/osx.config
+    CTNG_EXTRA_ENV="CC=/usr/local/bin/gcc-5 CXX=/usr/local/bin/c++-5"
+
+    WORK_DMG=$WORK_DIR.dmg
+elif [ $HOST_OS = "Linux" ]; then
+    # Linux-specific updates
+
+    CTNG_CONFIG=$BASE_DIR/configs/linux.config
+else
+    echo "Unknown host OS: $HOST_OS"
+    exit 1
+fi
+
 init()
 {
-    # Clean up an old build
-    if [ -e $WORK_DIR ]; then
-        chmod -R u+w $WORK_DIR
-        rm -fr $WORK_DIR
+    # Clean up an old build and create the work directory
+    if [ $HOST_OS = "Darwin" ]; then
+        hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
+        rm -fr $WORK_DIR $WORK_DMG
+        hdiutil create -size 10g -fs "Case-sensitive Journaled HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
+        hdiutil attach $WORK_DMG
+        ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
+    elif [ $HOST_OS = "Linux" ]; then
+        if [ -e $WORK_DIR ]; then
+            chmod -R u+w $WORK_DIR
+            rm -fr $WORK_DIR
+        fi
+        mkdir -p $WORK_DIR
     fi
 
-    mkdir -p $WORK_DIR
     mkdir -p $ERL_INSTALL_DIR
     mkdir -p $GCC_INSTALL_DIR
     mkdir -p $DL_DIR
@@ -62,8 +93,8 @@ build_gcc()
     # Build the toolchain
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
-    cp $BASE_DIR/configs/linux.config .config
-    $LOCAL_INSTALL_DIR/bin/ct-ng build
+    cp $CTNG_CONFIG .config
+    $CTNG_EXTRA_ENV $LOCAL_INSTALL_DIR/bin/ct-ng build
 
     TARGET_TUPLE=`gcc_tuple`
 
@@ -88,9 +119,6 @@ build_erlang()
     tar xf $DL_DIR/$ERLANG_TAR_GZ
     cd $ERLANG_SRC
 
-    # Apply patches
-    patch -p1 < $BASE_DIR/patches/0001-Make-erl-relocatable.patch
-
     # Disabling HiPE is the most important part, since we don't support HiPE
     # in Nerves. It is crucial that erlc not precompile anything or else the
     # BEAM files won't run on the target.
@@ -108,9 +136,13 @@ build_erlang()
         --without-gs --without-otp_mibs --without-jinterface --without-diameter \
         --without-orber --without-cosTransactions --without-cosEvent --without-cosTime \
         --without-cosNotification --without-cosProperty --without-cosFileTransfer \
-        --without-cosEventDomain --without-ose
+        --without-cosEventDomain --without-ose $ERLANG_CONFIGURE_ARGS
     make -j6
     make install
+
+    # Fix up the absolute paths in the scripts
+    find $ERL_INSTALL_DIR -type f \( -name "start" -o -name "erl" \) | \
+        xargs -n 1 $BASE_DIR/scripts/fix-erlang-abspaths.py $ERL_INSTALL_DIR
 }
 
 build_elixir()
@@ -143,9 +175,44 @@ assemble_tarball()
     xz $TARBALL_PATH
 }
 
+assemble_dmg()
+{
+    echo Building DMG...
+
+    # Assemble the tarball for the toolchain
+    TARGET_TUPLE=`gcc_tuple`
+    DMG_PATH=$BASE_DIR/nerves-toolchain-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.dmg
+
+    echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
+    rm -f $DMG_PATH
+    hdiutil create -fs "Case-sensitive Journaled HFS+" -volname nerves-toolchain \
+                    -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE \
+                    -srcfolder $WORK_DIR/erlang-install \
+                    -srcfolder $WORK_DIR/elixir-install \
+                    $DMG_PATH
+}
+
+assemble_products()
+{
+    if [ $HOST_OS = "Darwin" ]; then
+        assemble_dmg
+    elif [ $HOST_OS = "Linux" ]; then
+        assemble_tarball
+    fi
+}
+
+fini()
+{
+    if [ $HOST_OS = "Darwin" ]; then
+        hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
+    fi
+}
+
 init
 build_gcc
 build_erlang
 build_elixir
-assemble_tarball
+assemble_products
+fini
 
+echo "All done!"
