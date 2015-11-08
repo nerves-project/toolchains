@@ -54,7 +54,7 @@ init()
     if [ $HOST_OS = "Darwin" ]; then
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
         rm -fr $WORK_DIR $WORK_DMG
-        hdiutil create -size 10g -fs "Case-sensitive Journaled HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
+        hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
         ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
     elif [ $HOST_OS = "Linux" ]; then
@@ -191,10 +191,10 @@ assemble_dmg()
 
     echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $DMG_PATH
-    hdiutil create -fs "Case-sensitive Journaled HFS+" -volname nerves-toolchain \
-                    -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE \
-                    -srcfolder $WORK_DIR/erlang-install \
-                    -srcfolder $WORK_DIR/elixir-install \
+    hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
+                    -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE/. \
+                    -srcfolder $WORK_DIR/erlang-install/. \
+                    -srcfolder $WORK_DIR/elixir-install/. \
                     $DMG_PATH
 }
 
