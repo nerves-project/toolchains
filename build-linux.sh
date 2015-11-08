@@ -6,13 +6,13 @@ ERLANG_VERSION=18.1
 ELIXIR_VERSION=1.1.1
 CTNG_TAG=625f7e66b43c8629c7ca27b062ff7adad9c2b859
 
-BASE_DIR=`pwd`
+BASE_DIR=$(pwd)
 WORK_DIR=$BASE_DIR/work
 DL_DIR=$BASE_DIR/dl
 
-NERVES_TOOLCHAIN_TAG=`git describe --always --dirty`
-HOST_ARCH=`uname -m`
-HOST_OS=`uname -s`
+NERVES_TOOLCHAIN_TAG=$(git describe --always --dirty)
+HOST_ARCH=$(uname -m)
+HOST_OS=$(uname -s)
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
 LOCAL_INSTALL_DIR=$WORK_DIR/usr
@@ -32,13 +32,17 @@ if [ $HOST_OS = "Darwin" ]; then
     ERLANG_CONFIGURE_ARGS=--with-ssl=/usr/local/bin
 
     CTNG_CONFIG=$BASE_DIR/configs/osx.config
-    CTNG_EXTRA_ENV="CC=/usr/local/bin/gcc-5 CXX=/usr/local/bin/c++-5"
+    CTNG_CC=/usr/local/bin/gcc-5
+    CTNG_CXX=/usr/local/bin/c++-5
 
     WORK_DMG=$WORK_DIR.dmg
+    WORK_DMG_VOLNAME=nerves-toolchain-work
 elif [ $HOST_OS = "Linux" ]; then
     # Linux-specific updates
 
     CTNG_CONFIG=$BASE_DIR/configs/linux.config
+    CTNG_CC=/usr/bin/gcc
+    CTNG_CXX=/usr/bin/c++
 else
     echo "Unknown host OS: $HOST_OS"
     exit 1
@@ -69,11 +73,11 @@ init()
 gcc_tuple()
 {
     # Figure out the target's tuple. It's the name of the only directory.
-    tuplepath=`ls $GCC_INSTALL_DIR`
+    tuplepath=$(ls $GCC_INSTALL_DIR)
     if [ -e $tuplepath ]; then
         echo "unknown"
     else
-        echo `basename $tuplepath`
+        echo $(basename $tuplepath)
     fi
 }
 
@@ -81,6 +85,7 @@ build_gcc()
 {
     # Build and install ct-ng to the work directory
     cd $WORK_DIR
+    rm -fr crosstool-ng
     git clone https://github.com/crosstool-ng/crosstool-ng.git
     cd crosstool-ng
     git checkout $CTNG_TAG
@@ -94,9 +99,9 @@ build_gcc()
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
     cp $CTNG_CONFIG .config
-    $CTNG_EXTRA_ENV $LOCAL_INSTALL_DIR/bin/ct-ng build
+    CC=$CTNG_CC CXX=$CTNG_CXX $LOCAL_INSTALL_DIR/bin/ct-ng build
 
-    TARGET_TUPLE=`gcc_tuple`
+    TARGET_TUPLE=$(gcc_tuple)
 
     # ct-ng likes to mark everything read-only which
     # seems reasonable, but it can be really annoying.
@@ -163,7 +168,7 @@ assemble_tarball()
     echo Building archive...
 
     # Assemble the tarball for the toolchain
-    TARGET_TUPLE=`gcc_tuple`
+    TARGET_TUPLE=$(gcc_tuple)
     TARBALL_PATH=$BASE_DIR/nerves-toolchain-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tar
     TARXZ_PATH=$TARBALL_PATH.xz
 
