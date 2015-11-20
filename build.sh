@@ -119,7 +119,7 @@ build_erlang()
 
     ERLANG_SRC=otp_src_$ERLANG_VERSION
     ERLANG_TAR_GZ=$ERLANG_SRC.tar.gz
-    [ -e $DL_DIR/$ERLANG_TAR_GZ ] || wget -O $DL_DIR/$ERLANG_TAR_GZ http://www.erlang.org/download/$ERLANG_TAR_GZ
+    [ -e $DL_DIR/$ERLANG_TAR_GZ ] || curl -L -o $DL_DIR/$ERLANG_TAR_GZ http://www.erlang.org/download/$ERLANG_TAR_GZ
 
     rm -fr $ERLANG_SRC
     tar xf $DL_DIR/$ERLANG_TAR_GZ
@@ -157,7 +157,7 @@ build_elixir()
     cd $WORK_DIR
 
     ELIXIR_ZIP=elixir-$ELIXIR_VERSION-precompiled.zip
-    [ -e $DL_DIR/$ELIXIR_ZIP ] || wget -O $DL_DIR/$ELIXIR_ZIP https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
+    [ -e $DL_DIR/$ELIXIR_ZIP ] || curl -L -o $DL_DIR/$ELIXIR_ZIP https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
 
     # Elixir is so easy to "install"
     rm -fr $ELIXIR_INSTALL_DIR
