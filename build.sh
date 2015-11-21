@@ -105,10 +105,16 @@ build_gcc()
     cd $WORK_DIR
     ln -sf $DL_DIR dl
     rm -fr crosstool-ng
-    git clone https://github.com/crosstool-ng/crosstool-ng.git
-    cd crosstool-ng
-    git checkout $CTNG_TAG
 
+    if [ ! -e $DL_DIR/crosstool-ng-$CTNG_TAG.tgz ]; then
+        git clone https://github.com/crosstool-ng/crosstool-ng.git
+        cd crosstool-ng
+        git checkout $CTNG_TAG
+        cd ..
+        tar -c -z --exclude=.git -f $DL_DIR/crosstool-ng-$CTNG_TAG.tgz crosstool-ng
+    fi
+
+    cd crosstool-ng
     ./bootstrap
     ./configure --prefix=$LOCAL_INSTALL_DIR
     make
