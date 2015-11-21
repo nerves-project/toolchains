@@ -70,7 +70,7 @@ init()
 {
     # Clean up an old build and create the work directory
     if [ $HOST_OS = "Darwin" ]; then
-        hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
+        hdiutil detach /Volumes/$WORK_DMG_VOLNAME 2>/dev/null || true
         rm -fr $WORK_DIR $WORK_DMG
         hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
