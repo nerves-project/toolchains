@@ -44,3 +44,10 @@ or the C library needs to change. The small defconfigs are stored in the
 `work-.../build/.config`. In that directory, you can run `make menuconfig` to
 change the `ctng` configuration. When you're done, run `make savedefconfig` and
 copy the result to the `configs` directory.
+
+## Toolchain configuration notes
+
+Glibc 2.22 has a `#define` change that breaks the Raspberry Pi userland
+(rpi-userland) package. You'll get an error that `EAI_AGAIN` and some other
+defines are missing sue to a `#ifdef` that changed from `__USE_POSIX` to
+`_USE_XOPEN2K`. Do *NOT* select glibc 2.22 until `rpi-userland` is fixed.
