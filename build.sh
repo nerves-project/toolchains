@@ -112,6 +112,8 @@ build_gcc()
         git checkout $CTNG_TAG
         cd ..
         tar -c -z --exclude=.git -f $DL_DIR/crosstool-ng-$CTNG_TAG.tgz crosstool-ng
+    else
+        tar xf $DL_DIR/crosstool-ng-$CTNG_TAG.tgz
     fi
 
     cd crosstool-ng
