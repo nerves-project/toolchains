@@ -7,7 +7,27 @@ ELIXIR_VERSION=1.1.1
 CTNG_TAG=625f7e66b43c8629c7ca27b062ff7adad9c2b859
 
 BASE_DIR=$(pwd)
-WORK_DIR=$BASE_DIR/work
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <config name>"
+    echo
+    echo "By convention, configurations are identified by <host>-<libc>-<abi>. The following"
+    echo "are some examples (look in the configs directory for more):"
+    echo
+    echo "linux-glibc-eabihf   -> Linux host, glibc on the target, hardware float"
+    echo "osx-glibc-eabihf     -> Mac host, glibc on the target, hardware float"
+    exit 1
+fi
+
+CONFIG=$1
+CTNG_CONFIG=$BASE_DIR/configs/$CONFIG.config
+
+if [ ! -e $CTNG_CONFIG ]; then
+    echo "Can't find $CTNG_CONFIG. Check that it exists."
+    exit 1
+fi
+
+WORK_DIR=$BASE_DIR/work-$CONFIG
 DL_DIR=$BASE_DIR/dl
 
 NERVES_TOOLCHAIN_TAG=$(git describe --always --dirty)
@@ -31,7 +51,6 @@ if [ $HOST_OS = "Darwin" ]; then
     # Need to specify the OpenSSL location
     ERLANG_CONFIGURE_ARGS=--with-ssl=/usr/local/bin
 
-    CTNG_CONFIG=$BASE_DIR/configs/osx.config
     CTNG_CC=/usr/local/bin/gcc-5
     CTNG_CXX=/usr/local/bin/c++-5
 
@@ -40,7 +59,6 @@ if [ $HOST_OS = "Darwin" ]; then
 elif [ $HOST_OS = "Linux" ]; then
     # Linux-specific updates
 
-    CTNG_CONFIG=$BASE_DIR/configs/linux.config
     CTNG_CC=/usr/bin/gcc
     CTNG_CXX=/usr/bin/c++
 else
@@ -99,7 +117,7 @@ build_gcc()
     # Build the toolchain
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
-    cp $CTNG_CONFIG .config
+    DEFCONFIG=$CTNG_CONFIG $LOCAL_INSTALL_DIR/bin/ct-ng defconfig
     CC=$CTNG_CC CXX=$CTNG_CXX $LOCAL_INSTALL_DIR/bin/ct-ng build
 
     TARGET_TUPLE=$(gcc_tuple)

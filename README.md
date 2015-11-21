@@ -36,3 +36,11 @@ Run `build.sh` and wait.
 
 TBD
 
+## Updating ctng config files
+
+You may need to update the `ctng` configurations if `gcc` needs to be upgraded
+or the C library needs to change. The small defconfigs are stored in the
+`configs` directory and expanded automatically by `build.sh` to
+`work-.../build/.config`. In that directory, you can run `make menuconfig` to
+change the `ctng` configuration. When you're done, run `make savedefconfig` and
+copy the result to the `configs` directory.
