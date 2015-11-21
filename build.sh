@@ -234,7 +234,12 @@ assemble_products()
 fini()
 {
     if [ $HOST_OS = "Darwin" ]; then
-        hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
+        # Try to unmount. It never works immediately, so wait before trying.
+        sleep 1
+        if [ ! hdiutil detach /Volumes/$WORK_DMG_VOLNAME ]; then
+            sleep 5
+            hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
+        fi
     fi
 }
 

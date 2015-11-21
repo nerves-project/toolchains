@@ -14,7 +14,8 @@ else
     exit 1
 fi
 
-CONFIGS="$CONFIG_PREFIX-glibc-eabihf"
+CONFIGS="$CONFIG_PREFIX-glibc-eabihf \
+         $CONFIG_PREFIX-glibc-eabihf-armv6"
 
 for CONFIG in $CONFIGS; do
     echo "Starting build for $CONFIG..."
