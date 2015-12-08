@@ -22,7 +22,7 @@ Install the following packages:
 ```
 brew update
 brew tap homebrew/dupes
-brew install gawk binutils xz wget automake
+brew install gawk binutils xz wget automake gnu-tar
 brew install libtool autoconf gnu-sed mpfr gmp gcc
 brew install grep -—with-default-names
 brew install --universal gettext
@@ -47,9 +47,21 @@ copy the result to the `configs` directory.
 
 ## Toolchain configuration notes
 
+### Glibc 2.22 / Raspberry Pi userland
+
 Glibc 2.22 has a `#define` change that breaks the Raspberry Pi userland
 (rpi-userland) package. You'll get an error that `EAI_AGAIN` and some other
 defines are missing due to a `#ifdef` that changed from `__USE_POSIX` to
 `_USE_XOPEN2K`. Do *NOT* select glibc 2.22 until `rpi-userland` is fixed.
 
 See https://bugs.busybox.net/show_bug.cgi?id=8446 for more details.
+
+### Case insensitive filesystems
+
+By default, the filesystems used on OSX are case insensitive. To get around
+this, we create a case-sensitive filesystem and build the cross-compilers in it.
+The build products also require a case-sensitive filesystem IF the user wants to
+use the Linux netfilter module. This is currently not a common use case for
+Nerves so the header file conflicts are removed in the OSX tarball version. See
+`build.sh` for details.
+
