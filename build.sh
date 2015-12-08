@@ -91,6 +91,7 @@ init()
 gcc_tuple()
 {
     # Figure out the target's tuple. It's the name of the only directory.
+    # Don't call this until after build_gcc()
     tuplepath=$(ls $GCC_INSTALL_DIR)
     if [ -e $tuplepath ]; then
         echo "unknown"
@@ -190,13 +191,19 @@ build_elixir()
     unzip -d $ELIXIR_INSTALL_DIR $DL_DIR/$ELIXIR_ZIP
 }
 
-assemble_tarball()
+toolchain_base_name()
+{
+    # Compute the base filename part of the build product
+    echo "nerves-toolchain-$TARGET_TUPLE-$HOST_OS-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG"
+}
+
+assemble_linux()
 {
     echo Building archive...
 
     # Assemble the tarball for the toolchain
     TARGET_TUPLE=$(gcc_tuple)
-    TARBALL_PATH=$BASE_DIR/nerves-toolchain-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.tar
+    TARBALL_PATH=$BASE_DIR/$(toolchain_base_name).tar
     TARXZ_PATH=$TARBALL_PATH.xz
 
     echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
@@ -207,13 +214,13 @@ assemble_tarball()
     xz $TARBALL_PATH
 }
 
-assemble_dmg()
+assemble_darwin()
 {
     echo Building DMG...
 
     # Assemble the tarball for the toolchain
     TARGET_TUPLE=`gcc_tuple`
-    DMG_PATH=$BASE_DIR/nerves-toolchain-$TARGET_TUPLE-linux-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG.dmg
+    DMG_PATH=$BASE_DIR/$(toolchain_base_name).dmg
 
     echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $DMG_PATH
@@ -227,9 +234,9 @@ assemble_dmg()
 assemble_products()
 {
     if [ $HOST_OS = "Darwin" ]; then
-        assemble_dmg
+        assemble_darwin
     elif [ $HOST_OS = "Linux" ]; then
-        assemble_tarball
+        assemble_linux
     fi
 }
 
