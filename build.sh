@@ -280,7 +280,7 @@ fini()
     if [ $HOST_OS = "Darwin" ]; then
         # Try to unmount. It never works immediately, so wait before trying.
         sleep 5
-        hdiutil detach /Volumes/$WORK_DMG_VOLNAME || true
+        hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
         rm -fr $WORK_DIR $WORK_DMG
     fi
 }
