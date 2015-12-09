@@ -4,7 +4,10 @@ set -e
 
 ERLANG_VERSION=18.1
 ELIXIR_VERSION=1.1.1
-CTNG_TAG=625f7e66b43c8629c7ca27b062ff7adad9c2b859
+
+# Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
+CTNG_USE_GIT=false
+CTNG_TAG=1.22.0
 
 BASE_DIR=$(pwd)
 
@@ -112,14 +115,20 @@ build_gcc()
     ln -sf $DL_DIR dl
     rm -fr crosstool-ng
 
-    if [ ! -e $DL_DIR/crosstool-ng-$CTNG_TAG.tgz ]; then
-        git clone https://github.com/crosstool-ng/crosstool-ng.git
-        cd crosstool-ng
-        git checkout $CTNG_TAG
-        cd ..
-        $TAR -c -z --exclude=.git -f $DL_DIR/crosstool-ng-$CTNG_TAG.tgz crosstool-ng
+    CTNG_TAR_XZ=crosstool-ng-$CTNG_TAG.tar.xz
+    if [ ! -e $DL_DIR/$CTNG_TAR_XZ ]; then
+        if [ $CTNG_USE_GIT = "true" ]; then
+            git clone https://github.com/crosstool-ng/crosstool-ng.git
+            cd crosstool-ng
+            git checkout $CTNG_TAG
+            cd ..
+            $TAR -c -J --exclude=.git -f $DL_DIR/$CTNG_TAR_XZ crosstool-ng
+        else
+            curl -L -o $DL_DIR/$CTNG_TAR_XZ http://crosstool-ng.org/download/crosstool-ng/$CTNG_TAR_XZ
+            $TAR xf $DL_DIR/$CTNG_TAR_XZ
+        fi
     else
-        $TAR xf $DL_DIR/crosstool-ng-$CTNG_TAG.tgz
+        $TAR xf $DL_DIR/$CTNG_TAR_XZ
     fi
 
     cd crosstool-ng

@@ -26,7 +26,7 @@ a Mac, this is `Darwin-x86_64`.
 Install the following packages:
 
 ```
-sudo apt-get install TBD
+sudo apt-get install help2man
 ```
 
 Run `build_release.sh` and wait.
@@ -38,7 +38,7 @@ Install the following packages:
 ```
 brew update
 brew tap homebrew/dupes
-brew install gawk binutils xz wget automake gnu-tar
+brew install gawk binutils xz wget automake gnu-tar help2man
 brew install libtool autoconf gnu-sed mpfr gmp gcc
 brew install grep -—with-default-names
 brew install --universal gettext
