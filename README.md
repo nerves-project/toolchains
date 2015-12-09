@@ -5,6 +5,22 @@ cross-compilers for the Nerves project. While pre-built toolchains exist for
 various hosts and targets, they don't seem to exist for the combination
 supported by Nerves. This project fills that gap.
 
+See the GitHub `Releases` tab to download the toolchain. The naming for
+toolchains is:
+
+    nerves-toolchain-<gcc tuple>-<host OS>-<host architecture>-<version>.tar.xz
+
+The `gcc tuple` is a standard way of describing a target. The most important parts
+are the architecture (e.g., `arm`) and the C Library and ABI (e.g.,
+`gnueabihf`). You will receive an error from Nerves if you mix toolchains. The
+easy way to decide which toolchain you need is the following:
+
+  * Raspberry Pi Model A+, B, or B+ - `armv6-rpi-linux-gnueabi`
+  * Raspberry Pi 2, BBB, and most other ARM boards - `arm-unknown-linux-gnueabihf`
+
+The `host OS` and `host architecture` describe your system. If you're running on
+a Mac, this is `Darwin-x86_64`.
+
 ## Linux
 
 Install the following packages:
