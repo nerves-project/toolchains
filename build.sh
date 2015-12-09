@@ -277,12 +277,16 @@ assemble_products()
 
 fini()
 {
+    # Clean up our work since the disk space that it uses is quite significant
+    # NOTE: If you're debugging ct-ng configs, you'll want to comment out the
+    #       call to fini at the end.
     if [ $HOST_OS = "Darwin" ]; then
         # Try to unmount. It never works immediately, so wait before trying.
         sleep 5
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
-        rm -fr $WORK_DIR $WORK_DMG
+        rm -f $WORK_DMG
     fi
+    rm -fr $WORK_DIR
 }
 
 init
