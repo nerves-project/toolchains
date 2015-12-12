@@ -17,8 +17,8 @@ if [ $# -lt 1 ]; then
     echo "By convention, configurations are identified by <host>-<libc>-<abi>. The following"
     echo "are some examples (look in the configs directory for more):"
     echo
-    echo "linux-glibc-eabihf   -> Linux host, glibc on the target, hardware float"
-    echo "osx-glibc-eabihf     -> Mac host, glibc on the target, hardware float"
+    echo "Linux-glibc-eabihf    -> Linux host, glibc on the target, hardware float"
+    echo "Darwin-glibc-eabihf   -> Mac host, glibc on the target, hardware float"
     exit 1
 fi
 
