@@ -65,9 +65,6 @@ if [ $HOST_OS = "Darwin" ]; then
 
 elif [ $HOST_OS = "Linux" ]; then
     # Linux-specific updates
-
-    CTNG_CC=/usr/bin/gcc
-    CTNG_CXX=/usr/bin/c++
     TAR=tar
 else
     echo "Unknown host OS: $HOST_OS"
@@ -132,7 +129,9 @@ build_gcc()
     fi
 
     cd crosstool-ng
-    ./bootstrap
+    if [ $CTNG_USE_GIT = "true"; then
+        ./bootstrap
+    fi
     ./configure --prefix=$LOCAL_INSTALL_DIR
     make
     make install
@@ -141,7 +140,11 @@ build_gcc()
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
     DEFCONFIG=$CTNG_CONFIG $LOCAL_INSTALL_DIR/bin/ct-ng defconfig
-    CC=$CTNG_CC CXX=$CTNG_CXX $LOCAL_INSTALL_DIR/bin/ct-ng build
+    if [ -z $CTNG_CC ]; then
+        $LOCAL_INSTALL_DIR/bin/ct-ng build
+    else
+        CC=$CTNG_CC CXX=$CTNG_CXX $LOCAL_INSTALL_DIR/bin/ct-ng build
+    fi
 
     TARGET_TUPLE=$(gcc_tuple)
 

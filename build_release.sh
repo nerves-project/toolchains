@@ -5,17 +5,10 @@ echo "Going to build version '$(git describe --dirty)'. Hit CTRL-C to stop..."
 sleep 2
 
 HOST_OS=$(uname -s)
-if [ $HOST_OS = "Darwin" ]; then
-    CONFIG_PREFIX="osx"
-elif [ $HOST_OS = "Linux" ]; then
-    CONFIG_PREFIX="linux"
-else
-    echo "Unknown host platform: $HOST_OS"
-    exit 1
-fi
 
-CONFIGS="$CONFIG_PREFIX-glibc-eabihf \
-         $CONFIG_PREFIX-glibc-eabihf-armv6"
+CONFIGS="$HOST_OS-glibc-eabihf \
+         $HOST_OS-glibc-eabihf-armv6 \
+         $HOST_OS-musl-eabihf-armv6"
 
 for CONFIG in $CONFIGS; do
     echo "Starting build for $CONFIG..."
