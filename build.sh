@@ -129,7 +129,7 @@ build_gcc()
     fi
 
     cd crosstool-ng
-    if [ $CTNG_USE_GIT = "true"; then
+    if [ $CTNG_USE_GIT = "true" ]; then
         ./bootstrap
     fi
     ./configure --prefix=$LOCAL_INSTALL_DIR
