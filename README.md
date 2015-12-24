@@ -24,7 +24,7 @@ a Mac, this is `Darwin-x86_64`.
 When in doubt, use the glibc library toolchains. Almost all code works with the
 glibc C library. If you desire the smallest possible target binaries, the musl
 toolchain is the way to go. Nerves has been lightly tested against it, but it is
-an experimental feature.
+an experimental feature and not built by default due to issues on OSX.
 
 ## Linux
 
