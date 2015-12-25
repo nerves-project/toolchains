@@ -14,11 +14,16 @@ BASE_DIR=$(pwd)
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <config name>"
     echo
-    echo "By convention, configurations are identified by <host>-<libc>-<abi>. The following"
-    echo "are some examples (look in the configs directory for more):"
+    echo "By convention, configurations are identified by <host>-<libc>-<arch/abi>. The following"
+    echo "are some examples (look in the configs directory for details):"
     echo
-    echo "Linux-glibc-eabihf    -> Linux host, glibc on the target, hardware float"
-    echo "Darwin-glibc-eabihf   -> Mac host, glibc on the target, hardware float"
+    echo "Linux-glibc-eabihf    -> Linux host, ARM target with glibc, hardware float"
+    echo "Darwin-glibc-eabihf   -> Mac host, ARM target with glibc, hardware float"
+    echo
+    echo "Available configs:"
+    for config in $(ls configs); do
+        echo "  $(basename $config .config)"
+    done
     exit 1
 fi
 
