@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -11,23 +11,42 @@ CTNG_TAG=1.22.0
 
 BASE_DIR=$(pwd)
 
+HOST_ARCH=$(uname -m)
+HOST_OS=$(uname -s)
+if [ $HOST_OS = "CYGWIN_NT-6.1" ]; then
+    # A simple Cygwin looks better.
+    HOST_OS="Cygwin"
+fi
+
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <config name>"
+    echo "Usage: $0 <config fragment>"
     echo
-    echo "By convention, configurations are identified by <host>-<libc>-<arch/abi>. The following"
-    echo "are some examples (look in the configs directory for details):"
+    echo "This is the Nerves toolchain builder. Toolchains include a cross-compiler,"
+    echo "an Erlang compiler matched to the one used in the Nerves system images,"
+    echo "and a matched Elixir compiler."
     echo
-    echo "Linux-glibc-eabihf    -> Linux host, ARM target with glibc, hardware float"
-    echo "Darwin-glibc-eabihf   -> Mac host, ARM target with glibc, hardware float"
+    echo "By convention, configurations are identified by <host>-<libc>-<arch/abi>."
+    echo "The following are some examples (look in the configs directory for details):"
     echo
-    echo "Available configs:"
+    echo "Linux-glibc-eabihf.config  -> Linux host, ARM target with glibc, hardware float"
+    echo "Darwin-glibc-eabihf.config -> Mac host, ARM target with glibc, hardware float"
+    echo
+    echo "Pass the <libc>-<arch/abi> part for the first parameter."
+    echo
+    echo "Valid options for this platform:"
     for config in $(ls configs); do
-        echo "  $(basename $config .config)"
+        case $config in
+            $HOST_OS-*)
+                CONFIG_FRAGMENT=$(basename $config .config | sed -e "s/$HOST_OS-//")
+                echo "  $0 $CONFIG_FRAGMENT"
+                ;;
+            *)
+        esac
     done
     exit 1
 fi
 
-CONFIG=$1
+CONFIG=$HOST_OS-$1
 CTNG_CONFIG=$BASE_DIR/configs/$CONFIG.config
 
 if [ ! -e $CTNG_CONFIG ]; then
@@ -39,8 +58,6 @@ WORK_DIR=$BASE_DIR/work-$CONFIG
 DL_DIR=$BASE_DIR/dl
 
 NERVES_TOOLCHAIN_TAG=$(git describe --always --dirty)
-HOST_ARCH=$(uname -m)
-HOST_OS=$(uname -s)
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
 LOCAL_INSTALL_DIR=$WORK_DIR/usr
@@ -71,6 +88,12 @@ if [ $HOST_OS = "Darwin" ]; then
 elif [ $HOST_OS = "Linux" ]; then
     # Linux-specific updates
     TAR=tar
+elif [ $HOST_OS = "Cygwin" ]; then
+    # Windows-specific updates
+    TAR=tar
+
+    # For crosstool-ng
+    export AWK=gawk
 else
     echo "Unknown host OS: $HOST_OS"
     exit 1
@@ -85,7 +108,7 @@ init()
         hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
         ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
-    elif [ $HOST_OS = "Linux" ]; then
+    elif [ $HOST_OS = "Linux" ] || [ $HOST_OS = "Cygwin" ]; then
         if [ -e $WORK_DIR ]; then
             chmod -R u+w $WORK_DIR
             rm -fr $WORK_DIR
@@ -288,6 +311,10 @@ assemble_products()
         fix_kernel_case_conflicts
         assemble_tarball
     elif [ $HOST_OS = "Linux" ]; then
+        assemble_tarball
+    elif [ $HOST_OS = "Cygwin" ]; then
+        # Windows is case insensitive by default, so fix the conflicts
+        fix_kernel_case_conflicts
         assemble_tarball
     fi
 }
