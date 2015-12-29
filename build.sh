@@ -74,7 +74,7 @@ if [ $HOST_OS = "Darwin" ]; then
     ulimit -n 512
 
     # Need to specify the OpenSSL location
-    ERLANG_CONFIGURE_ARGS=--with-ssl=/usr/local/bin
+    ERLANG_CONFIGURE_ARGS=--with-ssl=/usr/local/opt/openssl
 
     CTNG_CC=/usr/local/bin/gcc-5
     CTNG_CXX=/usr/local/bin/c++-5
