@@ -304,16 +304,16 @@ fix_kernel_case_conflicts()
 
 assemble_products()
 {
-    if [ $HOST_OS = "Darwin" ]; then
+    if [ $HOST_OS = "darwin" ]; then
         # Assemble .dmg file first
         assemble_dmg
 
         # Prune out filenames with case conflicts and make a tarball
         fix_kernel_case_conflicts
         assemble_tarball
-    elif [ $HOST_OS = "Linux" ]; then
+    elif [ $HOST_OS = "linux" ]; then
         assemble_tarball
-    elif [ $HOST_OS = "Cygwin" ]; then
+    elif [ $HOST_OS = "cygwin" ]; then
         # Windows is case insensitive by default, so fix the conflicts
         fix_kernel_case_conflicts
         assemble_tarball
@@ -325,7 +325,7 @@ fini()
     # Clean up our work since the disk space that it uses is quite significant
     # NOTE: If you're debugging ct-ng configs, you'll want to comment out the
     #       call to fini at the end.
-    if [ $HOST_OS = "Darwin" ]; then
+    if [ $HOST_OS = "darwin" ]; then
         # Try to unmount. It never works immediately, so wait before trying.
         sleep 5
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
@@ -335,10 +335,10 @@ fini()
 }
 
 init
-# build_gcc
-# build_erlang
-# build_elixir
-# assemble_products
-# fini
+build_gcc
+build_erlang
+build_elixir
+assemble_products
+fini
 
 # echo "All done!"
