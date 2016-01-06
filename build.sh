@@ -341,4 +341,4 @@ build_elixir
 assemble_products
 fini
 
-# echo "All done!"
+echo "All done!"
