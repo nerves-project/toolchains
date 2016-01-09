@@ -55,6 +55,8 @@ Run `build_release.sh` and wait.
 
 ## Windows
 
+### Windows toolchains are not supported yet
+
 Install [Chocolatey](https://chocolatey.org/). Then, from a command prompt with
 administrative privileges (not the same one that you installed Chocolatey), run:
 
