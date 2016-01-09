@@ -15,8 +15,9 @@ HOST_ARCH=$(uname -m)
 HOST_OS=$(uname -s)
 if [ $HOST_OS = "CYGWIN_NT-6.1" ]; then
     # A simple Cygwin looks better.
-    HOST_OS="Cygwin"
+    HOST_OS="cygwin"
 fi
+HOST_OS=$(echo "$HOST_OS" | awk '{print tolower($0)}')
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <config fragment>"
@@ -49,7 +50,7 @@ fi
 CONFIG=$HOST_OS-$1
 CTNG_CONFIG=$BASE_DIR/configs/$CONFIG.config
 
-if [ ! -e $CTNG_CONFIG ]; then
+if [[ ! -e $CTNG_CONFIG ]]; then
     echo "Can't find $CTNG_CONFIG. Check that it exists."
     exit 1
 fi
@@ -67,7 +68,7 @@ GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the c
 ERL_INSTALL_DIR=$WORK_DIR/erlang-install
 ELIXIR_INSTALL_DIR=$WORK_DIR/elixir-install
 
-if [ $HOST_OS = "Darwin" ]; then
+if [ $HOST_OS = "darwin" ]; then
     # Mac-specific updates
 
     # We run out of file handles when building for Mac
@@ -85,10 +86,10 @@ if [ $HOST_OS = "Darwin" ]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=nerves-toolchain-work
 
-elif [ $HOST_OS = "Linux" ]; then
+elif [ $HOST_OS = "linux" ]; then
     # Linux-specific updates
     TAR=tar
-elif [ $HOST_OS = "Cygwin" ]; then
+elif [ $HOST_OS = "cygwin" ]; then
     # Windows-specific updates
     TAR=tar
 
@@ -102,13 +103,13 @@ fi
 init()
 {
     # Clean up an old build and create the work directory
-    if [ $HOST_OS = "Darwin" ]; then
+    if [ $HOST_OS = "darwin" ]; then
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME 2>/dev/null || true
         rm -fr $WORK_DIR $WORK_DMG
         hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
         ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
-    elif [ $HOST_OS = "Linux" ] || [ $HOST_OS = "Cygwin" ]; then
+    elif [ $HOST_OS = "linux" ] || [ $HOST_OS = "cygwin" ]; then
         if [ -e $WORK_DIR ]; then
             chmod -R u+w $WORK_DIR
             rm -fr $WORK_DIR
@@ -239,7 +240,7 @@ build_elixir()
 toolchain_base_name()
 {
     # Compute the base filename part of the build product
-    echo "nerves-toolchain-$TARGET_TUPLE-$HOST_OS-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG"
+    echo "nerves-$TARGET_TUPLE-$HOST_OS-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG"
 }
 
 assemble_tarball()
@@ -250,12 +251,12 @@ assemble_tarball()
     TARGET_TUPLE=$(gcc_tuple)
     TARBALL_PATH=$BASE_DIR/$(toolchain_base_name).tar
     TARXZ_PATH=$TARBALL_PATH.xz
-
+    TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
     echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $TARBALL_PATH $TARXZ_PATH
-    $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,nerves-toolchain," $TARGET_TUPLE
-    $TAR r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^erlang-install,nerves-toolchain," erlang-install
-    $TAR r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^elixir-install,nerves-toolchain," elixir-install
+    $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
+    $TAR r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^erlang-install,$TOOLCHAIN_BASE_NAME," erlang-install
+    $TAR r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^elixir-install,$TOOLCHAIN_BASE_NAME," elixir-install
     xz $TARBALL_PATH
 }
 
@@ -303,16 +304,16 @@ fix_kernel_case_conflicts()
 
 assemble_products()
 {
-    if [ $HOST_OS = "Darwin" ]; then
+    if [ $HOST_OS = "darwin" ]; then
         # Assemble .dmg file first
         assemble_dmg
 
         # Prune out filenames with case conflicts and make a tarball
         fix_kernel_case_conflicts
         assemble_tarball
-    elif [ $HOST_OS = "Linux" ]; then
+    elif [ $HOST_OS = "linux" ]; then
         assemble_tarball
-    elif [ $HOST_OS = "Cygwin" ]; then
+    elif [ $HOST_OS = "cygwin" ]; then
         # Windows is case insensitive by default, so fix the conflicts
         fix_kernel_case_conflicts
         assemble_tarball
@@ -324,7 +325,7 @@ fini()
     # Clean up our work since the disk space that it uses is quite significant
     # NOTE: If you're debugging ct-ng configs, you'll want to comment out the
     #       call to fini at the end.
-    if [ $HOST_OS = "Darwin" ]; then
+    if [ $HOST_OS = "darwin" ]; then
         # Try to unmount. It never works immediately, so wait before trying.
         sleep 5
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
