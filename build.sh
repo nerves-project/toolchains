@@ -3,7 +3,7 @@
 set -e
 
 ERLANG_VERSION=18.1
-ELIXIR_VERSION=1.1.1
+ELIXIR_VERSION=1.2.0
 
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 CTNG_USE_GIT=false
