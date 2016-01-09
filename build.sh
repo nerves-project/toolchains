@@ -29,8 +29,8 @@ if [ $# -lt 1 ]; then
     echo "By convention, configurations are identified by <host>-<libc>-<arch/abi>."
     echo "The following are some examples (look in the configs directory for details):"
     echo
-    echo "Linux-glibc-eabihf.config  -> Linux host, ARM target with glibc, hardware float"
-    echo "Darwin-glibc-eabihf.config -> Mac host, ARM target with glibc, hardware float"
+    echo "linux-glibc-eabihf.config  -> Linux host, ARM target with glibc, hardware float"
+    echo "darwin-glibc-eabihf.config -> Mac host, ARM target with glibc, hardware float"
     echo
     echo "Pass the <libc>-<arch/abi> part for the first parameter."
     echo
