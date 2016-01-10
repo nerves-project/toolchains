@@ -157,6 +157,9 @@ build_gcc()
         $TAR xf $DL_DIR/$CTNG_TAR_XZ
     fi
 
+    # Apply patches
+    $BASE_DIR/scripts/apply-patches.sh crosstool-ng $BASE_DIR/patches/crosstool-ng
+
     cd crosstool-ng
     if [ $CTNG_USE_GIT = "true" ]; then
         ./bootstrap

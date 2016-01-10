@@ -134,3 +134,12 @@ use the Linux netfilter module. This is currently not a common use case for
 Nerves so the header file conflicts are removed in the OSX tarball version. See
 `build.sh` for details.
 
+## License
+
+For the most part this code contains configurations and automates calls to other
+projects, notably crosstool-ng. The `build.sh` script is licensed under the
+Apache 2 License. Please see the numerous integrated projects for their
+licenses.
+
+`scripts/apply-patches.sh` is from the Buildroot project and is released under the
+GNU General Public License, version 2 or later.
