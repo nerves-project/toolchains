@@ -47,7 +47,6 @@ brew install gawk binutils xz wget automake gnu-tar help2man
 brew install libtool autoconf gnu-sed mpfr gmp gcc
 brew install grep -—with-default-names
 brew install --universal gettext
-brew link --force gettext
 
 ```
 
