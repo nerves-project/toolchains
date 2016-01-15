@@ -31,7 +31,7 @@ an experimental feature and not built by default due to issues on OSX.
 Install the following packages:
 
 ```
-sudo apt-get install bison flex gperf libncurses5-dev texinfo help2man libssl-dev gawk
+sudo apt-get install bison flex gperf libncurses5-dev texinfo help2man libssl-dev gawk libtool-bin automake
 ```
 
 Run `build_release.sh` and wait.
