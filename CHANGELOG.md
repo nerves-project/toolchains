@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.6.0
+
+This version removes Erlang and Elixir from the toolchain. While this was
+convenient for creating repeatable builds, differences between Linux
+distributions were great enough that multiple versions would need to be made
+just for Linux. Aside from this, the versions made here could not easily be
+used in nerves-system-br builds and most users had sufficiently compatible
+versions of Erlang already. Bakeware will be responsible for matching versions
+exactly and nerves-system-br will be responsible for providing errors and
+warnings when host/target Erlang and Elixir versions do not match.
+
+  * Tool versions
+    * gcc 4.9.3
+    * glibc 2.21
+
 ## v0.5.0
 
   * Tool versions

@@ -2,9 +2,6 @@
 
 set -e
 
-ERLANG_VERSION=18.1
-ELIXIR_VERSION=1.2.0
-
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 CTNG_USE_GIT=false
 CTNG_TAG=1.22.0
@@ -22,9 +19,8 @@ HOST_OS=$(echo "$HOST_OS" | awk '{print tolower($0)}')
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <config fragment>"
     echo
-    echo "This is the Nerves toolchain builder. Toolchains include a cross-compiler,"
-    echo "an Erlang compiler matched to the one used in the Nerves system images,"
-    echo "and a matched Elixir compiler."
+    echo "This is the Nerves toolchain builder. It produces cross-compilers that"
+    echo "work across the operating systems supported by Nerves."
     echo
     echo "By convention, configurations are identified by <host>-<libc>-<arch/abi>."
     echo "The following are some examples (look in the configs directory for details):"
@@ -65,17 +61,12 @@ LOCAL_INSTALL_DIR=$WORK_DIR/usr
 
 # Install directories for the tools we make
 GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the config file
-ERL_INSTALL_DIR=$WORK_DIR/erlang-install
-ELIXIR_INSTALL_DIR=$WORK_DIR/elixir-install
 
 if [ $HOST_OS = "darwin" ]; then
     # Mac-specific updates
 
     # We run out of file handles when building for Mac
     ulimit -n 512
-
-    # Need to specify the OpenSSL location
-    ERLANG_CONFIGURE_ARGS=--with-ssl=/usr/local/opt/openssl
 
     CTNG_CC=/usr/local/bin/gcc-5
     CTNG_CXX=/usr/local/bin/c++-5
@@ -117,7 +108,6 @@ init()
         mkdir -p $WORK_DIR
     fi
 
-    mkdir -p $ERL_INSTALL_DIR
     mkdir -p $GCC_INSTALL_DIR
     mkdir -p $DL_DIR
 }
@@ -188,58 +178,6 @@ build_gcc()
     rm -f $GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2
 }
 
-build_erlang()
-{
-    # Build and install ct-ng to the work directory
-    cd $WORK_DIR
-
-    ERLANG_SRC=otp_src_$ERLANG_VERSION
-    ERLANG_TAR_GZ=$ERLANG_SRC.tar.gz
-    [ -e $DL_DIR/$ERLANG_TAR_GZ ] || curl -L -o $DL_DIR/$ERLANG_TAR_GZ http://www.erlang.org/download/$ERLANG_TAR_GZ
-
-    rm -fr $ERLANG_SRC
-    $TAR xf $DL_DIR/$ERLANG_TAR_GZ
-    cd $ERLANG_SRC
-
-    # Disabling HiPE is the most important part, since we don't support HiPE
-    # in Nerves. It is crucial that erlc not precompile anything or else the
-    # BEAM files won't run on the target.
-    #
-    # While we're at it, disable a few more things to make the install smaller and
-    # to hopefully dissuade anyone from using this Erlang install for much more than
-    # running erlc.
-    #
-    # NOTE: All OTP applications (possibly barring the GUI ones) are enabled
-    #  on the embedded side. The ones here aren't used for the embedded side since
-    #  they may contain x86 code or other desktop-specific settings. We still
-    #  need a compatible erlc on the host, though, and that's what this is all about.
-    ./configure --prefix=$ERL_INSTALL_DIR --disable-hipe --without-javac --disable-sctp \
-        --without-termcap --without-odbc --without-wx --without-megaco --without-snmp \
-        --without-gs --without-otp_mibs --without-jinterface --without-diameter \
-        --without-orber --without-cosTransactions --without-cosEvent --without-cosTime \
-        --without-cosNotification --without-cosProperty --without-cosFileTransfer \
-        --without-cosEventDomain --without-ose $ERLANG_CONFIGURE_ARGS
-    make -j6
-    make install
-
-    # Fix up the absolute paths in the scripts
-    find $ERL_INSTALL_DIR -type f \( -name "start" -o -name "erl" \) | \
-        xargs -n 1 $BASE_DIR/scripts/fix-erlang-abspaths.py $ERL_INSTALL_DIR
-}
-
-build_elixir()
-{
-    # Build and install ct-ng to the work directory
-    cd $WORK_DIR
-
-    ELIXIR_ZIP=elixir-$ELIXIR_VERSION-precompiled.zip
-    [ -e $DL_DIR/$ELIXIR_ZIP ] || curl -L -o $DL_DIR/$ELIXIR_ZIP https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip
-
-    # Elixir is so easy to "install"
-    rm -fr $ELIXIR_INSTALL_DIR
-    unzip -d $ELIXIR_INSTALL_DIR $DL_DIR/$ELIXIR_ZIP
-}
-
 toolchain_base_name()
 {
     # Compute the base filename part of the build product
@@ -258,8 +196,6 @@ assemble_tarball()
     echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $TARBALL_PATH $TARXZ_PATH
     $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
-    $TAR r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^erlang-install,$TOOLCHAIN_BASE_NAME," erlang-install
-    $TAR r -C $WORK_DIR -f $TARBALL_PATH --transform "s,^elixir-install,$TOOLCHAIN_BASE_NAME," elixir-install
     xz $TARBALL_PATH
 }
 
@@ -284,8 +220,6 @@ assemble_dmg()
     rm -f $DMG_PATH
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
                     -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE/. \
-                    -srcfolder $WORK_DIR/erlang-install/. \
-                    -srcfolder $WORK_DIR/elixir-install/. \
                     $DMG_PATH
 }
 
@@ -339,8 +273,6 @@ fini()
 
 init
 build_gcc
-build_erlang
-build_elixir
 assemble_products
 fini
 
