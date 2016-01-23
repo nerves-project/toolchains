@@ -113,7 +113,9 @@ not compile some older Linux kernels that are still in use.
 
 When possible hard float ABI (`eabihf`) toolchains are preferred. This appears to be
 the prevaling preference for ARM toolchains, so in the offchance that we need to
-run code from a binary blob, this provides the best chance of success.
+run code from a binary blob, this provides the best chance of success. For ARM
+processors that don't have hardware floating point instructions, use the `eabi`
+versions of the ARM toolchain.
 
 ### Glibc 2.22 / Raspberry Pi userland
 
