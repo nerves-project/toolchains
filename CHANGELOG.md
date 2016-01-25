@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.1
+
+  * New features
+    * Support for ARM processors w/o floating point (ARM926)
+
 ## v0.6.0
 
 This version removes Erlang and Elixir from the toolchain. While this was
