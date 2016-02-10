@@ -6,7 +6,7 @@
   "httpoison": {:hex, :httpoison, "0.8.1"},
   "idna": {:hex, :idna, "1.0.3"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
-  "nerves_toolchain": {:git, "https://github.com/nerves-project/nerves-toolchain.git", "689400b126d55def15f5dd61880a73dd850c33f0", [branch: "mix"]},
+  "nerves_toolchain": {:git, "https://github.com/nerves-project/nerves-toolchain.git", "5b7c36914497fc734345f62c781610b260c93d3f", [branch: "mix"]},
   "phoenix_channel_client": {:git, "https://github.com/mobileoverlord/phoenix_channel_client.git", "6a9e55dab722b1c40d73e0767d1ffcadf3337d0f", []},
   "poison": {:hex, :poison, "1.5.2"},
   "porcelain": {:hex, :porcelain, "2.0.1"},
