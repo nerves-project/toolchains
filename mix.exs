@@ -16,6 +16,6 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   end
 
   defp deps do
-    [{:nerves_toolchain, path: "../nerves_toolchain"}]
+    [{:nerves_toolchain, github: "nerves-project/nerves-toolchain", branch: "mix"}]
   end
 end
