@@ -3,7 +3,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   def project do
     [app: :nerves_toolchain_arm_unknown_linux_gnueabihf,
-     version: "0.5.0",
+     version: "0.7.0-dev",
      elixir: "~> 1.2",
      compilers: Mix.compilers ++ [:nerves_toolchain],
      deps: deps]
@@ -16,6 +16,6 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   end
 
   defp deps do
-    [{:nerves_toolchain, github: "nerves-project/nerves-toolchain", branch: "mix"}]
+    [{:nerves_toolchain, github: "nerves-project/nerves_toolchain"}]
   end
 end
