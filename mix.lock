@@ -1,0 +1,8 @@
+%{"certifi": {:hex, :certifi, "0.4.0"},
+  "hackney": {:hex, :hackney, "1.5.7"},
+  "httpoison": {:hex, :httpoison, "0.8.2"},
+  "idna": {:hex, :idna, "1.2.0"},
+  "metrics": {:hex, :metrics, "1.0.1"},
+  "mimerl": {:hex, :mimerl, "1.0.2"},
+  "nerves_toolchain": {:git, "https://github.com/nerves-project/nerves_toolchain.git", "74e9244ffebd94085708e1d50b032566dacdc5ee", []},
+  "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0"}}
