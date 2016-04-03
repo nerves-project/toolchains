@@ -3,7 +3,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   def project do
     [app: :nerves_toolchain_arm_unknown_linux_gnueabihf,
-     version: "0.7.0-dev",
+     version: "0.6.0",
      elixir: "~> 1.2",
      compilers: Mix.compilers ++ [:nerves_toolchain],
      description: description,
