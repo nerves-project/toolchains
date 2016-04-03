@@ -6,6 +6,8 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
      version: "0.7.0-dev",
      elixir: "~> 1.2",
      compilers: Mix.compilers ++ [:nerves_toolchain],
+     description: description,
+     package: package,
      deps: deps]
   end
 
