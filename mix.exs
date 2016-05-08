@@ -18,7 +18,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   end
 
   defp deps do
-    [{:nerves_toolchain, github: "nerves-project/nerves_toolchain"}]
+    [{:nerves_toolchain, "~> 0.6.1"}]
   end
 
   defp description do

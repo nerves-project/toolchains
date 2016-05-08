@@ -7,7 +7,7 @@
   "idna": {:hex, :idna, "1.2.0"},
   "metrics": {:hex, :metrics, "1.0.1"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
-  "nerves_toolchain": {:git, "https://github.com/nerves-project/nerves_toolchain.git", "74e9244ffebd94085708e1d50b032566dacdc5ee", []},
+  "nerves_toolchain": {:hex, :nerves_toolchain, "0.6.1"},
   "phoenix_channel_client": {:git, "https://github.com/mobileoverlord/phoenix_channel_client.git", "6a9e55dab722b1c40d73e0767d1ffcadf3337d0f", []},
   "poison": {:hex, :poison, "1.5.2"},
   "porcelain": {:hex, :porcelain, "2.0.1"},
