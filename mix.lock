@@ -4,5 +4,5 @@
   "idna": {:hex, :idna, "1.2.0"},
   "metrics": {:hex, :metrics, "1.0.1"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
-  "nerves_toolchain": {:git, "https://github.com/nerves-project/nerves_toolchain.git", "29720a24d33012d2da7d4568c5b3f58166f0f888", []},
+  "nerves_toolchain": {:hex, :nerves_toolchain, "0.6.1"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0"}}
