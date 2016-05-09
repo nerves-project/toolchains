@@ -3,7 +3,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   def project do
     [app: :nerves_toolchain_arm_unknown_linux_gnueabihf,
-     version: "0.6.0",
+     version: "0.6.1",
      elixir: "~> 1.2",
      compilers: Mix.compilers ++ [:nerves_toolchain],
      description: description,
@@ -18,7 +18,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   end
 
   defp deps do
-    [{:nerves_toolchain, "~> 0.6.1"}]
+    [{:nerves_toolchain, "~> 0.6.2"}]
   end
 
   defp description do
@@ -29,7 +29,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "src", "README.md", "LICENSE", "nerves.exs"],
+     files: ["lib", "src", "README.md", "LICENSE", "nerves.exs", "mix.exs"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/nerves_toolchain_arm_unknown_linux_gnueabihf"}]
   end
