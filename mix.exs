@@ -33,7 +33,7 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "src", "README.md", "LICENSE", "nerves.exs", "mix.exs"],
+     files: ["lib", "src", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/nerves_toolchain_armv6_rpi_linux_gnueabi"}]
   end

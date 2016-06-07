@@ -5,7 +5,7 @@ version =
   |> File.read!
   |> String.strip
 
-config :nerves_toolchain_arm_unknown_linux_gnueabi, :nerves_env,
+config :nerves_toolchain_armv6_rpi_linux_gnueabi, :nerves_env,
   type: :toolchain,
   target_tuple: "armv6-rpi-linux-gnueabi",
   mirrors: [

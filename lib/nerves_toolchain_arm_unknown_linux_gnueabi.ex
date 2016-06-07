@@ -1,3 +1,3 @@
-defmodule NervesToolchainArmUnknownLinuxGnueabi do
+defmodule NervesToolchainArmv6RpiLinuxGnueabi do
 
 end
