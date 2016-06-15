@@ -3,8 +3,8 @@
 set -e
 
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
-CTNG_USE_GIT=false
-CTNG_TAG=1.22.0
+CTNG_USE_GIT=true
+CTNG_TAG=7300eb17b43a38320d25dff47230f483a82b4154
 
 BASE_DIR=$(pwd)
 
@@ -67,9 +67,6 @@ if [ $HOST_OS = "darwin" ]; then
 
     # We run out of file handles when building for Mac
     ulimit -n 512
-
-    CTNG_CC=/usr/local/bin/gcc-5
-    CTNG_CXX=/usr/local/bin/c++-5
 
     # Use GNU tar from Homebrew (brew install gnu-tar)
     TAR=gtar

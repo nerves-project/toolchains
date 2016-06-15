@@ -7,10 +7,9 @@ sleep 2
 CONFIGS="glibc-eabihf \
          glibc-eabihf-armv6 \
          glibc-i586 \
-         glibc-eabi"
-
-# Comment out musl support since it doesn't build on OSX
-#         musl-eabihf-armv6"
+         glibc-eabi \
+         musl-eabihf \
+         musl-mipsel_24kec"
 
 for CONFIG in $CONFIGS; do
     echo "Starting build for $CONFIG..."
