@@ -1,16 +1,10 @@
-# NervesToolchainArmv6RpiLinuxGnueabi
+# Nerves Toolchain: armv6_rpi_linux_gnueabi
 
-## Installation
+This is a Nerves Toolchain repository.
+If you're just trying to use Nerves (i.e. not develop support for new Target hardware), you don't need to use it directly.
+You can read more about [how to use pre-built Systems in the Nerves Documentation](https://hexdocs.pm/nerves/systems.html).
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
-
-  1. Add nerves_toolchain_armv6_rpi_linux_gnueabi to your list of dependencies in `mix.exs`:
-
-        def deps do
-          [{:nerves_toolchain_armv6_rpi_linux_gnueabi, "~> 0.6.0"}]
-
-  2. Ensure nerves_toolchain_armv6_rpi_linux_gnueabi is started before your application:
-
-        def application do
-          [applications: [:nerves_toolchain_armv6_rpi_linux_gnueabi]]
-        end
+Its purpose is to:
+  1. provide a place to put configuration for this particular Nerves Toolchain,
+  2. act as a repository for this particular pre-built Nerves Toolchain (using the GitHub Releases feature), and
+  3. allow a small package to be published to Hex, so it can inject the correct Toolchain into a Nerves compilation using Mix.
