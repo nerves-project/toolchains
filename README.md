@@ -8,3 +8,7 @@ Its purpose is to:
   1. provide a place to put configuration for this particular Nerves Toolchain,
   2. act as a repository for this particular pre-built Nerves Toolchain (using the GitHub Releases feature), and
   3. allow a small package to be published to Hex, so it can inject the correct Toolchain into a Nerves compilation using Mix.
+
+This Toolchain is used by the `rpi` Target.
+
+You can read more about [supported Targets in the Nerves Documentation](https://hexdocs.pm/nerves/targets.html).
