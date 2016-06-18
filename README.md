@@ -1,20 +1,14 @@
-# NervesToolchainArmUnknownLinuxGnueabihf
+# Nerves Toolchain: arm_unknown_linux_gnueabihf
 
-**TODO: Add description**
+This is a Nerves Toolchain repository.
+If you're just trying to use Nerves (i.e. not develop support for new Target hardware), you don't need to use it directly.
+You can read more about [how to use pre-built Systems in the Nerves Documentation](https://hexdocs.pm/nerves/systems.html).
 
-## Installation
+Its purpose is to:
+  1. provide a place to put configuration for this particular Nerves Toolchain,
+  2. act as a repository for this particular pre-built Nerves Toolchain (using the GitHub Releases feature), and
+  3. allow a small package to be published to Hex, so it can inject the correct Toolchain into a Nerves compilation using Mix.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+This Toolchain is used by the `bbb`, `qemu_arm`, `rpi2`, and `rpi3` Targets.
 
-  1. Add nerves_toolchain_arm_unknown_linux_gnueabihf to your list of dependencies in `mix.exs`:
-
-        def deps do
-          [{:nerves_toolchain_arm_unknown_linux_gnueabihf, "~> 0.0.1"}]
-        end
-
-  2. Ensure nerves_toolchain_arm_unknown_linux_gnueabihf is started before your application:
-
-        def application do
-          [applications: [:nerves_toolchain_arm_unknown_linux_gnueabihf]]
-        end
-
+You can read more about [supported Targets in the Nerves Documentation](https://hexdocs.pm/nerves/targets.html).
