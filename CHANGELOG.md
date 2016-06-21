@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6.3
+
+  * New features
+    * Support MIPS 24KEc processors
+
+  * Tool versions
+    * gcc 4.9.3
+    * glibc 2.21
+    * muslc 1.1.14 (MIPS-only)
+
 ## v0.6.1
 
   * New features
