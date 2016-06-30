@@ -1,14 +1,15 @@
 # Nerves Toolchain: arm_unknown_linux_gnueabihf
 
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_arm_unknown_linux_gnueabihf.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_arm_unknown_linux_gnueabihf)
+
 This is a Nerves Toolchain repository.
-If you're just trying to use Nerves (i.e. not develop support for new Target hardware), you don't need to use it directly.
-You can read more about [how to use pre-built Systems in the Nerves Documentation](https://hexdocs.pm/nerves/systems.html).
 
-Its purpose is to:
-  1. provide a place to put configuration for this particular Nerves Toolchain,
-  2. act as a repository for this particular pre-built Nerves Toolchain (using the GitHub Releases feature), and
-  3. allow a small package to be published to Hex, so it can inject the correct Toolchain into a Nerves compilation using Mix.
+If you're just trying to use Nerves (i.e., not adding support for a new
+target), you don't need to use this directly. In fact, even if you're
+developing for a new target, we may already have a cross-compiler available.
 
-This Toolchain is used by the `bbb`, `qemu_arm`, `rpi2`, and `rpi3` Targets.
+This project's purpose is to contain the information for hex.pm so that Nerves
+cross-compilers can be referenced in `mix`. See
+[nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
+the scripts used to generate the actual cross-compiler.
 
-You can read more about [supported Targets in the Nerves Documentation](https://hexdocs.pm/nerves/targets.html).
