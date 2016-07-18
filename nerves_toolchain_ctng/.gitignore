@@ -1,0 +1,7 @@
+/work*
+*.tgz
+*.xz
+*.gz
+*.bz2
+*.dmg
+*.zip
