@@ -11,13 +11,13 @@ BASE_DIR=$SCRIPT_DIR/..
 
 HOST_ARCH=$(uname -m)
 HOST_OS=$(uname -s)
-if [ $HOST_OS = "CYGWIN_NT-6.1" ]; then
+if [[ $HOST_OS = "CYGWIN_NT-6.1" ]]; then
     # A simple Cygwin looks better.
     HOST_OS="cygwin"
 fi
 HOST_OS=$(echo "$HOST_OS" | awk '{print tolower($0)}')
 
-if [ $# -lt 1 ]; then
+if [[ $# -lt 1 ]]; then
     echo "Usage: $0 <toolchain name>"
     echo
     echo "This is the Nerves toolchain builder. It produces cross-compilers that"
@@ -54,7 +54,7 @@ LOCAL_INSTALL_DIR=$WORK_DIR/usr
 # Install directories for the tools we make
 GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the config file
 
-if [ $HOST_OS = "darwin" ]; then
+if [[ $HOST_OS = "darwin" ]]; then
     # Mac-specific updates
 
     # We run out of file handles when building for Mac
@@ -66,10 +66,10 @@ if [ $HOST_OS = "darwin" ]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=nerves-toolchain-work
 
-elif [ $HOST_OS = "linux" ]; then
+elif [[ $HOST_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
-elif [ $HOST_OS = "cygwin" ]; then
+elif [[ $HOST_OS = "cygwin" ]]; then
     # Windows-specific updates
     TAR=tar
 
@@ -83,14 +83,14 @@ fi
 init()
 {
     # Clean up an old build and create the work directory
-    if [ $HOST_OS = "darwin" ]; then
+    if [[ $HOST_OS = "darwin" ]]; then
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME 2>/dev/null || true
         rm -fr $WORK_DIR $WORK_DMG
         hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
         ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
-    elif [ $HOST_OS = "linux" ] || [ $HOST_OS = "cygwin" ]; then
-        if [ -e $WORK_DIR ]; then
+    elif [[ $HOST_OS = "linux" || $HOST_OS = "cygwin" ]]; then
+        if [[ -e $WORK_DIR ]]; then
             chmod -R u+w $WORK_DIR
             rm -fr $WORK_DIR
         fi
@@ -106,7 +106,7 @@ gcc_tuple()
     # Figure out the target's tuple. It's the name of the only directory.
     # Don't call this until after build_gcc()
     tuplepath=$(ls $GCC_INSTALL_DIR)
-    if [ -e $tuplepath ]; then
+    if [[ -e $tuplepath ]]; then
         echo "unknown"
     else
         echo $(basename $tuplepath)
@@ -121,8 +121,8 @@ build_gcc()
     rm -fr crosstool-ng
 
     CTNG_TAR_XZ=crosstool-ng-$CTNG_TAG.tar.xz
-    if [ ! -e $DL_DIR/$CTNG_TAR_XZ ]; then
-        if [ $CTNG_USE_GIT = "true" ]; then
+    if [[ ! -e $DL_DIR/$CTNG_TAR_XZ ]]; then
+        if [[ $CTNG_USE_GIT = "true" ]]; then
             git clone https://github.com/crosstool-ng/crosstool-ng.git
             cd crosstool-ng
             git checkout $CTNG_TAG
@@ -140,7 +140,7 @@ build_gcc()
     $SCRIPT_DIR/scripts/apply-patches.sh crosstool-ng $SCRIPT_DIR/patches/crosstool-ng
 
     cd crosstool-ng
-    if [ $CTNG_USE_GIT = "true" ]; then
+    if [[ $CTNG_USE_GIT = "true" ]]; then
         ./bootstrap
     fi
     ./configure --prefix=$LOCAL_INSTALL_DIR
@@ -151,7 +151,7 @@ build_gcc()
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
     DEFCONFIG=$CTNG_CONFIG $LOCAL_INSTALL_DIR/bin/ct-ng defconfig
-    if [ -z $CTNG_CC ]; then
+    if [[ -z $CTNG_CC ]]; then
         $LOCAL_INSTALL_DIR/bin/ct-ng build
     else
         CC=$CTNG_CC CXX=$CTNG_CXX $LOCAL_INSTALL_DIR/bin/ct-ng build
@@ -230,16 +230,16 @@ fix_kernel_case_conflicts()
 
 assemble_products()
 {
-    if [ $HOST_OS = "darwin" ]; then
+    if [[ $HOST_OS = "darwin" ]]; then
         # Assemble .dmg file first
         assemble_dmg
 
         # Prune out filenames with case conflicts and make a tarball
         fix_kernel_case_conflicts
         assemble_tarball
-    elif [ $HOST_OS = "linux" ]; then
+    elif [[ $HOST_OS = "linux" ]]; then
         assemble_tarball
-    elif [ $HOST_OS = "cygwin" ]; then
+    elif [[ $HOST_OS = "cygwin" ]]; then
         # Windows is case insensitive by default, so fix the conflicts
         fix_kernel_case_conflicts
         assemble_tarball
@@ -251,7 +251,7 @@ fini()
     # Clean up our work since the disk space that it uses is quite significant
     # NOTE: If you're debugging ct-ng configs, you'll want to comment out the
     #       call to fini at the end.
-    if [ $HOST_OS = "darwin" ]; then
+    if [[ $HOST_OS = "darwin" ]]; then
         # Try to unmount. It never works immediately, so wait before trying.
         sleep 5
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
