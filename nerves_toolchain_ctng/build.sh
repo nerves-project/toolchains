@@ -6,7 +6,8 @@ set -e
 CTNG_USE_GIT=true
 CTNG_TAG=7300eb17b43a38320d25dff47230f483a82b4154
 
-BASE_DIR=$(pwd)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BASE_DIR=$SCRIPT_DIR/..
 
 HOST_ARCH=$(uname -m)
 HOST_OS=$(uname -s)
@@ -17,34 +18,25 @@ fi
 HOST_OS=$(echo "$HOST_OS" | awk '{print tolower($0)}')
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <config fragment>"
+    echo "Usage: $0 <toolchain name>"
     echo
     echo "This is the Nerves toolchain builder. It produces cross-compilers that"
     echo "work across the operating systems supported by Nerves."
     echo
-    echo "By convention, configurations are identified by <host>-<libc>-<arch/abi>."
-    echo "The following are some examples (look in the configs directory for details):"
-    echo
-    echo "linux-glibc-eabihf.config  -> Linux host, ARM target with glibc, hardware float"
-    echo "darwin-glibc-eabihf.config -> Mac host, ARM target with glibc, hardware float"
-    echo
-    echo "Pass the <libc>-<arch/abi> part for the first parameter."
+    echo "By convention, toolchains are identified by gcc tuples but using underscores"
+    echo "instead of hyphens to make the names Elixir/Erlang friendly."
     echo
     echo "Valid options for this platform:"
-    for config in $(ls configs); do
-        case $config in
-            $HOST_OS-*)
-                CONFIG_FRAGMENT=$(basename $config .config | sed -e "s/$HOST_OS-//")
-                echo "  $0 $CONFIG_FRAGMENT"
-                ;;
-            *)
-        esac
+    for dir in $(ls $BASE_DIR); do
+        if [[ -f $dir/${HOST_OS}_defconfig ]]; then
+            echo $dir
+        fi
     done
     exit 1
 fi
 
 CONFIG=$HOST_OS-$1
-CTNG_CONFIG=$BASE_DIR/configs/$CONFIG.config
+CTNG_CONFIG=$BASE_DIR/$1/${HOST_OS}_defconfig
 
 if [[ ! -e $CTNG_CONFIG ]]; then
     echo "Can't find $CTNG_CONFIG. Check that it exists."
@@ -145,7 +137,7 @@ build_gcc()
     fi
 
     # Apply patches
-    $BASE_DIR/scripts/apply-patches.sh crosstool-ng $BASE_DIR/patches/crosstool-ng
+    $SCRIPT_DIR/scripts/apply-patches.sh crosstool-ng $SCRIPT_DIR/patches/crosstool-ng
 
     cd crosstool-ng
     if [ $CTNG_USE_GIT = "true" ]; then
