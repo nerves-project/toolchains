@@ -15,6 +15,7 @@ CONFIGS="glibc-eabihf \
          musl-mipsel_24kec"
 
 CONFIGS="nerves_toolchain_armv5tejl_unknown_linux_gnueabi \
+    nerves_toolchain_armv5tejl_unknown_linux_musl \
     nerves_toolchain_x86_64_unknown_linux_musl"
 
 for CONFIG in $CONFIGS; do
