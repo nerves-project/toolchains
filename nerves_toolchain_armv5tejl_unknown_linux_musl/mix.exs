@@ -9,6 +9,8 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusl.Mixfile do
     [app: :nerves_toolchain_armv5tejl_unknown_linux_musl,
      version: @version,
      elixir: "~> 1.3",
+     description: description,
+     package: package,
      deps: deps()]
   end
 
@@ -31,4 +33,18 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusl.Mixfile do
   defp deps do
     [{:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng"}]
   end
+
+  defp description do
+    """
+    Nerves Toolchain - armv5tejl-unknown-linux-musl
+    """
+  end
+
+  defp package do
+    [maintainers: ["Frank Hunleth", "Justin Schneck"],
+     files: ["lib", "linux_defconfig", "darwin_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs"],
+     licenses: ["Apache 2.0"],
+     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_armv5tejl_unknown_linux_musl"}]
+  end
+
 end

@@ -1,24 +1,18 @@
-# NervesToolchainArmv5tejlUnknownLinuxMusl
+# Nerves Toolchain: armv5tejl-unknown-linux-musleabi
 
-**TODO: Add description**
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv5tejl_unknown_linux_musleabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv5tejl_unknown_linux_musleabi)
 
-## Installation
+This is a Nerves Toolchain repository.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+If you're just trying to use Nerves (i.e., not adding support for a new
+target), you don't need to use this directly. In fact, even if you're
+developing for a new target, we may already have a cross-compiler available.
 
-  1. Add `nerves_toolchain_armv5tejl_unknown_linux_musl` to your list of dependencies in `mix.exs`:
+This project's purpose is to contain the information for hex.pm so that Nerves
+cross-compilers can be referenced in `mix`. See
+[nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
+the scripts used to generate the actual cross-compiler.
 
-    ```elixir
-    def deps do
-      [{:nerves_toolchain_armv5tejl_unknown_linux_musl, "~> 0.1.0"}]
-    end
-    ```
-
-  2. Ensure `nerves_toolchain_armv5tejl_unknown_linux_musl` is started before your application:
-
-    ```elixir
-    def application do
-      [applications: [:nerves_toolchain_armv5tejl_unknown_linux_musl]]
-    end
-    ```
+This toolchain is used by the `ev3` target. It is useful for ARM7 processors
+that lack hardware floating point.
 

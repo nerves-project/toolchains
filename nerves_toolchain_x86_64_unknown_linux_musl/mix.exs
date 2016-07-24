@@ -9,8 +9,8 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
     [app: :nerves_toolchain_x86_64_unknown_linux_musl,
      version: @version,
      elixir: "~> 1.3",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
+     description: description,
+     package: package,
      deps: deps()]
   end
 
@@ -33,4 +33,18 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
   defp deps do
     [{:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng"}]
   end
+
+  defp description do
+    """
+    Nerves Toolchain - x86_64-unknown-linux-musl
+    """
+  end
+
+  defp package do
+    [maintainers: ["Frank Hunleth", "Justin Schneck"],
+     files: ["lib", "linux_defconfig", "darwin_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs"],
+     licenses: ["Apache 2.0"],
+     links: %{"Github" => "https://github.com/nerves-project/toolchains/x86_64_unknown_linux_musl"}]
+  end
+
 end
