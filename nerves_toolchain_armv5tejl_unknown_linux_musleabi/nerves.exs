@@ -5,12 +5,12 @@ version =
   |> File.read!
   |> String.strip
 
-config :nerves_toolchain_armv5tejl_unknown_linux_musl, :nerves_env,
+config :nerves_toolchain_armv5tejl_unknown_linux_musleabi, :nerves_env,
   type: :toolchain,
   version: version,
-  target_tuple: :armv5tejl_unknown_linux_musl
-  build_platform: Nerves.Toolchain.CTNG
-  build_config: [
+  target_tuple: :armv5tejl_unknown_linux_musleabi,
+  platform: Nerves.Toolchain.CTNG,
+  config: [
     defconfig: [
       darwin: "darwin_defconfig",
       linux: "linux_defconfig"

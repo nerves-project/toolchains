@@ -1,4 +1,4 @@
-defmodule NervesToolchainArmv5tejlUnknownLinuxMusl.Mixfile do
+defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   use Mix.Project
 
   @version Path.join(__DIR__, "VERSION")
@@ -6,9 +6,10 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusl.Mixfile do
     |> String.strip
 
   def project do
-    [app: :nerves_toolchain_armv5tejl_unknown_linux_musl,
+    [app: :nerves_toolchain_armv5tejl_unknown_linux_musleabi,
      version: @version,
      elixir: "~> 1.3",
+     compilers: Mix.compilers ++ [:nerves_package],
      description: description,
      package: package,
      deps: deps()]
@@ -31,12 +32,13 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusl.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng"}]
+    [{:nerves, path: "../../dev/nerves"},
+     {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng"}]
   end
 
   defp description do
     """
-    Nerves Toolchain - armv5tejl-unknown-linux-musl
+    Nerves Toolchain - armv5tejl-unknown-linux-musleabi
     """
   end
 

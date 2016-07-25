@@ -11,6 +11,7 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
      elixir: "~> 1.3",
      description: description,
      package: package,
+     aliases: ["deps.precompile": ["nerves.precompile", "deps.precompile"]],
      deps: deps()]
   end
 

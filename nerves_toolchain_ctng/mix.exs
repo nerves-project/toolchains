@@ -1,9 +1,13 @@
 defmodule Nerves.Toolchain.Ctng.Mixfile do
   use Mix.Project
 
+  @version Path.join(__DIR__, "VERSION")
+    |> File.read!
+    |> String.strip
+
   def project do
     [app: :nerves_toolchain_ctng,
-     version: "0.1.0",
+     version: @version,
      elixir: "~> 1.3",
      deps: deps()]
   end
