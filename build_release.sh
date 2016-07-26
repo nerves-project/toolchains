@@ -2,7 +2,7 @@
 
 # Give me a chance to hit CTRL-C in case I'm building a -dirty by accident
 echo "Building a release of all toolchains listed in $0."
-echo "Version '$(git describe --dirty)'."
+echo "git describe: '$(git describe --dirty)'."
 echo "Hit CTRL-C to stop..."
 sleep 2
 
@@ -14,8 +14,8 @@ CONFIGS="glibc-eabihf \
          musl-eabihf \
          musl-mipsel_24kec"
 
-CONFIGS="nerves_toolchain_armv5tejl_unknown_linux_gnueabi \
-    nerves_toolchain_armv5tejl_unknown_linux_musl \
+CONFIGS="\
+    nerves_toolchain_armv5tejl_unknown_linux_musleabi \
     nerves_toolchain_x86_64_unknown_linux_musl"
 
 for CONFIG in $CONFIGS; do

@@ -36,7 +36,8 @@ if [[ $# -lt 1 ]]; then
 fi
 
 CONFIG=$HOST_OS-$1
-CTNG_CONFIG=$BASE_DIR/$1/${HOST_OS}_defconfig
+CTNG_CONFIG_DIR=$BASE_DIR/$1
+CTNG_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_defconfig
 
 if [[ ! -e $CTNG_CONFIG ]]; then
     echo "Can't find $CTNG_CONFIG. Check that it exists."
@@ -46,7 +47,7 @@ fi
 WORK_DIR=$BASE_DIR/work-$CONFIG
 DL_DIR=$BASE_DIR/dl
 
-NERVES_TOOLCHAIN_TAG=$(git describe --always --dirty)
+NERVES_TOOLCHAIN_VERSION=$(cat $CTNG_CONFIG_DIR/VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
 LOCAL_INSTALL_DIR=$WORK_DIR/usr
@@ -113,6 +114,11 @@ gcc_tuple()
     fi
 }
 
+gcc_tuple_underscores()
+{
+    echo $(gcc_tuple) | tr - _
+}
+
 build_gcc()
 {
     # Build and install ct-ng to the work directory
@@ -170,7 +176,7 @@ build_gcc()
 toolchain_base_name()
 {
     # Compute the base filename part of the build product
-    echo "nerves-$TARGET_TUPLE-$HOST_OS-$HOST_ARCH-$NERVES_TOOLCHAIN_TAG"
+    echo "nerves_$(gcc_tuple_underscores)-$NERVES_TOOLCHAIN_VERSION.$HOST_OS-$HOST_ARCH"
 }
 
 assemble_tarball()
@@ -182,7 +188,7 @@ assemble_tarball()
     TARBALL_PATH=$BASE_DIR/$(toolchain_base_name).tar
     TARXZ_PATH=$TARBALL_PATH.xz
     TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
-    echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
+    echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $TARBALL_PATH $TARXZ_PATH
     $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
     xz $TARBALL_PATH
@@ -205,7 +211,7 @@ assemble_dmg()
     TARGET_TUPLE=`gcc_tuple`
     DMG_PATH=$BASE_DIR/$(toolchain_base_name).dmg
 
-    echo "$NERVES_TOOLCHAIN_TAG" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
+    echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $DMG_PATH
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
                     -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE/. \
