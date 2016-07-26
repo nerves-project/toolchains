@@ -176,7 +176,7 @@ build_gcc()
 toolchain_base_name()
 {
     # Compute the base filename part of the build product
-    echo "nerves_$(gcc_tuple_underscores)-$NERVES_TOOLCHAIN_VERSION.$HOST_OS-$HOST_ARCH"
+    echo "nerves_toolchain_$(gcc_tuple_underscores)-$NERVES_TOOLCHAIN_VERSION.$HOST_OS-$HOST_ARCH"
 }
 
 assemble_tarball()
