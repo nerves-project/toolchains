@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -70,7 +70,7 @@ if [[ $HOST_OS = "darwin" ]]; then
 elif [[ $HOST_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
-elif [[ $HOST_OS = "cygwin" ]]; then
+elif [[ $HOST_OS = "cygwin" || $HOST_OS = "freebsd" ]]; then
     # Windows-specific updates
     TAR=tar
 
@@ -90,7 +90,7 @@ init()
         hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
         ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
-    elif [[ $HOST_OS = "linux" || $HOST_OS = "cygwin" ]]; then
+    elif [[ $HOST_OS = "linux" || $HOST_OS = "cygwin" || $HOST_OS = "freebsd" ]]; then
         if [[ -e $WORK_DIR ]]; then
             chmod -R u+w $WORK_DIR
             rm -fr $WORK_DIR
@@ -243,7 +243,7 @@ assemble_products()
         # Prune out filenames with case conflicts and make a tarball
         fix_kernel_case_conflicts
         assemble_tarball
-    elif [[ $HOST_OS = "linux" ]]; then
+    elif [[ $HOST_OS = "linux" || $HOST_OS = "freebsd" ]]; then
         assemble_tarball
     elif [[ $HOST_OS = "cygwin" ]]; then
         # Windows is case insensitive by default, so fix the conflicts

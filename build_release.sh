@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 # Give me a chance to hit CTRL-C in case I'm building a -dirty by accident
 echo "Building a release of all toolchains listed in $0."
