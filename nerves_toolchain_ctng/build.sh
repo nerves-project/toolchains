@@ -149,9 +149,15 @@ build_gcc()
     if [[ $CTNG_USE_GIT = "true" ]]; then
         ./bootstrap
     fi
-    ./configure --prefix=$LOCAL_INSTALL_DIR
-    make
-    make install
+    if [[  $HOST_OS = "freebsd" ]]; then
+	./configure --prefix=$LOCAL_INSTALL_DIR --with-sed=/usr/local/bin/gsed --with-make=/usr/local/bin/gmake --with-patch=/usr/local/bin/gpatch
+	gmake
+	gmake install
+    else
+	./configure --prefix=$LOCAL_INSTALL_DIR
+	make
+	make install
+    fi
 
     # Build the toolchain
     mkdir -p $WORK_DIR/build
