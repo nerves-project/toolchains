@@ -9,7 +9,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
     [app: :nerves_toolchain_armv5tejl_unknown_linux_musleabi,
      version: @version,
      elixir: "~> 1.3",
-     compilers: Mix.compilers ++ [:nerves_package],
+     compilers: Mix.compilers ++ [:nerves_toolchain],
      description: description,
      package: package,
      deps: deps()]
@@ -19,7 +19,9 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: []]
+    [applications: [], env: [
+      target_tuple: "armv5tejl-unknown-linux-musleabi"
+    ]]
   end
 
   # Dependencies can be Hex packages:
@@ -32,8 +34,8 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:nerves, path: "../../dev/nerves"},
-     {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng"}]
+    [{:nerves_toolchain, "~> 0.6.1"},
+     {:ex_doc, ">= 0.0.0", only: :dev}]
   end
 
   defp description do
@@ -44,7 +46,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "linux_defconfig", "darwin_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs"],
+     files: ["lib", "src", "linux_defconfig", "darwin_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_armv5tejl_unknown_linux_musl"}]
   end
