@@ -6,17 +6,13 @@ echo "git describe: '$(git describe --dirty)'."
 echo "Hit CTRL-C to stop..."
 sleep 2
 
-# Old configs - to be removed
-CONFIGS="glibc-eabihf \
-         glibc-eabihf-armv6 \
-         glibc-i586 \
-         glibc-eabi \
-         musl-eabihf \
-         musl-mipsel_24kec"
-
 CONFIGS="\
     nerves_toolchain_armv5tejl_unknown_linux_musleabi \
-    nerves_toolchain_x86_64_unknown_linux_musl"
+    nerves_toolchain_x86_64_unknown_linux_musl \
+    nerves_toolchain_arm_unknown_linux_gnueabihf \
+    nerves_toolchain_armv6_rpi_linux_gnueabi \
+    nerves_toolchain_i586_unknown_linux_gnu \
+    nerves_toolchain_mipsel_unknown_linux_musl"
 
 for CONFIG in $CONFIGS; do
     echo "Starting build for $CONFIG..."
@@ -24,4 +20,5 @@ for CONFIG in $CONFIGS; do
 done
 
 echo "All done!!!!!!"
+
 

@@ -1,8 +1,1 @@
-%{"certifi": {:hex, :certifi, "0.4.0"},
-  "hackney": {:hex, :hackney, "1.6.0"},
-  "httpoison": {:hex, :httpoison, "0.8.3"},
-  "idna": {:hex, :idna, "1.2.0"},
-  "metrics": {:hex, :metrics, "1.0.1"},
-  "mimerl": {:hex, :mimerl, "1.0.2"},
-  "nerves_toolchain": {:hex, :nerves_toolchain, "0.6.2"},
-  "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0"}}
+%{"nerves_toolchain": {:hex, :nerves_toolchain, "0.7.0", "dd3e6c49b39019116375b897fdeafd9b71cb22d396b116251c9db0910d677f4d", [:mix], []}}

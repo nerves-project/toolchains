@@ -9,13 +9,20 @@ CTNG_TAG=7300eb17b43a38320d25dff47230f483a82b4154
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASE_DIR=$SCRIPT_DIR/..
 
-HOST_ARCH=$(uname -m)
-HOST_OS=$(uname -s)
-if [[ $HOST_OS = "CYGWIN_NT-6.1" ]]; then
+BUILD_ARCH=$(uname -m)
+BUILD_OS=$(uname -s)
+if [[ $BUILD_OS = "CYGWIN_NT-6.1" ]]; then
     # A simple Cygwin looks better.
-    HOST_OS="cygwin"
+    BUILD_OS="cygwin"
 fi
-HOST_OS=$(echo "$HOST_OS" | awk '{print tolower($0)}')
+BUILD_OS=$(echo "$BUILD_OS" | awk '{print tolower($0)}')
+
+if [[ -z $HOST_ARCH ]]; then
+    HOST_ARCH=$BUILD_ARCH
+fi
+if [[ -z $HOST_OS ]]; then
+    HOST_OS=$BUILD_OS
+fi
 
 if [[ $# -lt 1 ]]; then
     echo "Usage: $0 <toolchain name>"
@@ -28,16 +35,16 @@ if [[ $# -lt 1 ]]; then
     echo
     echo "Valid options for this platform:"
     for dir in $(ls $BASE_DIR); do
-        if [[ -f $dir/${HOST_OS}_defconfig ]]; then
+        if [[ -f $dir/${HOST_OS}_${HOST_ARCH}_defconfig ]]; then
             echo $dir
         fi
     done
     exit 1
 fi
 
-CONFIG=$HOST_OS-$1
+CONFIG=$HOST_OS-$HOST_ARCH-$1
 CTNG_CONFIG_DIR=$BASE_DIR/$1
-CTNG_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_defconfig
+CTNG_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
 
 if [[ ! -e $CTNG_CONFIG ]]; then
     echo "Can't find $CTNG_CONFIG. Check that it exists."
@@ -47,6 +54,11 @@ fi
 WORK_DIR=$BASE_DIR/work-$CONFIG
 DL_DIR=$BASE_DIR/dl
 
+if [[ ! -e $CTNG_CONFIG_DIR/VERSION ]]; then
+    echo "Can't find $CTNG_CONFIG_DIR/VERSION. Check that it exists."
+    exit 1
+fi
+
 NERVES_TOOLCHAIN_VERSION=$(cat $CTNG_CONFIG_DIR/VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
@@ -55,7 +67,7 @@ LOCAL_INSTALL_DIR=$WORK_DIR/usr
 # Install directories for the tools we make
 GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the config file
 
-if [[ $HOST_OS = "darwin" ]]; then
+if [[ $BUILD_OS = "darwin" ]]; then
     # Mac-specific updates
 
     # We run out of file handles when building for Mac
@@ -67,30 +79,30 @@ if [[ $HOST_OS = "darwin" ]]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=nerves-toolchain-work
 
-elif [[ $HOST_OS = "linux" ]]; then
+elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
-elif [[ $HOST_OS = "cygwin" || $HOST_OS = "freebsd" ]]; then
+elif [[ $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
     # Windows-specific updates
     TAR=tar
 
     # For crosstool-ng
     export AWK=gawk
 else
-    echo "Unknown host OS: $HOST_OS"
+    echo "Unknown host OS: $BUILD_OS"
     exit 1
 fi
 
 init()
 {
     # Clean up an old build and create the work directory
-    if [[ $HOST_OS = "darwin" ]]; then
+    if [[ $BUILD_OS = "darwin" ]]; then
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME 2>/dev/null || true
         rm -fr $WORK_DIR $WORK_DMG
         hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
         hdiutil attach $WORK_DMG
         ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
-    elif [[ $HOST_OS = "linux" || $HOST_OS = "cygwin" || $HOST_OS = "freebsd" ]]; then
+    elif [[ $BUILD_OS = "linux" || $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
         if [[ -e $WORK_DIR ]]; then
             chmod -R u+w $WORK_DIR
             rm -fr $WORK_DIR
@@ -149,7 +161,7 @@ build_gcc()
     if [[ $CTNG_USE_GIT = "true" ]]; then
         ./bootstrap
     fi
-    if [[  $HOST_OS = "freebsd" ]]; then
+    if [[  $BUILD_OS = "freebsd" ]]; then
 	./configure --prefix=$LOCAL_INSTALL_DIR --with-sed=/usr/local/bin/gsed --with-make=/usr/local/bin/gmake --with-patch=/usr/local/bin/gpatch
 	gmake
 	gmake install
@@ -242,16 +254,16 @@ fix_kernel_case_conflicts()
 
 assemble_products()
 {
-    if [[ $HOST_OS = "darwin" ]]; then
+    if [[ $BUILD_OS = "darwin" ]]; then
         # Assemble .dmg file first
         assemble_dmg
 
         # Prune out filenames with case conflicts and make a tarball
         fix_kernel_case_conflicts
         assemble_tarball
-    elif [[ $HOST_OS = "linux" || $HOST_OS = "freebsd" ]]; then
+    elif [[ $BUILD_OS = "linux" || $BUILD_OS = "freebsd" ]]; then
         assemble_tarball
-    elif [[ $HOST_OS = "cygwin" ]]; then
+    elif [[ $BUILD_OS = "cygwin" ]]; then
         # Windows is case insensitive by default, so fix the conflicts
         fix_kernel_case_conflicts
         assemble_tarball
@@ -263,7 +275,7 @@ fini()
     # Clean up our work since the disk space that it uses is quite significant
     # NOTE: If you're debugging ct-ng configs, you'll want to comment out the
     #       call to fini at the end.
-    if [[ $HOST_OS = "darwin" ]]; then
+    if [[ $BUILD_OS = "darwin" ]]; then
         # Try to unmount. It never works immediately, so wait before trying.
         sleep 5
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
