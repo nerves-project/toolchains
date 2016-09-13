@@ -18,3 +18,12 @@ Then run a toolchain build as follows:
     $ export PATH=<path to tools>/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
     $ ./nerves_toolchain_ctng/build.sh <toolchain>
 
+## Canadian cross builds for Windows
+
+    $ sudo apt-get install g++-mingw-w64-x86-64
+
+Then
+
+    $ export HOST_OS=mingw32
+    $ ./nerves_toolchain_ctng/build.sh <toolchain>
+

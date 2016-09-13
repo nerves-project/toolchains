@@ -33,6 +33,9 @@ if [[ $# -lt 1 ]]; then
     echo "By convention, toolchains are identified by gcc tuples but using underscores"
     echo "instead of hyphens to make the names Elixir/Erlang friendly."
     echo
+    echo "To do Canadian-cross builds (cross-compile the cross-compiler), set the"
+    echo "HOST_ARCH and HOST_OS environment variables to what you want."
+    echo
     echo "Valid options for this platform:"
     for dir in $(ls $BASE_DIR); do
         if [[ -f $dir/${HOST_OS}_${HOST_ARCH}_defconfig ]]; then
@@ -255,15 +258,19 @@ fix_kernel_case_conflicts()
 assemble_products()
 {
     if [[ $BUILD_OS = "darwin" ]]; then
+        # On OSX, always create .dmg files for debugging builds and
+        # fix the case issues.
+
         # Assemble .dmg file first
         assemble_dmg
 
         # Prune out filenames with case conflicts and make a tarball
         fix_kernel_case_conflicts
         assemble_tarball
-    elif [[ $BUILD_OS = "linux" || $BUILD_OS = "freebsd" ]]; then
+    elif [[ $HOST_OS = "linux" || $HOST_OS = "freebsd" ]]; then
+        # Linux and FreeBSD don't have the case issues
         assemble_tarball
-    elif [[ $BUILD_OS = "cygwin" ]]; then
+    else
         # Windows is case insensitive by default, so fix the conflicts
         fix_kernel_case_conflicts
         assemble_tarball
