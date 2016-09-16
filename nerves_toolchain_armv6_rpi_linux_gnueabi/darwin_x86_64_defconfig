@@ -2,7 +2,6 @@ CT_EXPERIMENTAL=y
 CT_LOCAL_TARBALLS_DIR="${CT_TOP_DIR}/../dl"
 CT_SAVE_TARBALLS=y
 CT_PREFIX_DIR="${CT_TOP_DIR}/../x-tools/${CT_TARGET}"
-# CT_REMOVE_DOCS is not set
 CT_EXTRA_CFLAGS_FOR_BUILD="-I/usr/local/opt/gettext/include"
 CT_EXTRA_LDFLAGS_FOR_BUILD="-L/usr/local/opt/gettext/lib -lintl"
 CT_LOG_EXTRA=y
