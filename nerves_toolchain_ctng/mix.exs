@@ -9,6 +9,8 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
     [app: :nerves_toolchain_ctng,
      version: @version,
      elixir: "~> 1.3",
+     description: description(),
+     package: package(),
      deps: deps()]
   end
 
@@ -30,5 +32,18 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     []
+  end
+
+  defp description do
+    """
+    Nerves Toolchain CTNG - Toolchain Platform
+    """
+  end
+
+  defp package do
+    [maintainers: ["Frank Hunleth", "Justin Schneck"],
+     files: ["lib", "patches", "scripts", "build.sh", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
+     licenses: ["Apache 2.0"],
+     links: %{"Github" => "https://github.com/nerves-project/toolchains"}]
   end
 end
