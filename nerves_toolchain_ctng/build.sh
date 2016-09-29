@@ -47,10 +47,11 @@ fi
 
 CONFIG=$HOST_OS-$HOST_ARCH-$1
 CTNG_CONFIG_DIR=$BASE_DIR/$1
-CTNG_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
+HOST_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
+BASE_CONFIG=$CTNG_CONFIG_DIR/defconfig
 
-if [[ ! -e $CTNG_CONFIG ]]; then
-    echo "Can't find $CTNG_CONFIG. Check that it exists."
+if [[ ! -e $BASE_CONFIG ]]; then
+    echo "Can't find $BASE_CONFIG. Check that it exists."
     exit 1
 fi
 
@@ -177,6 +178,12 @@ build_gcc()
     # Build the toolchain
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
+    CTNG_CONFIG=$WORK_DIR/build/defconfig
+    cat $BASE_CONFIG >> $CTNG_CONFIG
+    if [[ -e $HOST_CONFIG ]]; then
+      cat $HOST_CONFIG >> $CTNG_CONFIG
+    fi
+
     DEFCONFIG=$CTNG_CONFIG $LOCAL_INSTALL_DIR/bin/ct-ng defconfig
     if [[ -z $CTNG_CC ]]; then
         $LOCAL_INSTALL_DIR/bin/ct-ng build
