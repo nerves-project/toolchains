@@ -216,7 +216,12 @@ assemble_tarball()
     TARBALL_PATH=$BASE_DIR/$(toolchain_base_name).tar
     TARXZ_PATH=$TARBALL_PATH.xz
     TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
+
+    # Save useful information if we ever need to reproduce the toolchain
     echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
+    cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig
+    cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config
+
     rm -f $TARBALL_PATH $TARXZ_PATH
     $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
     xz $TARBALL_PATH
