@@ -36,9 +36,9 @@ if [[ $# -lt 1 ]]; then
     echo "To do Canadian-cross builds (cross-compile the cross-compiler), set the"
     echo "HOST_ARCH and HOST_OS environment variables to what you want."
     echo
-    echo "Valid options for this platform:"
+    echo "Valid options:"
     for dir in $(ls $BASE_DIR); do
-        if [[ -f $dir/${HOST_OS}_${HOST_ARCH}_defconfig ]]; then
+        if [[ -f $dir/defconfig ]]; then
             echo $dir
         fi
     done
@@ -47,11 +47,21 @@ fi
 
 CONFIG=$HOST_OS-$HOST_ARCH-$1
 CTNG_CONFIG_DIR=$BASE_DIR/$1
-CTNG_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
 
-if [[ ! -e $CTNG_CONFIG ]]; then
-    echo "Can't find $CTNG_CONFIG. Check that it exists."
+BASE_CONFIG=$CTNG_CONFIG_DIR/defconfig
+if [[ ! -e $BASE_CONFIG ]]; then
+    echo "Can't find $BASE_CONFIG. Check that it exists."
     exit 1
+fi
+
+# Append host-specific modifications to the base defconfig
+HOST_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
+if [[ ! -e $HOST_CONFIG ]]; then
+    HOST_CONFIG=$SCRIPT_DIR/defaults/${HOST_OS}_${HOST_ARCH}_defconfig
+    if [[ ! -e $HOST_CONFIG ]]; then
+        echo "Can't find a ${HOST_OS}_${HOST_ARCH}_defconfig fragment. Check that one exists."
+        exit 1
+    fi
 fi
 
 WORK_DIR=$BASE_DIR/work-$CONFIG
@@ -174,10 +184,19 @@ build_gcc()
 	make install
     fi
 
-    # Build the toolchain
+    # Setup the toolchain build directory
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
+    CTNG_CONFIG=$WORK_DIR/build/defconfig
+    cat $BASE_CONFIG $HOST_CONFIG >> $CTNG_CONFIG
+
+    # Process the configuration
     DEFCONFIG=$CTNG_CONFIG $LOCAL_INSTALL_DIR/bin/ct-ng defconfig
+
+    # Save the defconfig back for later review
+    $LOCAL_INSTALL_DIR/bin/ct-ng savedefconfig
+
+    # Build the toolchain
     if [[ -z $CTNG_CC ]]; then
         $LOCAL_INSTALL_DIR/bin/ct-ng build
     else
@@ -209,7 +228,12 @@ assemble_tarball()
     TARBALL_PATH=$BASE_DIR/$(toolchain_base_name).tar
     TARXZ_PATH=$TARBALL_PATH.xz
     TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
+
+    # Save useful information if we ever need to reproduce the toolchain
     echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
+    cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig
+    cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config
+
     rm -f $TARBALL_PATH $TARXZ_PATH
     $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
     xz $TARBALL_PATH

@@ -1,0 +1,3 @@
+CT_EXTRA_CFLAGS_FOR_BUILD="-I/usr/local/opt/gettext/include"
+CT_EXTRA_LDFLAGS_FOR_BUILD="-L/usr/local/opt/gettext/lib -lintl"
+# CT_CC_GCC_STATIC_LIBSTDCXX is not set
