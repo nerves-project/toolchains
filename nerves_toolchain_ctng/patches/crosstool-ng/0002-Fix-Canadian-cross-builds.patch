@@ -1,0 +1,26 @@
+From 9c8afc26017eb044b887e60527f5efdba13f494c Mon Sep 17 00:00:00 2001
+From: Frank Hunleth <fhunleth@troodon-software.com>
+Date: Mon, 10 Oct 2016 13:04:09 -0400
+Subject: [PATCH] Fix Canadian cross builds
+
+See https://github.com/crosstool-ng/crosstool-ng/issues/436.
+---
+ scripts/build/cc/100-gcc.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/build/cc/100-gcc.sh b/scripts/build/cc/100-gcc.sh
+index 7085a90..3026902 100644
+--- a/scripts/build/cc/100-gcc.sh
++++ b/scripts/build/cc/100-gcc.sh
+@@ -422,7 +422,7 @@ do_gcc_core_backend() {
+     CC_FOR_BUILD="${CT_BUILD}-gcc"                     \
+     CFLAGS="${cflags}"                                 \
+     CXXFLAGS="${cflags}"                               \
+-    LDFLAGS="${core_LDFLAGS[*]}"                       \
++    FIXMELDFLAGS="${core_LDFLAGS[*]}"                       \
+     CFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"            \
+     CXXFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"          \
+     LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"          \
+-- 
+2.7.4
+

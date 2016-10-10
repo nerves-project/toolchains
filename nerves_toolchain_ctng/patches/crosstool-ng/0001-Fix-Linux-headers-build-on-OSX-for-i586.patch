@@ -1,4 +1,4 @@
-From 40765915b45d14a859247464027cabf70c1f31b5 Mon Sep 17 00:00:00 2001
+From 69bc711b0f283a07e33624a5f0a02dd7201bcbb4 Mon Sep 17 00:00:00 2001
 From: Frank Hunleth <fhunleth@troodon-software.com>
 Date: Sat, 9 Jan 2016 23:26:23 -0500
 Subject: [PATCH] Fix Linux headers build on OSX for i586
@@ -41,5 +41,5 @@ index 0000000..ac83cf3
 +2.5.4 (Apple Git-61)
 +
 -- 
-2.5.4 (Apple Git-61)
+2.7.4
 
