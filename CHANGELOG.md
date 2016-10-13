@@ -1,7 +1,22 @@
 # Toolchain Releases
 
+## v0.8.0-dev
+
+  * New features
+    * Bump gcc version from 4.9 to 5.3 - THIS BREAKS COMPILATION OF OLD LINUX
+      KERNELS! If you have no choice but to use an old Linux kernel, please
+      do not upgrade to this toolchain.
+    * Refactored defconfigs so that platform-independent and platform-dependent
+      parts are stored separately. This majorly simplifies maintenance.
+
 ## v0.7.2
 
 ### armv6_rpi_linux_gnueabi
+
   * Bug Fixes
     * [darwin] fixed defconfig to use 3.12 linux kernel headers
+
+## v0.7.1
+
+  * New features
+    * First release using combined toolchain repository
