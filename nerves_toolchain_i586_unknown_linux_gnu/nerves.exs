@@ -5,8 +5,13 @@ version =
   |> File.read!
   |> String.strip
 
-config :nerves_toolchain_i586_unknown_linux_gnu, :nerves_env,
+app = :nerves_toolchain_i586_unknown_linux_gnu
+
+config app, :nerves_env,
   type: :toolchain,
   version: version,
+  platform: Nerves.Toolchain.CTNG,
   target_tuple: :i586_unknown_linux_gnu,
-  platform: Nerves.Toolchain.CTNG
+  artifact_url: [
+    "https://github.com/nerves-project/toolchains/releases/download/v#{version}/#{app}-#{version}.#{Nerves.Env.host_platform}-#{Nerves.Env.host_arch}.tar.xz"
+  ]

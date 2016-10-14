@@ -34,10 +34,9 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [#{:nerves_toolchain, "~> 0.7"},
+    [{:nerves, github: "nerves-project/nerves"},
+     {:nerves_toolchain_ctng, "~> 0.7"},
      #{:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng"}
-     {:nerves, path: "../../nerves", override: true},
-     {:nerves_toolchain_ctng, "~> 0.7"}
     ]
   end
 

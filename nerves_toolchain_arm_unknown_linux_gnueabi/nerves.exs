@@ -5,8 +5,13 @@ version =
   |> File.read!
   |> String.strip
 
-config :nerves_toolchain_arm_unknown_linux_gnueabi, :nerves_env,
+package = :nerves_toolchain_arm_unknown_linux_gnueabihf
+
+config package, :nerves_env,
   type: :toolchain,
   version: version,
+  platform: Nerves.Toolchain.CTNG,
   target_tuple: :arm_unknown_linux_gnueabi,
-  platform: Nerves.Toolchain.CTNG
+  artifact_url: [
+    "https://github.com/nerves-project/toolchains/releases/download/v#{version}/#{package}-#{version}.#{Nerves.Env.host_platform}-#{Nerves.Env.host_arch}.tar.xz"
+  ]

@@ -9,7 +9,7 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
     [app: :nerves_toolchain_i586_unknown_linux_gnu,
      version: @version,
      elixir: "~> 1.3",
-     compilers: Mix.compilers ++ [:nerves_toolchain],
+     compilers: Mix.compilers ++ [:nerves_package],
      description: description,
      package: package,
      deps: deps()]
@@ -34,7 +34,7 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:nerves_toolchain, "~> 0.7"},
+    [{:nerves, github: "nerves-project/nerves"},
      {:nerves_toolchain_ctng, "~> 0.7"}]
   end
 
