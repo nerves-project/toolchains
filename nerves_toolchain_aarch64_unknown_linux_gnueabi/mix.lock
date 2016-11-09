@@ -1,0 +1,2 @@
+%{"nerves_toolchain": {:hex, :nerves_toolchain, "0.7.1", "164f5fcf07f717d5e8f918965ea043c860b75065768c93a726f763498a7d8792", [:mix], []},
+  "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "0.7.1", "6f46b1591b23d1a017347f8cd9962c24775b2a6fde4e2f2b5251439efef8d6a4", [:mix], []}}
