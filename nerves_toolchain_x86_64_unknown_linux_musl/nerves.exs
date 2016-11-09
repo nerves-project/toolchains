@@ -10,6 +10,7 @@ app = :nerves_toolchain_x86_64_unknown_linux_musl
 config app, :nerves_env,
   type: :toolchain,
   version: version,
+  compiler: :nerves_package,
   platform: Nerves.Toolchain.CTNG,
   target_tuple: :x86_64_unknown_linux_musl,
   artifact_url: [

@@ -10,6 +10,7 @@ package = :nerves_toolchain_aarch64_unknown_linux_gnueabi
 config package, :nerves_env,
   type: :toolchain,
   version: version,
+  compiler: :nerves_package,
   platform: Nerves.Toolchain.CTNG,
   target_tuple: :aarch64_unknown_linux_gnueabi,
   artifact_url: [

@@ -10,6 +10,7 @@ app = :nerves_toolchain_armv5tejl_unknown_linux_musleabi
 config app, :nerves_env,
   type: :toolchain,
   version: version,
+  compiler: :nerves_package,
   platform: Nerves.Toolchain.CTNG,
   target_tuple: :armv5tejl_unknown_linux_musleabi,
   artifact_url: [

@@ -10,6 +10,7 @@ app = :nerves_toolchain_mipsel_unknown_linux_musl
 config app, :nerves_env,
   type: :toolchain,
   version: version,
+  compiler: :nerves_package,
   platform: Nerves.Toolchain.CTNG,
   target_tuple: :mipsel_unknown_linux_musl,
   artifact_url: [

@@ -10,6 +10,7 @@ app = :nerves_toolchain_i586_unknown_linux_gnu
 config app, :nerves_env,
   type: :toolchain,
   version: version,
+  compiler: :nerves_package,
   platform: Nerves.Toolchain.CTNG,
   target_tuple: :i586_unknown_linux_gnu,
   artifact_url: [
