@@ -10,8 +10,8 @@ defmodule NervesToolchainArmUnknownLinuxGnueabi.Mixfile do
      version: @version,
      elixir: "~> 1.3",
      compilers: Mix.compilers ++ [:nerves_package],
-     description: description,
-     package: package,
+     description: description(),
+     package: package(),
      deps: deps()]
   end
 
