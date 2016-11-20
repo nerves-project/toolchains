@@ -35,7 +35,7 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:nerves, "~> 0.4.0-rc.0"},
-     {:nerves_toolchain_ctng, "~> 0.7"}]
+     {:nerves_toolchain_ctng, "~> 0.8.0-rc.0"}]
   end
 
   defp description do

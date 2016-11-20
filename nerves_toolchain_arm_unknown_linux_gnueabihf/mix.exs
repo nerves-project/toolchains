@@ -35,7 +35,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:nerves, "~> 0.4.0-rc.0"},
-     {:nerves_toolchain_ctng, "~> 0.7"}]
+     {:nerves_toolchain_ctng, "~> 0.8.0-rc.0"}]
   end
 
   defp description do
@@ -46,7 +46,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "linux_arm_defconfig", "linux_x86_64_defconfig", "darwin_x86_64_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
+     files: ["lib", "mingw32_x86_64_defconfig", "defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_arm_unknown_linux_gnueabihf"}]
   end
