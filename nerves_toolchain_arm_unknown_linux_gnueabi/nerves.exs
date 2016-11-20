@@ -5,7 +5,7 @@ version =
   |> File.read!
   |> String.strip
 
-package = :nerves_toolchain_arm_unknown_linux_gnueabihf
+package = :nerves_toolchain_arm_unknown_linux_gnueabi
 
 config package, :nerves_env,
   type: :toolchain,
