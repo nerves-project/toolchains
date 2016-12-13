@@ -34,10 +34,8 @@ defmodule NervesToolchainMipselUnknownLinuxMusl.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:nerves, github: "nerves-project/nerves"},
-     {:nerves_toolchain_ctng,
-        github: "nerves-project/toolchains",
-        sparse: "nerves_toolchain_ctng"}]
+    [{:nerves, "~> 0.4.0"},
+     {:nerves_toolchain_ctng, "~> 0.8.0"}]
   end
 
   defp description do
