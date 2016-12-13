@@ -1,10 +1,3 @@
-%{"bbmustache": {:hex, :bbmustache, "1.0.4", "7ba94f971c5afd7b6617918a4bb74705e36cab36eb84b19b6a1b7ee06427aa38", [:rebar], []},
-  "cf": {:hex, :cf, "0.2.1", "69d0b1349fd4d7d4dc55b7f407d29d7a840bf9a1ef5af529f1ebe0ce153fc2ab", [:rebar3], []},
-  "erlware_commons": {:hex, :erlware_commons, "0.21.0", "a04433071ad7d112edefc75ac77719dd3e6753e697ac09428fc83d7564b80b15", [:rebar3], [{:cf, "0.2.1", [hex: :cf, optional: false]}]},
-  "exrm": {:hex, :exrm, "1.0.8", "5aa8990cdfe300282828b02cefdc339e235f7916388ce99f9a1f926a9271a45d", [:mix], [{:relx, "~> 3.5", [hex: :relx, optional: false]}]},
-  "getopt": {:hex, :getopt, "0.8.2", "b17556db683000ba50370b16c0619df1337e7af7ecbf7d64fbf8d1d6bce3109b", [:rebar], []},
-  "nerves": {:hex, :nerves, "0.4.0-rc.0", "c5e6ef352d885d4f5754bc5d0ab5e1dfc7300a64104f5d6a24196cc3bc5d4189", [:mix], [{:exrm, "~> 1.0.6", [hex: :exrm, optional: false]}]},
-  "nerves_toolchain": {:hex, :nerves_toolchain, "0.7.0", "dd3e6c49b39019116375b897fdeafd9b71cb22d396b116251c9db0910d677f4d", [:mix], []},
-  "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "0.8.0-rc.0", "ffdfd5410e2c153ca1ec49a27fb736bcd123e318feb0ad3e4361dae164aca69f", [:mix], []},
-  "providers": {:hex, :providers, "1.6.0", "db0e2f9043ae60c0155205fcd238d68516331d0e5146155e33d1e79dc452964a", [:rebar3], [{:getopt, "0.8.2", [hex: :getopt, optional: false]}]},
-  "relx": {:hex, :relx, "3.21.1", "f989dc520730efd9075e9f4debcb8ba1d7d1e86b018b0bcf45a2eb80270b4ad6", [:rebar3], [{:bbmustache, "1.0.4", [hex: :bbmustache, optional: false]}, {:cf, "0.2.1", [hex: :cf, optional: false]}, {:erlware_commons, "0.21.0", [hex: :erlware_commons, optional: false]}, {:getopt, "0.8.2", [hex: :getopt, optional: false]}, {:providers, "1.6.0", [hex: :providers, optional: false]}]}}
+%{"distillery": {:hex, :distillery, "1.0.0", "a866a72bf2a3a5f078f5a249017ed951acda88a760d200512f91f585d74db1ec", [:mix], []},
+  "nerves": {:git, "https://github.com/nerves-project/nerves.git", "ab5b1091a082cd5d6aa79db229eff45d1b5e8665", []},
+  "nerves_toolchain_ctng": {:git, "https://github.com/nerves-project/toolchains.git", "473e1e5890bbf627e0df4c217225eecb34ca0eb7", [sparse: "nerves_toolchain_ctng"]}}

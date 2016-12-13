@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.0
+  * Enhancements
+    * Support for package compiler
+
 ## v0.6.3
 
   * New features
@@ -69,4 +73,3 @@ warnings when host/target Erlang and Elixir versions do not match.
 
   * New features
     * Raspberry Pi A+/B+ crosscompiler (armv6)
-
