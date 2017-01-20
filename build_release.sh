@@ -8,7 +8,7 @@ sleep 2
 
 CONFIGS="\
     nerves_toolchain_armv5tejl_unknown_linux_musleabi \
-    nerves_toolchain_x86_64_nerves_linux_gnu \
+    nerves_toolchain_x86_64_unknown_linux_gnu \
     nerves_toolchain_arm_unknown_linux_gnueabihf \
     nerves_toolchain_armv6_rpi_linux_gnueabi \
     nerves_toolchain_i586_unknown_linux_gnu \
