@@ -46,7 +46,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabi.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "linux_x86_64_defconfig", "darwin_x86_64_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
+     files: ["lib", "defconfig", "mingw32_x86_64_defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_arm_unknown_linux_gnueabi"}]
   end
