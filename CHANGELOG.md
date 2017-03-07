@@ -1,5 +1,10 @@
 # Toolchain Releases
 
+## v0.10.0
+  * Enhancements
+    * Updated nerves to 0.5.0 and loosened dep lock
+    * Update linux header patch for 4.4
+
 ## v0.9.0
 
   * New features
