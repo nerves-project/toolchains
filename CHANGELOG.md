@@ -1,5 +1,10 @@
 # Toolchain Releases
 
+## v0.10.1
+  * Enhancements
+    * Update nerves to 0.7
+    * Fix compiler warnings for Elixir 1.5
+
 ## v0.10.0
   * Enhancements
     * Updated nerves to 0.5.0 and loosened dep lock

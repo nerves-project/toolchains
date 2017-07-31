@@ -3,7 +3,7 @@ use Mix.Config
 version =
   Path.join(__DIR__, "VERSION")
   |> File.read!
-  |> String.strip
+  |> String.trim
 
 app = :nerves_toolchain_armv6_rpi_linux_gnueabi
 
