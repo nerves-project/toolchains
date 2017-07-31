@@ -3,7 +3,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   @version Path.join(__DIR__, "VERSION")
     |> File.read!
-    |> String.strip
+    |> String.trim
 
   def project do
     [app: :nerves_toolchain_arm_unknown_linux_gnueabihf,
@@ -34,8 +34,10 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:nerves, "~> 0.4"},
-     {:nerves_toolchain_ctng, "~> 0.9"}]
+    [
+      {:nerves, "~> 0.7"},
+      {:nerves_toolchain_ctng, "~> 0.9"}
+    ]
   end
 
   defp description do

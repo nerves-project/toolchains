@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.1
+  * Enhancements
+    * Fix compiler warnings for Elixir 1.5
+
+## v0.9.0
+  * Enhancements
+    * Support for gcc 5
+
 ## v0.8.0
   * Enhancements
     * Support for package compiler
