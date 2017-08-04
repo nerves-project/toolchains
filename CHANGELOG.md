@@ -1,5 +1,10 @@
 # Toolchain Releases
 
+## v0.10.2-dev
+
+  * Enhancements
+    * Bumped all Linux 3.x kernel header configs up to 4.1
+
 ## v0.10.1
   * Enhancements
     * Update nerves to 0.7
