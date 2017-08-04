@@ -36,7 +36,7 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.7"},
-      {:nerves_toolchain_ctng, "~> 1.0"}
+      {:nerves_toolchain_ctng, "~> 1.1"}
     ]
   end
 

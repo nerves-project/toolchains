@@ -1,11 +1,25 @@
 # Toolchain Releases
 
-## v1.0.0
-
+## v0.11.0
   * Enhancements
     * Bumped all Linux 3.x kernel header configs up to 4.1
     * Build a cross gdb and gdbserver to support crash dump analysis and on
       target debugging of C/C++ code
+  * Tool versions
+    * m4-1.4.18
+    * linux-4.1.39
+    * gmp-6.1.2
+    * mpfr-3.1.5
+    * isl-0.18
+    * mpc-1.0.3
+    * expat-2.2.0
+    * ncurses-6.0
+    * libiconv-1.15
+    * gettext-0.19.8.1
+    * binutils-2.28
+    * gcc-6.3.0
+    * glibc-2.25
+    * gdb-7.12.1
 
 ## v0.10.1
   * Enhancements
