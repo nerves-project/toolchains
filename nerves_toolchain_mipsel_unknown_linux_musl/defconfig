@@ -14,3 +14,5 @@ CT_LIBC_musl=y
 # CT_CC_GCC_SJLJ_EXCEPTIONS is not set
 CT_CC_GCC_mips_plt=y
 CT_CC_LANG_CXX=y
+CT_DEBUG_gdb=y
+CT_GDB_CROSS_STATIC=y

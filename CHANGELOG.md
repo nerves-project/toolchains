@@ -4,6 +4,8 @@
 
   * Enhancements
     * Bumped all Linux 3.x kernel header configs up to 4.1
+    * Build a cross gdb and gdbserver to support crash dump analysis and on
+      target debugging of C/C++ code
 
 ## v0.10.1
   * Enhancements
