@@ -8,7 +8,7 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
   def project do
     [app: :nerves_toolchain_ctng,
      version: @version,
-     elixir: "~> 1.3",
+     elixir: "~> 1.4",
      description: description(),
      package: package(),
      deps: deps()]

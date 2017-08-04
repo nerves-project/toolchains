@@ -36,7 +36,7 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.7"},
-      {:nerves_toolchain_ctng, "~> 0.9"}
+      {:nerves_toolchain_ctng, "~> 1.0"}
     ]
   end
 

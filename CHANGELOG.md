@@ -1,6 +1,6 @@
 # Toolchain Releases
 
-## v0.10.2-dev
+## v1.0.0
 
   * Enhancements
     * Bumped all Linux 3.x kernel header configs up to 4.1

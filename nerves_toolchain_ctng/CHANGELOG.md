@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.9.1
+## v1.0.0
   * Enhancements
     * Fix compiler warnings for Elixir 1.5
 

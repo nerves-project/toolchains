@@ -8,7 +8,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   def project do
     [app: :nerves_toolchain_armv5tejl_unknown_linux_musleabi,
      version: @version,
-     elixir: "~> 1.3",
+     elixir: "~> 1.4",
      compilers: Mix.compilers ++ [:nerves_package],
      description: description(),
      package: package(),
@@ -36,7 +36,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.7"},
-      {:nerves_toolchain_ctng, "~> 0.9"}
+      {:nerves_toolchain_ctng, "~> 1.0"}
     ]
   end
 
