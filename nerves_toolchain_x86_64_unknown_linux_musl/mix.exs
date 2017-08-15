@@ -1,41 +1,47 @@
+file = "../nerves_toolchain_helpers.exs"
+if File.exists?(file), do: file, else: Path.basename(file)
+Code.require_file(file)
+
 defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
   use Mix.Project
 
+  @app :nerves_toolchain_x86_64_unknown_linux_musl
   @version Path.join(__DIR__, "VERSION")
-    |> File.read!
-    |> String.trim
+           |> File.read!
+           |> String.trim
 
   def project do
-    [app: :nerves_toolchain_x86_64_unknown_linux_musl,
-     version: @version,
-     elixir: "~> 1.3",
-     compilers: Mix.compilers ++ [:nerves_package],
-     description: description(),
-     package: package(),
-     deps: deps()]
+    [
+      app: @app,
+      version: @version,
+      elixir: "~> 1.3",
+      compilers: Mix.compilers ++ [:nerves_package],
+      nerves_package: nerves_package(),
+      description: description(),
+      package: package(),
+      deps: deps()
+    ]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
-  def application do
-    [env: [
-      target_tuple: :x86_64_unknown_linux_musl
+  def nerves_package do
+   [type: :toolchain,
+    platform: Nerves.Toolchain.CTNG,
+    target_tuple: :x86_64_unknown_linux_musl,
+    artifact_url: [
+      "https://github.com/nerves-project/toolchains/releases/download/v#{@version}/#{@app}-#{@version}.#{Nerves.Toolchain.host_platform()}-#{Nerves.Toolchain.host_arch()}.tar.xz"
+    ],
+    checksum: [
+      "defconfig"
     ]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
+  def application do
+    []
+  end
+
   defp deps do
     [
-      {:nerves, "~> 0.7"},
+      {:nerves, "~> 0.8"},
       {:nerves_toolchain_ctng, "~> 1.1"}
     ]
   end

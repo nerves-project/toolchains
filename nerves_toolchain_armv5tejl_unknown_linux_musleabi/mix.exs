@@ -1,41 +1,46 @@
+file = "../nerves_toolchain_helpers.exs"
+if File.exists?(file), do: file, else: Path.basename(file)
+Code.require_file(file)
+
 defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   use Mix.Project
 
+  @app     :nerves_toolchain_armv5tejl_unknown_linux_musleabi
   @version Path.join(__DIR__, "VERSION")
-    |> File.read!
-    |> String.trim
+           |> File.read!
+           |> String.trim
 
   def project do
-    [app: :nerves_toolchain_armv5tejl_unknown_linux_musleabi,
+    [app: @app,
      version: @version,
      elixir: "~> 1.4",
-     compilers: Mix.compilers ++ [:nerves_package],
+     compilers: [:nerves_package],
+     nerves_package: nerves_package(),
      description: description(),
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     aliases: ["deps.precompile": ["nerves.env", "copy.toolchain.helpers", "deps.precompile"]]]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
-  def application do
-    [env: [
-      target_tuple: :armv5tejl_unknown_linux_musleabi
+  def nerves_package do
+   [type: :toolchain,
+    platform: Nerves.Toolchain.CTNG,
+    target_tuple: :armv5tejl_unknown_linux_musleabi,
+    artifact_url: [
+      "https://github.com/nerves-project/toolchains/releases/download/v#{@version}/#{@app}-#{@version}.#{Nerves.Toolchain.host_platform()}-#{Nerves.Toolchain.host_arch()}.tar.xz"
+    ],
+    checksum: [
+      "defconfig"
     ]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
+  def application do
+    []
+  end
+
   defp deps do
     [
-      {:nerves, "~> 0.7"},
+      {:nerves, "~> 0.8"},
       {:nerves_toolchain_ctng, "~> 1.1"}
     ]
   end
@@ -48,7 +53,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
+     files: ["defconfig", "README.md", "LICENSE", "mix.exs", "nerves_toolchain_helpers.exs"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_armv5tejl_unknown_linux_musl"}]
   end
