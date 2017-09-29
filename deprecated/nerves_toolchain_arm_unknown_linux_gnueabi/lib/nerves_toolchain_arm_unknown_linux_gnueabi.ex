@@ -1,3 +1,0 @@
-defmodule NervesToolchainArmUnknownLinuxGnueabi do
-
-end
