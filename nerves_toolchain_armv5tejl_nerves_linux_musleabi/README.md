@@ -1,6 +1,6 @@
-# Nerves Toolchain: arm_unknown_linux_gnueabihf
+# Nerves Toolchain: armv5tejl-unknown-linux-musleabi
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_arm_unknown_linux_gnueabihf.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_arm_unknown_linux_gnueabihf)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv5tejl_nerves_linux_musleabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv5tejl_nerves_linux_musleabi)
 
 This is a Nerves Toolchain repository.
 
@@ -12,4 +12,7 @@ This project's purpose is to contain the information for hex.pm so that Nerves
 cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
+
+This toolchain is used by the `ev3` target. It is useful for ARM7 processors
+that lack hardware floating point.
 

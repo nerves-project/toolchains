@@ -1,6 +1,6 @@
-# Nerves Toolchain: armv5tejl-unknown-linux-musleabi
+# Nerves Toolchain: i586_nerves_linux_gnu
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv5tejl_unknown_linux_musleabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv5tejl_unknown_linux_musleabi)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_i586_nerves_linux_gnu.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_nerves_toolchain_i586_nerves_linux_gnu)
 
 This is a Nerves Toolchain repository.
 
@@ -12,7 +12,4 @@ This project's purpose is to contain the information for hex.pm so that Nerves
 cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
-
-This toolchain is used by the `ev3` target. It is useful for ARM7 processors
-that lack hardware floating point.
 

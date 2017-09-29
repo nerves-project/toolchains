@@ -6,7 +6,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
     |> String.trim
 
   def project do
-    [app: :nerves_toolchain_armv5tejl_unknown_linux_musleabi,
+    [app: :nerves_toolchain_armv5tejl_nerves_linux_musleabi,
      version: @version,
      elixir: "~> 1.4",
      compilers: Mix.compilers ++ [:nerves_package],
@@ -20,7 +20,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [env: [
-      target_tuple: :armv5tejl_unknown_linux_musleabi
+      target_tuple: :armv5tejl_nerves_linux_musleabi
     ]]
   end
 
@@ -50,7 +50,7 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
      files: ["lib", "defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
-     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_armv5tejl_unknown_linux_musl"}]
+     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_armv5tejl_nerves_linux_musl"}]
   end
 
 end

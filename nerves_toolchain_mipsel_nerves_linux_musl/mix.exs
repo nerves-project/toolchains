@@ -1,4 +1,4 @@
-defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
+defmodule NervesToolchainMipselUnknownLinuxMusl.Mixfile do
   use Mix.Project
 
   @version Path.join(__DIR__, "VERSION")
@@ -6,7 +6,7 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
     |> String.trim
 
   def project do
-    [app: :nerves_toolchain_i586_unknown_linux_gnu,
+    [app: :nerves_toolchain_mipsel_nerves_linux_musl,
      version: @version,
      elixir: "~> 1.3",
      compilers: Mix.compilers ++ [:nerves_package],
@@ -20,7 +20,7 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [env: [
-      target_tuple: :i586_unknown_linux_gnu
+      target_tuple: :mipsel_nerves_linux_musl
     ]]
   end
 
@@ -42,7 +42,7 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
 
   defp description do
     """
-    Nerves Toolchain - i586-unknown-linux-gnu
+    Nerves Toolchain - mipsel-unknown-linux-musl
     """
   end
 
@@ -50,6 +50,6 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
      files: ["lib", "defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
-     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_i586_unknown_linux_gnu"}]
+     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_mipsel_nerves_linux_musl"}]
   end
 end

@@ -5,14 +5,14 @@ version =
   |> File.read!
   |> String.trim
 
-app = :nerves_toolchain_mipsel_unknown_linux_musl
+app = :nerves_toolchain_i586_nerves_linux_gnu
 
 config app, :nerves_env,
   type: :toolchain,
   version: version,
   compiler: :nerves_package,
   platform: Nerves.Toolchain.CTNG,
-  target_tuple: :mipsel_unknown_linux_musl,
+  target_tuple: :i586_nerves_linux_gnu,
   artifact_url: [
     "https://github.com/nerves-project/toolchains/releases/download/v#{version}/#{app}-#{version}.#{Nerves.Env.host_platform}-#{Nerves.Env.host_arch}.tar.xz"
   ],

@@ -1,4 +1,4 @@
-defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
+defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
   use Mix.Project
 
   @version Path.join(__DIR__, "VERSION")
@@ -6,9 +6,9 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
     |> String.trim
 
   def project do
-    [app: :nerves_toolchain_arm_unknown_linux_gnueabihf,
+    [app: :nerves_toolchain_i586_nerves_linux_gnu,
      version: @version,
-     elixir: "~> 1.4",
+     elixir: "~> 1.3",
      compilers: Mix.compilers ++ [:nerves_package],
      description: description(),
      package: package(),
@@ -20,7 +20,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [env: [
-      target_tuple: :arm_unknown_linux_gnueabihf
+      target_tuple: :i586_nerves_linux_gnu
     ]]
   end
 
@@ -42,14 +42,14 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   defp description do
     """
-    Nerves Toolchain - arm-unknown-linux-gnueabihf
+    Nerves Toolchain - i586-unknown-linux-gnu
     """
   end
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["lib", "mingw32_x86_64_defconfig", "defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
+     files: ["lib", "defconfig", "README.md", "LICENSE", "nerves.exs", "mix.exs", "VERSION"],
      licenses: ["Apache 2.0"],
-     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_arm_unknown_linux_gnueabihf"}]
+     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_i586_nerves_linux_gnu"}]
   end
 end

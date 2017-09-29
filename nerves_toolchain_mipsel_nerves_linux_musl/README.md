@@ -1,6 +1,6 @@
-# Nerves Toolchain: aarch64_unknown_linux_gnueabi
+# Nerves Toolchain: mipsel_nerves_linux_musl
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_aarch64_unknown_linux_gnueabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_aarch64_unknown_linux_gnueabi)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_mipsel_nerves_linux_musl.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_mipsel_nerves_linux_musl)
 
 This is a Nerves Toolchain repository.
 
