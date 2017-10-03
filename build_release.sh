@@ -7,7 +7,7 @@ echo "Hit CTRL-C to stop..."
 sleep 2
 
 CONFIGS="\
-    nerves_toolchain_x86_64_nerves_linux_musl \
+    nerves_toolchain_x86_64_unknown_linux_musl \
     nerves_toolchain_aarch64_unknown_linux_gnueabi \
     nerves_toolchain_arm_unknown_linux_gnueabihf \
     nerves_toolchain_armv5tejl_unknown_linux_musleabi \
