@@ -198,11 +198,50 @@ build_gcc()
 
     # Build the toolchain
     if [[ -z $CTNG_CC ]]; then
-        $LOCAL_INSTALL_DIR/bin/ct-ng build
+        PREFIX=""
     else
-        CC=$CTNG_CC CXX=$CTNG_CXX $LOCAL_INSTALL_DIR/bin/ct-ng build
+        PREFIX="CC=$CTNG_CC CXX=$CTNG_CXX"
     fi
 
+    # Configure logging when on CI
+    if [[ $CI = "true" ]]; then
+      echo "Modifying logging for CI"
+      sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
+        -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
+        -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
+        -e 's/^.*\(CT_LOG_EXTRA\).*$/\1=y/' \
+        -e 's/^.*\(CT_LOG_ALL\).*$/# \1 is not set/' \
+        -e 's/^.*\(CT_LOG_DEBUG\).*$/# \1 is not set/' \
+        -e 's/^.*\(CT_LOG_LEVEL_MAX\).*$/\1="EXTRA"/' \
+        -e 's/^.*\(CT_LOG_PROGRESS_BAR\).*$/# \1 is not set/' \
+        -e 's/^.*\(CT_LOCAL_TARBALLS_DIR\).*$/\1="${HOME}\/src"/' \
+        -e 's/^.*\(CT_SAVE_TARBALLS\).*$/\1=y/' \
+        $WORK_DIR/build/.config
+
+        $PREFIX $LOCAL_INSTALL_DIR/bin/ct-ng build &
+        local build_pid=$!
+        {
+            while true
+            do
+                sleep 300
+                printf "Not done yet...\r"
+            done
+        } &
+        local runner_pid=$!
+
+        # Wait for the build to finish and get the result
+        wait $build_pid 2>/dev/null
+        local result=$?
+
+        # Stop the runner task
+        kill $runner_pid
+
+        # Wait for the runner task to finish, but ignore the result
+        # in case the runner task ends before the call to wait.
+        wait $runner_pid 2>/dev/null || true
+    else
+        $PREFIX $LOCAL_INSTALL_DIR/bin/ct-ng build
+    fi
     TARGET_TUPLE=$(gcc_tuple)
 
     # ct-ng likes to mark everything read-only which
