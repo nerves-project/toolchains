@@ -1,5 +1,9 @@
 # Toolchain Releases
 
+## v0.12.0
+  * Enhancements
+    * Updated for nerves 0.8. Moved nerves.exs to mix.exs
+
 ## v0.11.0
   * Enhancements
     * Bumped all Linux 3.x kernel header configs up to 4.1
