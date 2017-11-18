@@ -1,5 +1,5 @@
 file = "../nerves_toolchain_helpers.exs"
-if File.exists?(file), do: file, else: Path.basename(file)
+file = if File.exists?(file), do: file, else: Path.basename(file)
 Code.require_file(file)
 
 defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
@@ -41,7 +41,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   defp deps do
     [
       {:nerves, "~> 0.8"},
-      {:nerves_toolchain_ctng, "~> 1.1"}
+      {:nerves_toolchain_ctng, "~> 1.2"}
     ]
   end
 
@@ -53,7 +53,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["mingw32_x86_64_defconfig", "defconfig", "README.md", "LICENSE", "mix.exs", "nerves_toolchain_helpers.exs"],
+     files: ["mingw32_x86_64_defconfig", "defconfig", "README.md", "LICENSE", "mix.exs", "nerves_toolchain_helpers.exs", "VERSION"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_arm_unknown_linux_gnueabihf"}]
   end
