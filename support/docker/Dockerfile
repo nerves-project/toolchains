@@ -11,7 +11,7 @@ RUN useradd -ms /bin/bash nerves
 # Install dependencies.
 RUN	apt-get update && \
 	apt-get install -y git build-essential gperf bison flex texinfo wget gawk libtool automake libncurses5-dev help2man\
-		ca-certificates
+		ca-certificates unzip
 RUN apt-get -q -y autoremove
 RUN apt-get -q -y clean
 
