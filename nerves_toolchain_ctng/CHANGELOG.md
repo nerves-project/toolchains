@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.1
+  
+  * Bug Fixes
+    * Build app file to fix issue with Mix compilers not respecint `app: false`
+
 ## v1.0.0
   * Enhancements
     * Fix compiler warnings for Elixir 1.5

@@ -1,5 +1,10 @@
 # Toolchain Releases
 
+## v0.12.1
+  * Bug Fixes
+    * Configure toolchains to build app files. This will fix an issue where Mix
+      does not respect `app: false` 
+
 ## v0.12.0
   * Enhancements
     * Updated for nerves 0.8. Moved nerves.exs to mix.exs
