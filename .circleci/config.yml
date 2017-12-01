@@ -8,7 +8,7 @@ build: &build
   steps:
     - checkout
     - restore_cache:
-        key: nerves/downloads/$TOOLCHAIN/$HOST_ARCH
+        key: nerves/downloads/{{ .Environment.TOOLCHAIN }}/{{ .Environment.HOST_ARCH }}
     - run:
         name: Update Path
         command: |
@@ -21,39 +21,26 @@ build: &build
         name: Build
         command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
     - save_cache:
-        key: nerves/downloads/$TOOLCHAIN/$HOST_ARCH
+        key: nerves/downloads/{{ .Environment.TOOLCHAIN }}/{{ .Environment.HOST_ARCH }}
         paths:
           - "/home/nerves/build/dl"
     - run:
         name: "Create artifact dir"
-        command: mkdir -p /home/nerves/deploy/toolchain/artifacts
+        command: mkdir -p /home/nerves/deploy/toolchain
     - run:
         name: "Copy Artifacts"
-        command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/artifacts
+        command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain
     - store_artifacts:
-        path: /home/nerves/deploy/toolchain/artifacts
+        path: /home/nerves/deploy/toolchain
         destination: toolchain
     - save_cache:
-        key: nerves/build/$TOOLCHAIN-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+        key: nerves/build/{{ .Environment.TOOLCHAIN }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
         paths:
           - "/home/nerves/build"
     - save_cache:
-        key: nerves/deploy/$TOOLCHAIN-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+        key: nerves/deploy/{{ .Environment.TOOLCHAIN }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
         paths:
           - "/home/nerves/deploy/toolchain"
-
-deploy: &deploy
-  steps:
-    - restore_cache:
-        key: nerves/deploy/$TOOLCHAIN-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Install dependencies
-        command: |
-          wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
-          unzip ghr_v0.5.4_linux_amd64.zip
-    - run:
-        name: Deploy artifacts to Github
-        command: ./ghr -draft -t $GITHUB_TOKEN -u nerves-project -r $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG /nerves/deploy/toolchain/artifacts
 
 build_workflow: &build_workflow
   context: org-global
@@ -93,19 +80,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
-    <<: *deploy
+  
   #-------------------------------
   # arm_unknown_linux_gnueabihf
   #-------------------------------
@@ -123,19 +98,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_arm_unknown_linux_gnueabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
-    <<: *deploy
+
   #-------------------------------
   # armv5tejl_unknown_linux_musleabi
   #-------------------------------
@@ -153,19 +116,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
-    <<: *deploy
+
   #-------------------------------
   # armv6_rpi_linux_gnueabi
   #-------------------------------
@@ -183,19 +134,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_armv6_rpi_linux_gnueabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
-    <<: *deploy
+
   #-------------------------------
   # i586_unknown_linux_gnu
   #-------------------------------
@@ -213,19 +152,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_i586_unknown_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_i586_unknown_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
-    <<: *deploy
+
   #-------------------------------
   # mipsel_unknown_linux_musl
   #-------------------------------
@@ -243,19 +170,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_mipsel_unknown_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_mipsel_unknown_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
-    <<: *deploy
+
   #-------------------------------
   # x86_64_unknown_linux_gnu
   #-------------------------------
@@ -273,19 +188,7 @@ jobs:
       TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_x86_64_unknown_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_x86_64_unknown_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
-    <<: *deploy
+
   #-------------------------------
   # x86_64_unknown_linux_musl
   #-------------------------------
@@ -303,19 +206,65 @@ jobs:
       TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
       <<: *canadian_rpi
     <<: *build
-  # deploy
-  #  linux
-  deploy_linux_nerves_toolchain_x86_64_unknown_linux_musl:
+  
+  deploy:
     <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
-    <<: *deploy
-  #  rpi
-  deploy_rpi_nerves_toolchain_x86_64_unknown_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
-    <<: *deploy
+    steps:
+    - checkout
+    - run:
+        name: Create Artifacts Dir
+        command: mkdir -p /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_aarch64_unknown_linux_gnueabi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_arm_unknown_linux_gnueabihf-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_armv5tejl_unknown_linux_musleabi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_armv6_rpi_linux_gnueabi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_i586_unknown_linux_gnu-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_mipsel_unknown_linux_musl-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_gnu-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_musl-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - run:
+        name: Copy Artifact
+        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+    - run:
+        name: Install dependencies
+        command: |
+          wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
+          unzip ghr_v0.5.4_linux_amd64.zip
+    - run:
+        name: "Create Release Notes"
+        command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" ./CHANGELOG.md > /nerves/deploy/RELEASE_NOTES
+    - run:
+        name: Deploy artifacts to Github
+        command: ./ghr -draft -t $GITHUB_TOKEN -u nerves-project -r $CIRCLE_PROJECT_REPONAME -b "$(cat /nerves/deploy/system/RELEASE_NOTES)" $CIRCLE_TAG /home/nerves/deploy/artifacts
 
 workflows:
   version: 2
@@ -328,14 +277,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi
-      - deploy_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi
+            
       #-------------------------------
       # arm_unknown_linux_gnueabihf
       #-------------------------------
@@ -343,14 +285,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_arm_unknown_linux_gnueabihf:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_arm_unknown_linux_gnueabihf
-      - deploy_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf
+
       #-------------------------------
       # armv5tejl_unknown_linux_musleabi
       #-------------------------------
@@ -358,14 +293,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi
-      - deploy_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi
+
       #-------------------------------
       # armv6_rpi_linux_gnueabi
       #-------------------------------
@@ -373,14 +301,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_armv6_rpi_linux_gnueabi:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_armv6_rpi_linux_gnueabi
-      - deploy_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi
+            
       #-------------------------------
       # i586_unknown_linux_gnu
       #-------------------------------
@@ -388,14 +309,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_i586_unknown_linux_gnu:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_i586_unknown_linux_gnu:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_i586_unknown_linux_gnu
-      - deploy_rpi_nerves_toolchain_i586_unknown_linux_gnu:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_i586_unknown_linux_gnu
+            
       #-------------------------------
       # mipsel_unknown_linux_musl
       #-------------------------------
@@ -403,14 +317,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_mipsel_unknown_linux_musl:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_mipsel_unknown_linux_musl:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_mipsel_unknown_linux_musl
-      - deploy_rpi_nerves_toolchain_mipsel_unknown_linux_musl:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_mipsel_unknown_linux_musl
+            
       #-------------------------------
       # x86_64_unknown_linux_gnu
       #-------------------------------
@@ -418,14 +325,7 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_x86_64_unknown_linux_gnu:
-          <<: *deploy_workflow
-          requires:
-            - build_linux_nerves_toolchain_x86_64_unknown_linux_gnu
-      - deploy_rpi_nerves_toolchain_x86_64_unknown_linux_gnu:
-          <<: *deploy_workflow
-          requires:
-            - build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu
+
       #-------------------------------
       # x86_64_unknown_linux_musl
       #-------------------------------
@@ -433,11 +333,26 @@ workflows:
           <<: *build_workflow
       - build_rpi_nerves_toolchain_x86_64_unknown_linux_musl:
           <<: *build_workflow
-      - deploy_linux_nerves_toolchain_x86_64_unknown_linux_musl:
+      
+      #-------------------------------
+      # Deploy Toolchains
+      #-------------------------------
+      - deploy:
           <<: *deploy_workflow
           requires:
+            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi
+            - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi
+            - build_linux_nerves_toolchain_arm_unknown_linux_gnueabihf
+            - build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf
+            - build_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi
+            - build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi
+            - build_linux_nerves_toolchain_armv6_rpi_linux_gnueabi
+            - build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi
+            - build_linux_nerves_toolchain_i586_unknown_linux_gnu
+            - build_rpi_nerves_toolchain_i586_unknown_linux_gnu
+            - build_linux_nerves_toolchain_mipsel_unknown_linux_musl
+            - build_rpi_nerves_toolchain_mipsel_unknown_linux_musl
+            - build_linux_nerves_toolchain_x86_64_unknown_linux_gnu
+            - build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu
             - build_linux_nerves_toolchain_x86_64_unknown_linux_musl
-      - deploy_rpi_nerves_toolchain_x86_64_unknown_linux_musl:
-          <<: *deploy_workflow
-          requires:
             - build_rpi_nerves_toolchain_x86_64_unknown_linux_musl
