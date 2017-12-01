@@ -14,7 +14,7 @@ defmodule NervesToolchainX8664UnknownLinuxGnu.Mixfile do
     [app: @app,
      version: @version,
      elixir: "~> 1.4",
-     compilers: [:nerves_package],
+     compilers: [:nerves_package | Mix.compilers],
      nerves_package: nerves_package(),
      description: description(),
      package: package(),

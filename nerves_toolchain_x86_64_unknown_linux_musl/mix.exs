@@ -15,7 +15,7 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
       app: @app,
       version: @version,
       elixir: "~> 1.3",
-      compilers: Mix.compilers ++ [:nerves_package],
+      compilers: [:nerves_package | Mix.compilers],
       nerves_package: nerves_package(),
       description: description(),
       package: package(),
