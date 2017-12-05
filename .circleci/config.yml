@@ -4,43 +4,7 @@ defaults: &defaults
     - image: nervesproject/toolchains
 
 build: &build
-  resource_class: large
-  steps:
-    - checkout
-    - restore_cache:
-        key: nerves/downloads/{{ .Environment.TOOLCHAIN }}/{{ .Environment.HOST_ARCH }}
-    - run:
-        name: Update Path
-        command: |
-          echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
-          source $BASH_ENV
-    - run:
-        name: Fetch Dependencies
-        command: git clone git://github.com/raspberrypi/tools.git
-    - run:
-        name: Build
-        command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
-    - save_cache:
-        key: nerves/downloads/{{ .Environment.TOOLCHAIN }}/{{ .Environment.HOST_ARCH }}
-        paths:
-          - "/home/nerves/build/dl"
-    - run:
-        name: "Create artifact dir"
-        command: mkdir -p /home/nerves/deploy/toolchain
-    - run:
-        name: "Copy Artifacts"
-        command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain
-    - store_artifacts:
-        path: /home/nerves/deploy/toolchain
-        destination: toolchain
-    - save_cache:
-        key: nerves/build/{{ .Environment.TOOLCHAIN }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-        paths:
-          - "/home/nerves/build"
-    - save_cache:
-        key: nerves/deploy/{{ .Environment.TOOLCHAIN }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-        paths:
-          - "/home/nerves/deploy/toolchain"
+  
 
 build_workflow: &build_workflow
   context: org-global
@@ -72,14 +36,79 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - /home/nerves/build
+      - save_cache:
+          key: nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux
   #  rpi
   build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi"
+    
   
   #-------------------------------
   # arm_unknown_linux_gnueabihf
@@ -90,14 +119,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_arm_unknown_linux_gnueabihf/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_arm_unknown_linux_gnueabihf/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_arm_unknown_linux_gnueabihf/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_arm_unknown_linux_gnueabihf/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/linux"
   #  rpi
   build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi"
 
   #-------------------------------
   # armv5tejl_unknown_linux_musleabi
@@ -108,14 +201,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux"
   #  rpi
   build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi"
 
   #-------------------------------
   # armv6_rpi_linux_gnueabi
@@ -126,14 +283,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_armv6_rpi_linux_gnueabi/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_armv6_rpi_linux_gnueabi/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_armv6_rpi_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_armv6_rpi_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/linux"
   #  rpi
   build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi"
 
   #-------------------------------
   # i586_unknown_linux_gnu
@@ -144,14 +365,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_i586_unknown_linux_gnu/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_i586_unknown_linux_gnu/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_i586_unknown_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_i586_unknown_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/linux"
   #  rpi
   build_rpi_nerves_toolchain_i586_unknown_linux_gnu:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_i586_unknown_linux_gnu/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_i586_unknown_linux_gnu/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_i586_unknown_linux_gnu/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_i586_unknown_linux_gnu/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_i586_unknown_linux_gnu/rpi"
 
   #-------------------------------
   # mipsel_unknown_linux_musl
@@ -162,14 +447,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_mipsel_unknown_linux_musl/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_mipsel_unknown_linux_musl/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_mipsel_unknown_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_mipsel_unknown_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/linux"
   #  rpi
   build_rpi_nerves_toolchain_mipsel_unknown_linux_musl:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_mipsel_unknown_linux_musl/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_mipsel_unknown_linux_musl/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_mipsel_unknown_linux_musl/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_mipsel_unknown_linux_musl/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_mipsel_unknown_linux_musl/rpi"
 
   #-------------------------------
   # x86_64_unknown_linux_gnu
@@ -180,14 +529,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_gnu/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_gnu/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_x86_64_unknown_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/linux"
   #  rpi
   build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_gnu/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_gnu/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_x86_64_unknown_linux_gnu/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_gnu/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_gnu/rpi"
 
   #-------------------------------
   # x86_64_unknown_linux_musl
@@ -198,14 +611,78 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_musl/linux-{{ .Branch }}
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/linux
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_musl/linux-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/linux
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/linux
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_x86_64_unknown_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/linux"
   #  rpi
   build_rpi_nerves_toolchain_x86_64_unknown_linux_musl:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
       <<: *canadian_rpi
-    <<: *build
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_musl/rpi-{{ .Branch }}
+      - run:
+          name: Update Path
+          command: |
+            echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Fetch Dependencies
+          command: git clone git://github.com/raspberrypi/tools.git
+      - run:
+          name: Build
+          command: ./nerves_toolchain_ctng/build.sh $TOOLCHAIN
+      - run:
+          name: "Create artifact dir"
+          command: mkdir -p /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/rpi
+      - save_cache:
+          key: nerves/dl/nerves_toolchain_x86_64_unknown_linux_musl/rpi-{{ .Branch }}
+          paths:
+            - $HOME/.nerves/dl
+      - run:
+          name: "Copy Artifacts"
+          command: cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/rpi
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/rpi
+          destination: toolchain
+      - save_cache:
+          key: nerves/build/nerves_toolchain_x86_64_unknown_linux_musl/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/build"
+      - save_cache:
+          key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_musl/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - "/home/nerves/deploy/toolchain/nerves_toolchain_x86_64_unknown_linux_musl/rpi"
   
   deploy:
     <<: *defaults
