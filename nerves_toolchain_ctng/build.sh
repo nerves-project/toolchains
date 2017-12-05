@@ -65,7 +65,7 @@ if [[ ! -e $HOST_CONFIG ]]; then
 fi
 
 WORK_DIR=$BASE_DIR/work-$CONFIG
-DL_DIR=$BASE_DIR/dl
+DL_DIR=$HOME/.nerves/dl
 
 if [[ ! -e $CTNG_CONFIG_DIR/VERSION ]]; then
     echo "Can't find $CTNG_CONFIG_DIR/VERSION. Check that it exists."
