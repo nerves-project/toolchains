@@ -692,45 +692,40 @@ jobs:
         name: Create Artifacts Dir
         command: mkdir -p /home/nerves/deploy/artifacts
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_aarch64_unknown_linux_gnueabi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_arm_unknown_linux_gnueabihf-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_aarch64_unknown_linux_gnueabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_armv5tejl_unknown_linux_musleabi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_arm_unknown_linux_gnueabihf/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_armv6_rpi_linux_gnueabi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_arm_unknown_linux_gnueabihf/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_i586_unknown_linux_gnu-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_armv5tejl_unknown_linux_musleabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_mipsel_unknown_linux_musl-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_armv5tejl_unknown_linux_musleabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_gnu-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        key: nerves/deploy/nerves_toolchain_armv6_rpi_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - restore_cache:
-        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_musl-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+        key: nerves/deploy/nerves_toolchain_armv6_rpi_linux_gnueabi/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_i586_unknown_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_i586_unknown_linux_gnu/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_mipsel_unknown_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_mipsel_unknown_linux_musl/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_gnu/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+    - restore_cache:
+        key: nerves/deploy/nerves_toolchain_x86_64_unknown_linux_musl/rpi-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - run:
-        name: Copy Artifact
-        command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+        name: Copy Artifacts
+        command: cp /home/nerves/deploy/toolchain/*/*/*.tar.xz /home/nerves/deploy/artifacts
     - run:
         name: Install dependencies
         command: |
@@ -741,7 +736,7 @@ jobs:
         command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" ./CHANGELOG.md > /nerves/deploy/RELEASE_NOTES
     - run:
         name: Deploy artifacts to Github
-        command: ./ghr -draft -t $GITHUB_TOKEN -u nerves-project -r $CIRCLE_PROJECT_REPONAME -b "$(cat /nerves/deploy/RELEASE_NOTES)" $CIRCLE_TAG /home/nerves/deploy/artifacts
+        command: ./ghr -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat /nerves/deploy/RELEASE_NOTES)" $CIRCLE_TAG /home/nerves/deploy/artifacts
 
 workflows:
   version: 2
