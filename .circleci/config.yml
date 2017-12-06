@@ -62,7 +62,7 @@ jobs:
           paths:
             - /home/nerves/build
       - save_cache:
-          key: nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
           paths:
             - /home/nerves/deploy/toolchain/nerves_toolchain_aarch64_unknown_linux_gnueabi/linux
   #  rpi
