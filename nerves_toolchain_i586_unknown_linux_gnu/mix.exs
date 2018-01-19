@@ -1,37 +1,38 @@
-file = "../nerves_toolchain_helpers.exs"
-file = if File.exists?(file), do: file, else: Path.basename(file)
-Code.require_file(file)
-
 defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
   use Mix.Project
 
-  @app     :nerves_toolchain_i586_unknown_linux_gnu
+  @app :nerves_toolchain_i586_unknown_linux_gnu
   @version Path.join(__DIR__, "VERSION")
-           |> File.read!
-           |> String.trim
+           |> File.read!()
+           |> String.trim()
 
   def project do
-    [app: @app,
-     version: @version,
-     elixir: "~> 1.4",
-     compilers: [:nerves_package | Mix.compilers],
-     nerves_package: nerves_package(),
-     description: description(),
-     package: package(),
-     deps: deps(),
-     aliases: ["deps.precompile": ["nerves.env", "copy.toolchain.helpers", "deps.precompile"]]]
+    [
+      app: @app,
+      version: @version,
+      elixir: "~> 1.4",
+      compilers: [:nerves_package | Mix.compilers()],
+      nerves_package: nerves_package(),
+      description: description(),
+      package: package(),
+      deps: deps(),
+      aliases: ["deps.precompile": ["nerves.env", "deps.precompile"]]
+    ]
   end
 
   def nerves_package do
-   [type: :toolchain,
-    platform: Nerves.Toolchain.CTNG,
-    target_tuple: :i586_unknown_linux_gnu,
-    artifact_url: [
-      "https://github.com/nerves-project/toolchains/releases/download/v#{@version}/#{@app}-#{@version}.#{Nerves.Toolchain.host_platform()}-#{Nerves.Toolchain.host_arch()}.tar.xz"
-    ],
-    checksum: [
-      "defconfig"
-    ]]
+    [
+      type: :toolchain,
+      platform: Nerves.Toolchain.CTNG,
+      platform_config: [
+        defconfig: "defconfig"
+      ],
+      target_tuple: :i586_unknown_linux_gnu,
+      artifact_sites: [
+        {:github_releases, "nerves-project/toolchains"}
+      ],
+      checksum: package_files()
+    ]
   end
 
   def application do
@@ -40,8 +41,10 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 0.8"},
-      {:nerves_toolchain_ctng, "~> 1.2"}
+      # {:nerves, "~> 0.9"},
+      {:nerves, github: "nerves-project/nerves", branch: "rel-v0.9.0", runtime: false},
+      # {:nerves_toolchain_ctng, "~> 1.3"}
+      {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng", runtime: false}
     ]
   end
 
@@ -52,9 +55,24 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
   end
 
   defp package do
-    [maintainers: ["Frank Hunleth", "Justin Schneck"],
-     files: ["defconfig", "README.md", "LICENSE", "mix.exs", "nerves_toolchain_helpers.exs", "VERSION"],
-     licenses: ["Apache 2.0"],
-     links: %{"Github" => "https://github.com/nerves-project/toolchains/nerves_toolchain_i586_unknown_linux_gnu"}]
+    [
+      maintainers: ["Frank Hunleth", "Justin Schneck"],
+      files: package_files(),
+      licenses: ["Apache 2.0"],
+      links: %{
+        "Github" =>
+          "https://github.com/nerves-project/toolchains/#{@app}"
+      }
+    ]
+  end
+
+  defp package_files do
+    [
+      "defconfig",
+      "README.md",
+      "LICENSE",
+      "mix.exs",
+      "VERSION"
+    ]
   end
 end

@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 
-set -e
+# Example
+# 
+# build.sh /path/to/defconfig /path/to/build/dir
+
+
 
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
+
 CTNG_USE_GIT=true
 CTNG_TAG=crosstool-ng-1.23.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR=$SCRIPT_DIR/..
+
+BASE_CONFIG=$(readlink -f $1)
+WORK_DIR=$(readlink -f $2)
 
 BUILD_ARCH=$(uname -m)
 BUILD_OS=$(uname -s)
@@ -24,36 +31,33 @@ if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
 
-if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 <toolchain name>"
-    echo
-    echo "This is the Nerves toolchain builder. It produces cross-compilers that"
-    echo "work across the operating systems supported by Nerves."
-    echo
-    echo "By convention, toolchains are identified by gcc tuples but using underscores"
-    echo "instead of hyphens to make the names Elixir/Erlang friendly."
-    echo
-    echo "To do Canadian-cross builds (cross-compile the cross-compiler), set the"
-    echo "HOST_ARCH and HOST_OS environment variables to what you want."
-    echo
-    echo "Valid options:"
-    for dir in $(ls $BASE_DIR); do
-        if [[ -f $dir/defconfig ]]; then
-            echo $dir
-        fi
-    done
-    exit 1
-fi
+# if [[ $# -lt 1 ]]; then
+#     echo "Usage: $0 <toolchain name>"
+#     echo
+#     echo "This is the Nerves toolchain builder. It produces cross-compilers that"
+#     echo "work across the operating systems supported by Nerves."
+#     echo
+#     echo "By convention, toolchains are identified by gcc tuples but using underscores"
+#     echo "instead of hyphens to make the names Elixir/Erlang friendly."
+#     echo
+#     echo "To do Canadian-cross builds (cross-compile the cross-compiler), set the"
+#     echo "HOST_ARCH and HOST_OS environment variables to what you want."
+#     echo
+#     echo "Valid options:"
+#     for dir in $(ls $BASE_DIR); do
+#         if [[ -f $dir/defconfig ]]; then
+#             echo $dir
+#         fi
+#     done
+#     exit 1
+# fi
 
-CONFIG=$HOST_OS-$HOST_ARCH-$1
-CTNG_CONFIG_DIR=$BASE_DIR/$1
 
-BASE_CONFIG=$CTNG_CONFIG_DIR/defconfig
 if [[ ! -e $BASE_CONFIG ]]; then
     echo "Can't find $BASE_CONFIG. Check that it exists."
     exit 1
 fi
-
+CTNG_CONFIG_DIR=$(dirname $BASE_CONFIG)
 # Append host-specific modifications to the base defconfig
 HOST_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
 if [[ ! -e $HOST_CONFIG ]]; then
@@ -64,7 +68,6 @@ if [[ ! -e $HOST_CONFIG ]]; then
     fi
 fi
 
-WORK_DIR=$BASE_DIR/work-$CONFIG
 DL_DIR=$HOME/.nerves/dl
 
 if [[ ! -e $CTNG_CONFIG_DIR/VERSION ]]; then
@@ -179,6 +182,7 @@ build_gcc()
 	gmake
 	gmake install
     else
+    echo $(pwd)
 	./configure --prefix=$LOCAL_INSTALL_DIR
 	make
 	make install
@@ -260,12 +264,11 @@ toolchain_base_name()
 
 assemble_tarball()
 {
-    echo Building archive...
 
     # Assemble the tarball for the toolchain
     TARGET_TUPLE=$(gcc_tuple)
-    TARBALL_PATH=$BASE_DIR/$(toolchain_base_name).tar
-    TARXZ_PATH=$TARBALL_PATH.xz
+    # TARBALL_PATH="${TARBALL_PATH:-$WORK_DIR/$(toolchain_base_name).tar}"
+    # TARXZ_PATH=$TARBALL_PATH.xz
     TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
 
     # Save useful information if we ever need to reproduce the toolchain
@@ -273,9 +276,9 @@ assemble_tarball()
     cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig
     cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config
 
-    rm -f $TARBALL_PATH $TARXZ_PATH
-    $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
-    xz $TARBALL_PATH
+    # rm -f $TARBALL_PATH $TARXZ_PATH
+    # $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
+    # xz $TARBALL_PATH
 }
 
 assemble_dmg()
@@ -293,7 +296,7 @@ assemble_dmg()
 
     # Assemble the tarball for the toolchain
     TARGET_TUPLE=`gcc_tuple`
-    DMG_PATH=$BASE_DIR/$(toolchain_base_name).dmg
+    DMG_PATH=$WORK_DIR/$(toolchain_base_name).dmg
 
     echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $DMG_PATH
@@ -351,12 +354,11 @@ fini()
         hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
         rm -f $WORK_DMG
     fi
-    rm -fr $WORK_DIR
+    #rm -fr $WORK_DIR
 }
 
 init
 build_gcc
 assemble_products
 fini
-
-echo "All done!"
+echo "Done"
