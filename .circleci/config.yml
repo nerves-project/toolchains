@@ -50,22 +50,17 @@ build: &build
           cd $TOOLCHAIN
           mix compile
     - run:
+        name: "Create artifact dir"
+        command: mkdir -p /home/nerves/deploy/toolchain
+    - run:
         name: Create artifact
         command: |
           cd $TOOLCHAIN
-          mix nerves.artifact $TOOLCHAIN
-    - run:
-        name: "Create artifact dir"
-        command: mkdir -p /home/nerves/deploy/toolchain
+          mix nerves.artifact $TOOLCHAIN --path /home/nerves/deploy/toolchain
     - save_cache:
         key: nerves/dl/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Branch }}
         paths:
           - $HOME/.nerves/dl
-    - run:
-        name: "Copy Artifacts"
-        command: |
-          cd $TOOLCHAIN
-          cp ${TOOLCHAIN}*.tar.xz /home/nerves/deploy/toolchain
     - store_artifacts:
         path: /home/nerves/deploy/toolchain
         destination: toolchain
