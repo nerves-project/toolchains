@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Example
-# 
+#
 # build.sh /path/to/defconfig /path/to/build/dir
 
 
@@ -13,14 +13,18 @@ CTNG_TAG=crosstool-ng-1.23.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-BASE_CONFIG=$(readlink -f $1)
-WORK_DIR=$(readlink -f $2)
+BASE_CONFIG=$1
+WORK_DIR=$2
 
+READLINK=readlink
 BUILD_ARCH=$(uname -m)
 BUILD_OS=$(uname -s)
 if [[ $BUILD_OS = "CYGWIN_NT-6.1" ]]; then
     # A simple Cygwin looks better.
     BUILD_OS="cygwin"
+elif [[ $BUILD_OS = "Darwin" ]]; then
+    # Make sure that we use GNU readlink on OSX
+    READLINK=greadlink
 fi
 BUILD_OS=$(echo "$BUILD_OS" | awk '{print tolower($0)}')
 
@@ -30,6 +34,10 @@ fi
 if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
+
+# Ensure that the config and work paths are absolute
+BASE_CONFIG=$($READLINK -f $BASE_CONFIG)
+WORK_DIR=$($READLINK -f $WORK_DIR)
 
 # if [[ $# -lt 1 ]]; then
 #     echo "Usage: $0 <toolchain name>"
