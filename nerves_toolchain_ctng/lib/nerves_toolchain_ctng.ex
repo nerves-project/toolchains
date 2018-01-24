@@ -4,10 +4,16 @@ defmodule Nerves.Toolchain.CTNG do
   alias Nerves.Artifact
   import Mix.Nerves.Utils
 
+  @doc """
+  Called as the last step of bootstrapping the Nerves env.
+  """
   def bootstrap(_pkg) do
     :ok
   end
 
+  @doc """
+  Build the artifact
+  """
   def build(pkg, _toolchain, _opts) do
     build_path = Artifact.build_path(pkg)
     File.mkdir_p!(build_path)
@@ -32,6 +38,17 @@ defmodule Nerves.Toolchain.CTNG do
     end
   end
 
+  @doc """
+  Return the location in the build path to where the global artifact is linked
+  """
+  def build_path_link(pkg) do
+    Artifact.build_path(pkg)
+    |> Path.join("x-tools")
+  end
+
+  @doc """
+  Create an archive of the artifact
+  """
   def archive(pkg, _toolchain, _opts) do
     build_path = Artifact.build_path(pkg)
     
@@ -50,6 +67,9 @@ defmodule Nerves.Toolchain.CTNG do
     end
   end
 
+  @doc """
+  Clean up all the build files
+  """
   def clean(pkg) do
     pkg
     |> Artifact.dir()
