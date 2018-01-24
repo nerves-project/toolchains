@@ -14,7 +14,7 @@ GCC_INSTALL_DIR=$WORK_DIR/x-tools
 
 BUILD_OS=$(uname -s)
 
-if [[ $BUILD_OS = "darwin" ]]; then
+if [[ $BUILD_OS = "Darwin" ]]; then
     # Use GNU tar from Homebrew (brew install gnu-tar)
     TAR=gtar
 else

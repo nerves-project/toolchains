@@ -15,6 +15,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 BASE_CONFIG=$1
 WORK_DIR=$2
+ARTIFACT_NAME=$(basename $WORK_DIR)
 
 READLINK=readlink
 BUILD_ARCH=$(uname -m)
@@ -101,7 +102,7 @@ if [[ $BUILD_OS = "darwin" ]]; then
     TAR=gtar
 
     WORK_DMG=$WORK_DIR.dmg
-    WORK_DMG_VOLNAME=nerves-toolchain-work
+    WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
 elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
@@ -351,22 +352,7 @@ assemble_products()
     fi
 }
 
-fini()
-{
-    # Clean up our work since the disk space that it uses is quite significant
-    # NOTE: If you're debugging ct-ng configs, you'll want to comment out the
-    #       call to fini at the end.
-    if [[ $BUILD_OS = "darwin" ]]; then
-        # Try to unmount. It never works immediately, so wait before trying.
-        sleep 5
-        hdiutil detach /Volumes/$WORK_DMG_VOLNAME -force || true
-        rm -f $WORK_DMG
-    fi
-    #rm -fr $WORK_DIR
-}
-
 init
 build_gcc
 assemble_products
-fini
 echo "Done"

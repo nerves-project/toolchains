@@ -16,6 +16,7 @@ defmodule Nerves.Toolchain.CTNG do
   """
   def build(pkg, _toolchain, _opts) do
     build_path = Artifact.build_path(pkg)
+    File.rm_rf!(build_path)
     File.mkdir_p!(build_path)
     script = 
       :nerves_toolchain_ctng
@@ -71,6 +72,9 @@ defmodule Nerves.Toolchain.CTNG do
   Clean up all the build files
   """
   def clean(pkg) do
+    dmg = Artifact.name(pkg) <> ".dmg"
+    File.rm(dmg)
+
     pkg
     |> Artifact.dir()
     |> File.rm_rf()
