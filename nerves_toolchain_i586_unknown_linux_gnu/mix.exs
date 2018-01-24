@@ -41,10 +41,8 @@ defmodule NervesToolchainI586UnknownLinuxGnu.Mixfile do
 
   defp deps do
     [
-      # {:nerves, "~> 0.9"},
-      {:nerves, github: "nerves-project/nerves", branch: "rel-v0.9.0", runtime: false},
-      # {:nerves_toolchain_ctng, "~> 1.3"}
-      {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng", runtime: false}
+      {:nerves, "~> 0.9", runtime: false},
+      {:nerves_toolchain_ctng, "~> 1.3", runtime: false}
     ]
   end
 
