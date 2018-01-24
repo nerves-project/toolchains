@@ -1,7 +1,11 @@
 # Toolchain Releases
 
-##0.13.0
-  
+## v0.13.0
+
+  * Enhancements
+    * Toolchains are now built through `mix compile`
+    * Toolchain artifacts can be produced with `mix nerves.artifact`
+    * Updated project to support nerves v0.9
 
 ## v0.12.1
   * Bug Fixes
