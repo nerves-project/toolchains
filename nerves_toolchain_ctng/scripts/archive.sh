@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # Example
-# 
+#
 # archive.sh /path/to/build_dir /path/to/artifact.tar.xz
 
 
 set -e
 
-WORK_DIR=$(readlink -f $1)
-TARBALL_PATH=$(readlink -f $2)
+WORK_DIR=$1
+TARBALL_PATH=$2
 
 GCC_INSTALL_DIR=$WORK_DIR/x-tools
 
