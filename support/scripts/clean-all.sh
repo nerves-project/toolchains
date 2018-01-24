@@ -1,11 +1,3 @@
-#!/usr/bin/env sh
-
-# Give me a chance to hit CTRL-C in case I'm building a -dirty by accident
-echo "Building a release of all toolchains listed in $0."
-echo "git describe: '$(git describe --dirty)'."
-echo "Hit CTRL-C to stop..."
-sleep 2
-
 CONFIGS="\
     nerves_toolchain_x86_64_unknown_linux_musl \
     nerves_toolchain_aarch64_unknown_linux_gnueabi \
@@ -17,13 +9,9 @@ CONFIGS="\
     nerves_toolchain_x86_64_unknown_linux_gnu"
 
 for CONFIG in $CONFIGS; do
-    echo "Starting build for $CONFIG..."
+    echo "Updating deps for $CONFIG..."
     # ./nerves_toolchain_ctng/build.sh $CONFIG
     cd $CONFIG
-    mix do deps.get, compile, nerves.artifact --path ../
+    mix clean && mix nerves.clean --all
     cd ../
 done
-
-echo "All done!!!!!!"
-
-

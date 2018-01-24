@@ -12,7 +12,7 @@ CTNG_USE_GIT=true
 CTNG_TAG=crosstool-ng-1.23.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+echo $SCRIPT_DIR
 BASE_CONFIG=$1
 WORK_DIR=$2
 ARTIFACT_NAME=$(basename $WORK_DIR)

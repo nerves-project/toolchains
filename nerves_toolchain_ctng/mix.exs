@@ -13,8 +13,13 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
       elixir: "~> 1.4",
       nerves_package: [type: :toolchain_platform],
       description: description(),
-      package: package()
+      package: package(),
+      deps: deps()
     ]
+  end
+
+  defp deps do
+    [{:nerves, "~> 0.9", runtime: false}]
   end
 
   defp description do
@@ -26,7 +31,7 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
   defp package do
     [
       maintainers: ["Frank Hunleth", "Justin Schneck"],
-      files: ["patches", "scripts", "build.sh", "README.md", "LICENSE", "mix.exs", "VERSION"],
+      files: ["lib", "patches", "scripts", "build.sh", "README.md", "LICENSE", "mix.exs", "VERSION", "defaults"],
       licenses: ["Apache 2.0"],
       links: %{"Github" => "https://github.com/nerves-project/toolchains"}
     ]
