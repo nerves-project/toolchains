@@ -1,24 +1,32 @@
 # Changelog
 
+## v1.3.1
+
+  * Enhancements
+    * Build static toolchains for Linux to avoid shared library issues
+
 ## v1.3.0
-  
+
   * Enhancements
     * Support for nerves v0.9.0
 
 ## v1.2.1
-  
+
   * Bug Fixes
     * Build app file to fix issue with Mix compilers not respecint `app: false`
 
 ## v1.0.0
+
   * Enhancements
     * Fix compiler warnings for Elixir 1.5
 
 ## v0.9.0
+
   * Enhancements
     * Support for gcc 5
 
 ## v0.8.0
+
   * Enhancements
     * Support for package compiler
 
