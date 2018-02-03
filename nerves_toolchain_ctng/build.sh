@@ -12,9 +12,15 @@ CTNG_USE_GIT=true
 CTNG_TAG=crosstool-ng-1.23.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo $SCRIPT_DIR
+
 BASE_CONFIG=$1
 WORK_DIR=$2
+
+if [[ -z $BASE_CONFIG ]] || [[ -z $WORK_DIR ]]; then
+    echo "build.sh <defconfig> <word directory>"
+    exit 1
+fi
+
 ARTIFACT_NAME=$(basename $WORK_DIR)
 
 READLINK=readlink
