@@ -60,7 +60,7 @@ defmodule Nerves.Toolchain.CTNG do
       |> Path.join("scripts")
       |> Path.join("archive.sh")
     
-    tar_path = Path.join([build_path, Artifact.name(pkg) <> Artifact.ext(pkg)])
+    tar_path = Path.join([build_path, Artifact.download_name(pkg) <> Artifact.ext(pkg)])
 
     case shell(script, [build_path, tar_path]) do
       {_, 0} -> {:ok, tar_path}
