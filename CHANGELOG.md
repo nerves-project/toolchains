@@ -1,5 +1,9 @@
 # Toolchain Releases
 
+## v0.13.1-dev
+  * Enhancements
+    * Build static toolchains for Linux to avoid shared library issues
+
 ## v0.13.0
 
   * Enhancements
@@ -8,15 +12,18 @@
     * Updated project to support nerves v0.9
 
 ## v0.12.1
+
   * Bug Fixes
     * Configure toolchains to build app files. This will fix an issue where Mix
       does not respect `app: false` 
 
 ## v0.12.0
+
   * Enhancements
     * Updated for nerves 0.8. Moved nerves.exs to mix.exs
 
 ## v0.11.0
+
   * Enhancements
     * Bumped all Linux 3.x kernel header configs up to 4.1
     * Build a cross gdb and gdbserver to support crash dump analysis and on
@@ -38,11 +45,13 @@
     * gdb-7.12.1
 
 ## v0.10.1
+
   * Enhancements
     * Update nerves to 0.7
     * Fix compiler warnings for Elixir 1.5
 
 ## v0.10.0
+
   * Enhancements
     * Updated nerves to 0.5.0 and loosened dep lock
     * Update linux header patch for 4.4
