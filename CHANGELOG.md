@@ -1,6 +1,6 @@
 # Toolchain Releases
 
-## v0.13.1-dev
+## v0.13.1
   * Enhancements
     * Build static toolchains for Linux to avoid shared library issues
 
