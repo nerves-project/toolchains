@@ -16,11 +16,21 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
       description: description(),
       package: package(),
       deps: deps(),
-      aliases: ["deps.precompile": ["nerves.env", "deps.precompile"]]
+      aliases: [loadconfig: [&bootstrap/1]]
     ]
   end
 
-  def nerves_package do
+  def application do
+    []
+  end
+
+  defp bootstrap(args) do
+    System.put_env("MIX_TARGET", "CC")
+    Application.start(:nerves_bootstrap)
+    Mix.Task.run("loadconfig", args)
+  end
+
+  defp nerves_package do
     [
       type: :toolchain,
       platform: Nerves.Toolchain.CTNG,
@@ -35,14 +45,10 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
     ]
   end
 
-  def application do
-    []
-  end
-
   defp deps do
     [
-      {:nerves, "~> 0.9", runtime: false},
-      {:nerves_toolchain_ctng, "~> 1.3", runtime: false}
+      {:nerves, "~> 1.0-rc", runtime: false},
+      {:nerves_toolchain_ctng, "~> 1.4-rc", runtime: false}
     ]
   end
 

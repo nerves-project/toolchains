@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.0-rc.0
+  
+  * Updated dependencies
+    * nerves v1.0-rc
+
 ## v1.3.1
 
   * Enhancements

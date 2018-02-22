@@ -1,6 +1,13 @@
 # Toolchain Releases
 
+## v1.0.0-rc.0
+
+  * Updated dependencies
+    * nerves v1.0-rc
+    * nerves_toolchain_ctng v1.4-rc
+
 ## v0.13.1
+
   * Enhancements
     * Build static toolchains for Linux to avoid shared library issues
 

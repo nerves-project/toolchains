@@ -1,5 +1,7 @@
 defaults: &defaults
   working_directory: /home/nerves/build
+  environment:
+    ENV: CI
   docker:
     - image: nervesproject/toolchains
 

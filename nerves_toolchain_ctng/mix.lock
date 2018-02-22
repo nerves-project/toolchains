@@ -1,4 +1,4 @@
 %{
   "distillery": {:hex, :distillery, "1.5.2", "eec18b2d37b55b0bcb670cf2bcf64228ed38ce8b046bb30a9b636a6f5a4c0080", [:mix], [], "hexpm"},
-  "nerves": {:hex, :nerves, "0.9.0", "41f95cb299565f0b759924430f62d1ae7399f4552d8dcbf83699103fda8fd5ad", [:mix], [{:distillery, "~> 1.4", [hex: :distillery, repo: "hexpm", optional: false]}], "hexpm"},
+  "nerves": {:hex, :nerves, "1.0.0-rc.0", "5c6cf122611d0024d06b88593aa9af46180d30712fc6ff07fa25fb9100125f1e", [:mix], [{:distillery, "~> 1.4", [hex: :distillery, repo: "hexpm", optional: false]}], "hexpm"},
 }
