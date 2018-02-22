@@ -15,7 +15,7 @@ install_hex_rebar: &install_hex_rebar
 install_nerves_bootstrap: &install_nerves_bootstrap
   run:
     name: Install nerves_bootstrap
-    command: mix archive.install hex nerves_bootstrap --force
+    command: mix archive.install hex nerves_bootstrap 1.0.0-rc.0 --force
 
 build: &build
   resource_class: large
