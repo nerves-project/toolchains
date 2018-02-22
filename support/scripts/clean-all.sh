@@ -12,6 +12,7 @@ for CONFIG in $CONFIGS; do
     echo "Updating deps for $CONFIG..."
     # ./nerves_toolchain_ctng/build.sh $CONFIG
     cd $CONFIG
-    mix clean && mix nerves.clean --all
+    mix nerves.clean --all
+    rm -rf _build deps .nerves
     cd ../
 done

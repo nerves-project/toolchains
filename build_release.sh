@@ -20,7 +20,8 @@ for CONFIG in $CONFIGS; do
     echo "Starting build for $CONFIG..."
     # ./nerves_toolchain_ctng/build.sh $CONFIG
     cd $CONFIG
-    mix do deps.get, compile, nerves.artifact --path ../
+    mix deps.get
+    mix nerves.artifact --path ../
     cd ../
 done
 
