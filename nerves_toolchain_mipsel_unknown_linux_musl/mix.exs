@@ -47,8 +47,8 @@ defmodule NervesToolchainMipselUnknownLinuxMusl.Mixfile do
 
   defp deps do
     [
-      {:nerves, "~> 1.0-rc", runtime: false},
-      {:nerves_toolchain_ctng, "~> 1.4-rc", runtime: false}
+      {:nerves, "~> 1.0", runtime: false},
+      {:nerves_toolchain_ctng, "~> 1.4", runtime: false}
     ]
   end
 

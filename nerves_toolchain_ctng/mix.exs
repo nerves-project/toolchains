@@ -19,7 +19,7 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
   end
 
   defp deps do
-    [{:nerves, "~> 1.0-rc", runtime: false}]
+    [{:nerves, "~> 1.0", runtime: false}]
   end
 
   defp description do
