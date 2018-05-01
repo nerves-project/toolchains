@@ -1,5 +1,11 @@
 # Toolchain Releases
 
+## v1.0.0
+  
+  * Updated dependencies
+    * nerves v1.0
+    * nerves_toolchain_ctng v1.4
+
 ## v1.0.0-rc.0
 
   * Updated dependencies
