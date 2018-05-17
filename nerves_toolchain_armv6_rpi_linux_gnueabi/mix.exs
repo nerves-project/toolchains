@@ -63,7 +63,7 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.Mixfile do
       maintainers: ["Frank Hunleth", "Justin Schneck"],
       files: package_files(),
       licenses: ["Apache 2.0"],
-      links: %{"Github" => "https://github.com/nerves-project/toolchains/#{@app}"}
+      links: %{"Github" => "https://github.com/nerves-project/toolchains/tree/master/#{@app}"}
     ]
   end
 

@@ -64,7 +64,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
       files: package_files(),
       licenses: ["Apache 2.0"],
       links: %{
-        "Github" => "https://github.com/nerves-project/toolchains/#{@app}"
+        "Github" => "https://github.com/nerves-project/toolchains/tree/master/#{@app}"
       }
     ]
   end
