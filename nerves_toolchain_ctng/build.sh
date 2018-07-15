@@ -9,7 +9,7 @@ set -e
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 
 CTNG_USE_GIT=true
-CTNG_TAG=crosstool-ng-1.23.0
+CTNG_TAG=d5900debd397b8909d9cafeb9a1093fb7a5dc6e6
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -110,6 +110,15 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
+    # I'm not sure why ctng doesn't include this. Maybe a bug?
+    CTNG_LDFLAGS=-lintl
+
+    # Apple provides an old version of Bison that will fail about 20 minutes into the build.
+    export PATH="/usr/local/opt/bison/bin:$PATH"
+    if [[ ! -e /usr/local/opt/bison/bin/bison ]]; then
+        echo "Building gcc requires a more recent version on bison than Apple provides. Install with 'brew install bison'"
+        exit 1
+    fi
 elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
@@ -197,8 +206,7 @@ build_gcc()
 	gmake
 	gmake install
     else
-    echo $(pwd)
-	./configure --prefix=$LOCAL_INSTALL_DIR
+	LDFLAGS="$CTNG_LDFLAGS" ./configure --prefix=$LOCAL_INSTALL_DIR
 	make
 	make install
     fi

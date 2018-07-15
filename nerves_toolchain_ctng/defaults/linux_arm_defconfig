@@ -1,4 +1,4 @@
 CT_CANADIAN=y
 CT_HOST="arm-linux-gnueabihf"
-CT_DEBUG_gdb=y
+CT_DEBUG_GDB=y
 CT_GDB_CROSS_STATIC=y

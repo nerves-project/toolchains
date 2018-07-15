@@ -43,11 +43,10 @@ Install the following packages:
 ```
 brew update
 brew tap homebrew/dupes
-brew install gawk binutils xz wget automake gnu-tar help2man
-brew install libtool autoconf gnu-sed mpfr gmp gcc
+brew install gawk binutils xz wget automake gnu-tar help2man bash
+brew install libtool autoconf gnu-sed mpfr gmp gcc bison
 brew install grep -—with-default-names
-brew install --universal gettext
-
+brew unlink gettext && brew link --force gettext
 ```
 
 Run `build_release.sh` and wait.
