@@ -29,7 +29,7 @@ defmodule NervesToolchainX8664UnknownLinuxGnu.Mixfile do
     Application.start(:nerves_bootstrap)
     Mix.Task.run("loadconfig", args)
   end
-  
+
   defp nerves_package do
     [
       type: :toolchain,
@@ -48,7 +48,8 @@ defmodule NervesToolchainX8664UnknownLinuxGnu.Mixfile do
   defp deps do
     [
       {:nerves, "~> 1.0", runtime: false},
-      {:nerves_toolchain_ctng, "~> 1.4", runtime: false}
+      {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng", runtime: false}
+      #{:nerves_toolchain_ctng, "~> 1.5", runtime: false}
     ]
   end
 
