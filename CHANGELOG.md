@@ -1,97 +1,110 @@
 # Toolchain Releases
 
+## v1.1.0-rc.0
+
+This release upgrades gcc from version 6.3.0 to 7.3.0. This addresses a C++
+compiler issue and may bring in performance improvements.
+
+* Tool versions
+  * glibc 2.27
+  * muslc 1.1.19
+
+* Updated dependencies
+  * nerves v1.1
+  * nerves_toolchain_ctng v1.5
+
 ## v1.0.0
-  
-  * Updated dependencies
-    * nerves v1.0
-    * nerves_toolchain_ctng v1.4
+
+* Updated dependencies
+  * nerves v1.0
+  * nerves_toolchain_ctng v1.4
 
 ## v1.0.0-rc.0
 
-  * Updated dependencies
-    * nerves v1.0-rc
-    * nerves_toolchain_ctng v1.4-rc
+* Updated dependencies
+  * nerves v1.0-rc
+  * nerves_toolchain_ctng v1.4-rc
 
 ## v0.13.1
 
-  * Enhancements
-    * Build static toolchains for Linux to avoid shared library issues
+* Enhancements
+  * Build static toolchains for Linux to avoid shared library issues
 
 ## v0.13.0
 
-  * Enhancements
-    * Toolchains are now built through `mix compile`
-    * Toolchain artifacts can be produced with `mix nerves.artifact`
-    * Updated project to support nerves v0.9
+* Enhancements
+  * Toolchains are now built through `mix compile`
+  * Toolchain artifacts can be produced with `mix nerves.artifact`
+  * Updated project to support nerves v0.9
 
 ## v0.12.1
 
-  * Bug Fixes
-    * Configure toolchains to build app files. This will fix an issue where Mix
-      does not respect `app: false` 
+* Bug Fixes
+  * Configure toolchains to build app files. This will fix an issue where Mix
+    does not respect `app: false`
 
 ## v0.12.0
 
-  * Enhancements
-    * Updated for nerves 0.8. Moved nerves.exs to mix.exs
+* Enhancements
+  * Updated for nerves 0.8. Moved nerves.exs to mix.exs
 
 ## v0.11.0
 
-  * Enhancements
-    * Bumped all Linux 3.x kernel header configs up to 4.1
-    * Build a cross gdb and gdbserver to support crash dump analysis and on
-      target debugging of C/C++ code
-  * Tool versions
-    * m4-1.4.18
-    * linux-4.1.39
-    * gmp-6.1.2
-    * mpfr-3.1.5
-    * isl-0.18
-    * mpc-1.0.3
-    * expat-2.2.0
-    * ncurses-6.0
-    * libiconv-1.15
-    * gettext-0.19.8.1
-    * binutils-2.28
-    * gcc-6.3.0
-    * glibc-2.25
-    * gdb-7.12.1
+* Enhancements
+  * Bumped all Linux 3.x kernel header configs up to 4.1
+  * Build a cross gdb and gdbserver to support crash dump analysis and on
+    target debugging of C/C++ code
+* Tool versions
+  * m4-1.4.18
+  * linux-4.1.39
+  * gmp-6.1.2
+  * mpfr-3.1.5
+  * isl-0.18
+  * mpc-1.0.3
+  * expat-2.2.0
+  * ncurses-6.0
+  * libiconv-1.15
+  * gettext-0.19.8.1
+  * binutils-2.28
+  * gcc-6.3.0
+  * glibc-2.25
+  * gdb-7.12.1
 
 ## v0.10.1
 
-  * Enhancements
-    * Update nerves to 0.7
-    * Fix compiler warnings for Elixir 1.5
+* Enhancements
+  * Update nerves to 0.7
+  * Fix compiler warnings for Elixir 1.5
 
 ## v0.10.0
 
-  * Enhancements
-    * Updated nerves to 0.5.0 and loosened dep lock
-    * Update linux header patch for 4.4
+* Enhancements
+  * Updated nerves to 0.5.0 and loosened dep lock
+  * Update linux header patch for 4.4
 
 ## v0.9.0
 
-  * New features
-    * Bump gcc version from 4.9 to 5.3 - THIS BREAKS COMPILATION OF OLD LINUX
-      KERNELS! If you have no choice but to use an old Linux kernel, please
-      do not upgrade to this toolchain.
-    * Added x86_64 toolchain that's built against glibc
+* New features
+  * Bump gcc version from 4.9 to 5.3 - THIS BREAKS COMPILATION OF OLD LINUX
+    KERNELS! If you have no choice but to use an old Linux kernel, please
+    do not upgrade to this toolchain.
+  * Added x86_64 toolchain that's built against glibc
 
 ## v0.8.0
 
-  * New features
-    * Refactored defconfigs so that platform-independent and platform-dependent
-      parts are stored separately. This majorly simplifies maintenance.
-    * Added support for the `:nerves_package` compiler
+* New features
+  * Refactored defconfigs so that platform-independent and platform-dependent
+    parts are stored separately. This majorly simplifies maintenance.
+  * Added support for the `:nerves_package` compiler
 
 ## v0.7.2
 
 ### armv6_rpi_linux_gnueabi
 
-  * Bug Fixes
-    * [darwin] fixed defconfig to use 3.12 linux kernel headers
+* Bug Fixes
+  * [darwin] fixed defconfig to use 3.12 linux kernel headers
 
 ## v0.7.1
 
-  * New features
-    * First release using combined toolchain repository
+* New features
+  * First release using combined toolchain repository
