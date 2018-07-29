@@ -1,18 +1,17 @@
-FROM debian:9
+FROM ubuntu:18.04
 MAINTAINER Nerves Project
 LABEL maintainer="Nerves Project developers <nerves@nerves-project.org>" \
       vendor="NervesProject" \
 description="Container with everything needed to build Nerves toolchains"
 
 # Setup environment
-# Setup environment
 ENV DEBIAN_FRONTEND noninteractive
-ENV LANG=C.UTF-8 
-ENV TERM=xterm 
-ENV ERLANG_OTP_VERSION=20.0
+ENV LANG=C.UTF-8
+ENV TERM=xterm
+ENV ERLANG_OTP_VERSION=21.0
 ENV ERLANG_PKG='erlang-solutions_1.0_all.deb'
 ENV ERLANG_URL="https://packages.erlang-solutions.com/${ERLANG_PKG}"
-ENV ELIXIR_VERSION=1.6.0
+ENV ELIXIR_VERSION=1.6.6
 ENV PATH="/usr/local/elixir/bin:${PATH}"
 # The container has no package lists, so need to update first
 RUN useradd -ms /bin/bash nerves
@@ -22,13 +21,14 @@ RUN set -xe \
 	git \
 	curl \
 	build-essential \
+        libtool \
 	gperf \
 	bison \
 	flex \
 	texinfo \
 	wget \
 	gawk \
-	libtool \
+	libtool-bin \
 	automake \
 	libncurses5-dev \
 	help2man \
