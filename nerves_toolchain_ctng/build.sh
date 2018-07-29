@@ -4,7 +4,7 @@
 #
 # build.sh /path/to/defconfig /path/to/build/dir
 
-
+set -e
 
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 
@@ -201,6 +201,12 @@ build_gcc()
 	./configure --prefix=$LOCAL_INSTALL_DIR
 	make
 	make install
+    fi
+
+    # Check for ct-ng
+    if [[ ! -e $LOCAL_INSTALL_DIR/bin/ct-ng ]]; then
+        echo "ct-ng build failed."
+        exit 1
     fi
 
     # Setup the toolchain build directory
