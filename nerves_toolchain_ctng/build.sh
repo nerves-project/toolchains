@@ -254,32 +254,30 @@ build_gcc()
         $WORK_DIR/build/.config
     fi
 
+    # Start building and print dots to keep CI from killing the build due
+    # to console inactivity.
     $PREFIX $CTNG build &
     local build_pid=$!
     {
-        while true
-        do
-           sleep 300
-           printf "ct-ng build isn't done yet...\r"
-       done
+        while ps -p $build_pid >/dev/null; do
+           sleep 12
+           printf "."
+        done
     } &
-    local runner_pid=$!
+    local keepalive_pid=$!
 
-    # Wait for the build to finish and get the result
+    # Wait for the build to finish
     wait $build_pid 2>/dev/null
-    local result=$?
 
-    # Stop the runner task
-    kill $runner_pid
-
-    # Wait for the runner task to finish, but ignore the result
-    # in case the runner task ends before the call to wait.
-    wait $runner_pid 2>/dev/null || true
+    # Stop the keepalive task
+    kill $keepalive_pid
+    wait $keepalive_pid 2>/dev/null || true
 
     TARGET_TUPLE=$(gcc_tuple)
 
-    # ct-ng likes to mark everything read-only which
-    # seems reasonable, but it can be really annoying.
+    echo "Fixing permissions on release"
+    # ct-ng likes to mark everything read-only which seems reasonable, but it
+    # can be really annoying when trying to cleanup a toolchain.
     chmod -R u+w $GCC_INSTALL_DIR/$TARGET_TUPLE
 
     # Clean up the build product
@@ -292,23 +290,14 @@ toolchain_base_name()
     echo "nerves_toolchain_$(gcc_tuple_underscores)-$NERVES_TOOLCHAIN_VERSION.$HOST_OS-$HOST_ARCH"
 }
 
-assemble_tarball()
+save_build_info()
 {
-
-    # Assemble the tarball for the toolchain
-    TARGET_TUPLE=$(gcc_tuple)
-    # TARBALL_PATH="${TARBALL_PATH:-$WORK_DIR/$(toolchain_base_name).tar}"
-    # TARXZ_PATH=$TARBALL_PATH.xz
-    TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
-
     # Save useful information if we ever need to reproduce the toolchain
+    TARGET_TUPLE=$(gcc_tuple)
+    TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
     echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig
     cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config
-
-    # rm -f $TARBALL_PATH $TARXZ_PATH
-    # $TAR c -C $GCC_INSTALL_DIR -f $TARBALL_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
-    # xz $TARBALL_PATH
 }
 
 assemble_dmg()
@@ -325,10 +314,9 @@ assemble_dmg()
     echo Building DMG...
 
     # Assemble the tarball for the toolchain
-    TARGET_TUPLE=`gcc_tuple`
+    TARGET_TUPLE=$(gcc_tuple)
     DMG_PATH=$WORK_DIR/$(toolchain_base_name).dmg
 
-    echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
     rm -f $DMG_PATH
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
                     -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE/. \
@@ -339,7 +327,7 @@ fix_kernel_case_conflicts()
 {
     # Remove case conflicts in the kernel include directory so that users don't need to
     # use case sensitive filesystems on OSX. See comment in assemble_dmg().
-    TARGET_TUPLE=`gcc_tuple`
+    TARGET_TUPLE=$(gcc_tuple)
     LINUX_INCLUDE_DIR=$GCC_INSTALL_DIR/$TARGET_TUPLE/$TARGET_TUPLE/sysroot/usr/include/linux
     rm -f $LINUX_INCLUDE_DIR/netfilter/xt_CONNMARK.h \
           $LINUX_INCLUDE_DIR/netfilter/xt_DSCP.h \
@@ -351,29 +339,27 @@ fix_kernel_case_conflicts()
           $LINUX_INCLUDE_DIR/netfilter_ipv6/ip6t_HL.h
 }
 
-assemble_products()
+finalize_products()
 {
+    save_build_info
+
     if [[ $BUILD_OS = "darwin" ]]; then
         # On OSX, always create .dmg files for debugging builds and
         # fix the case issues.
-
-        # Assemble .dmg file first
         assemble_dmg
 
-        # Prune out filenames with case conflicts and make a tarball
+        # Prune out filenames with case conflicts and before make a tarball
         fix_kernel_case_conflicts
-        assemble_tarball
     elif [[ $HOST_OS = "linux" || $HOST_OS = "freebsd" ]]; then
         # Linux and FreeBSD don't have the case issues
-        assemble_tarball
+        echo ""
     else
         # Windows is case insensitive by default, so fix the conflicts
         fix_kernel_case_conflicts
-        assemble_tarball
     fi
 }
 
 init
 build_gcc
-assemble_products
-echo "Done"
+finalize_products
+echo "Done making toolchain in $GCC_INSTALL_DIR."
