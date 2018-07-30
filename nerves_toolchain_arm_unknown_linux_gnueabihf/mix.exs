@@ -48,8 +48,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
   defp deps do
     [
       {:nerves, "~> 1.0", runtime: false},
-      {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng", runtime: false}
-      #{:nerves_toolchain_ctng, "~> 1.5", runtime: false}
+      {:nerves_toolchain_ctng, "~> 1.5.0-rc.0", runtime: false}
     ]
   end
 
@@ -65,8 +64,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabihf.Mixfile do
       files: package_files(),
       licenses: ["Apache 2.0"],
       links: %{
-        "Github" =>
-          "https://github.com/nerves-project/toolchains/#{@app}"
+        "Github" => "https://github.com/nerves-project/toolchains/#{@app}"
       }
     ]
   end

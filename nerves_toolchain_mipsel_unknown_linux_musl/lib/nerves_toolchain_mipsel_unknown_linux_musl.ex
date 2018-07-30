@@ -1,3 +1,2 @@
 defmodule NervesToolchainMipselUnknownLinuxMusl do
-  
 end
