@@ -38,14 +38,12 @@ echo Building archive...
 # Assemble the tarball for the toolchain
 TARGET_TUPLE=$(gcc_tuple)
 TAR_PATH="${TARBALL_PATH/.xz/}"
-TOOLCHAIN_BASE_NAME=$(basename $TARBALL_PATH)
-
-# Save useful information if we ever need to reproduce the toolchain
-#echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
-#cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig
-cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config
+TOOLCHAIN_BASE_NAME=$(basename $TARBALL_PATH .tar.xz)
 
 rm -f $TARBALL_PATH $TAR_PATH
-$TAR c -C $GCC_INSTALL_DIR -f $TAR_PATH --transform "s,^$TARGET_TUPLE,$TOOLCHAIN_BASE_NAME," $TARGET_TUPLE
+mv $GCC_INSTALL_DIR/$TARGET_TUPLE $GCC_INSTALL_DIR/$TOOLCHAIN_BASE_NAME
+$TAR c -C $GCC_INSTALL_DIR -f $TAR_PATH $TOOLCHAIN_BASE_NAME
+mv $GCC_INSTALL_DIR/$TOOLCHAIN_BASE_NAME $GCC_INSTALL_DIR/$TARGET_TUPLE
+
 echo Compressing archive...
 xz $TAR_PATH
