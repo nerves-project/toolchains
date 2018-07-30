@@ -31,7 +31,17 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
   defp package do
     [
       maintainers: ["Frank Hunleth", "Justin Schneck"],
-      files: ["lib", "patches", "scripts", "build.sh", "README.md", "LICENSE", "mix.exs", "VERSION", "defaults"],
+      files: [
+        "lib",
+        "patches",
+        "scripts",
+        "build.sh",
+        "README.md",
+        "LICENSE",
+        "mix.exs",
+        "VERSION",
+        "defaults"
+      ],
       licenses: ["Apache 2.0"],
       links: %{"Github" => "https://github.com/nerves-project/toolchains"}
     ]

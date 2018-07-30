@@ -18,7 +18,8 @@ defmodule Nerves.Toolchain.CTNG do
     build_path = Artifact.build_path(pkg)
     File.rm_rf!(build_path)
     File.mkdir_p!(build_path)
-    script = 
+
+    script =
       :nerves_toolchain_ctng
       |> Nerves.Env.package()
       |> Map.get(:path)
@@ -27,15 +28,19 @@ defmodule Nerves.Toolchain.CTNG do
     defconfig = defconfig(pkg)
 
     case shell(script, [defconfig, build_path]) do
-      {_, 0} -> 
+      {_, 0} ->
         x_tools = Path.join(build_path, "x-tools")
-        tuple = 
+
+        tuple =
           x_tools
-          |> File.ls!
-          |> List.first
+          |> File.ls!()
+          |> List.first()
+
         toolchain_path = Path.join(x_tools, tuple)
         {:ok, toolchain_path}
-      {error, _} -> {:error, error}
+
+      {error, _} ->
+        {:error, error}
     end
   end
 
@@ -52,14 +57,14 @@ defmodule Nerves.Toolchain.CTNG do
   """
   def archive(pkg, _toolchain, _opts) do
     build_path = Artifact.build_path(pkg)
-    
-    script = 
+
+    script =
       :nerves_toolchain_ctng
       |> Nerves.Env.package()
       |> Map.get(:path)
       |> Path.join("scripts")
       |> Path.join("archive.sh")
-    
+
     tar_path = Path.join([build_path, Artifact.download_name(pkg) <> Artifact.ext(pkg)])
 
     case shell(script, [build_path, tar_path]) do
@@ -84,7 +89,6 @@ defmodule Nerves.Toolchain.CTNG do
     pkg.config
     |> Keyword.get(:platform_config)
     |> Keyword.get(:defconfig)
-    |> Path.expand
+    |> Path.expand()
   end
-  
 end
