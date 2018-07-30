@@ -3,7 +3,8 @@
 # Load in all of the configs
 . ./support/scripts/all-configs.sh
 
-echo "Building a release of the following toolchain:"
+echo "Building a release of the following toolchains:"
+echo
 for CONFIG in $CONFIGS; do
     echo "  $CONFIG"
 done
