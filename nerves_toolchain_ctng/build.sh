@@ -223,11 +223,13 @@ build_gcc()
     CTNG_CONFIG=$WORK_DIR/build/defconfig
     cat $BASE_CONFIG $HOST_CONFIG >> $CTNG_CONFIG
 
+    CTNG=$LOCAL_INSTALL_DIR/bin/ct-ng
+
     # Process the configuration
-    DEFCONFIG=$CTNG_CONFIG $LOCAL_INSTALL_DIR/bin/ct-ng defconfig
+    DEFCONFIG=$CTNG_CONFIG $CTNG defconfig
 
     # Save the defconfig back for later review
-    $LOCAL_INSTALL_DIR/bin/ct-ng savedefconfig
+    $CTNG savedefconfig
 
     # Build the toolchain
     if [[ -z $CTNG_CC ]]; then
@@ -236,7 +238,7 @@ build_gcc()
         PREFIX="CC=$CTNG_CC CXX=$CTNG_CXX"
     fi
 
-    # Configure logging when on CI
+    # Configure logging when on CI (see crosstool-ng's build script)
     if [[ $CI = "true" ]]; then
       echo "Modifying logging for CI"
       sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
@@ -250,31 +252,30 @@ build_gcc()
         -e 's/^.*\(CT_LOCAL_TARBALLS_DIR\).*$/\1="${HOME}\/src"/' \
         -e 's/^.*\(CT_SAVE_TARBALLS\).*$/\1=y/' \
         $WORK_DIR/build/.config
-
-        $PREFIX $LOCAL_INSTALL_DIR/bin/ct-ng build &
-        local build_pid=$!
-        {
-            while true
-            do
-                sleep 300
-                printf "Not done yet...\r"
-            done
-        } &
-        local runner_pid=$!
-
-        # Wait for the build to finish and get the result
-        wait $build_pid 2>/dev/null
-        local result=$?
-
-        # Stop the runner task
-        kill $runner_pid
-
-        # Wait for the runner task to finish, but ignore the result
-        # in case the runner task ends before the call to wait.
-        wait $runner_pid 2>/dev/null || true
-    else
-        $PREFIX $LOCAL_INSTALL_DIR/bin/ct-ng build
     fi
+
+    $PREFIX $CTNG build &
+    local build_pid=$!
+    {
+        while true
+        do
+           sleep 300
+           printf "ct-ng build isn't done yet...\r"
+       done
+    } &
+    local runner_pid=$!
+
+    # Wait for the build to finish and get the result
+    wait $build_pid 2>/dev/null
+    local result=$?
+
+    # Stop the runner task
+    kill $runner_pid
+
+    # Wait for the runner task to finish, but ignore the result
+    # in case the runner task ends before the call to wait.
+    wait $runner_pid 2>/dev/null || true
+
     TARGET_TUPLE=$(gcc_tuple)
 
     # ct-ng likes to mark everything read-only which
