@@ -1,5 +1,12 @@
 # Toolchain Releases
 
+## v1.1.0-rc.1
+
+This release pulls in a fix to gcc for building Qt on ARM platforms.
+
+* Updated dependencies
+  * nerves_toolchain_ctng v1.5.0-rc.1
+
 ## v1.1.0-rc.0
 
 This release upgrades gcc from version 6.3.0 to 7.3.0. This addresses a C++
@@ -11,7 +18,7 @@ compiler issue and may bring in performance improvements.
 
 * Updated dependencies
   * nerves v1.1
-  * nerves_toolchain_ctng v1.5
+  * nerves_toolchain_ctng v1.5.0-rc.0
 
 ## v1.0.0
 
