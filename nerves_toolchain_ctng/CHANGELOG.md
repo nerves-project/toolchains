@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.0-rc.1
+
+* Bug fixes
+  * Pull in arm_acle.h fix to address compiler errors when building Qt
+  * Fix directory path inside of generated tarball
+
 ## v1.5.0-rc.0
 
 * Enhancements
