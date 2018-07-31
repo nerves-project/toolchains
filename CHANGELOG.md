@@ -5,7 +5,7 @@
 This release pulls in a fix to gcc for building Qt on ARM platforms.
 
 * Updated dependencies
-  * nerves_toolchain_ctng v1.5.0-rc.1
+  * nerves_toolchain_ctng v1.5.0-rc.2
 
 ## v1.1.0-rc.0
 
