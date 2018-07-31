@@ -37,8 +37,9 @@ echo Building archive...
 
 # Assemble the tarball for the toolchain
 TARGET_TUPLE=$(gcc_tuple)
-TAR_PATH="${TARBALL_PATH/.xz/}"
-TOOLCHAIN_BASE_NAME=$(basename $TARBALL_PATH .tar.xz)
+TAR_PATH="${TARBALL_PATH%.xz}"
+TOOLCHAIN_NAME_WITH_HASH="$(basename $TARBALL_PATH .tar.xz)"
+TOOLCHAIN_NAME="${TOOLCHAIN_NAME_WITH_HASH%-[0-9A-F]*}"
 
 rm -f $TARBALL_PATH $TAR_PATH
 mv $GCC_INSTALL_DIR/$TARGET_TUPLE $GCC_INSTALL_DIR/$TOOLCHAIN_BASE_NAME
