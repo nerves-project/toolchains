@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.0-rc.2
+
+* Bug fixes
+  * Fix typo in archive script from rc.1
+
 ## v1.5.0-rc.1
 
 * Bug fixes
