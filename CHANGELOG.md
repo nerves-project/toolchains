@@ -1,5 +1,10 @@
 # Toolchain Releases
 
+## v1.1.0-rc.2
+
+Fix issue with some gnu toolchains defaulting to lic bionic instead of
+glibc
+
 ## v1.1.0-rc.1
 
 This release pulls in a fix to gcc for building Qt on ARM platforms.
