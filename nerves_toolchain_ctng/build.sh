@@ -21,7 +21,7 @@ if [[ -z $BASE_CONFIG ]] || [[ -z $WORK_DIR ]]; then
     exit 1
 fi
 
-ARTIFACT_NAME=$(basename $WORK_DIR)
+ARTIFACT_NAME=$(basename "$WORK_DIR")
 
 READLINK=readlink
 BUILD_ARCH=$(uname -m)
@@ -43,8 +43,8 @@ if [[ -z $HOST_OS ]]; then
 fi
 
 # Ensure that the config and work paths are absolute
-BASE_CONFIG=$($READLINK -f $BASE_CONFIG)
-WORK_DIR=$($READLINK -f $WORK_DIR)
+BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
+WORK_DIR=$($READLINK -f "$WORK_DIR")
 
 # if [[ $# -lt 1 ]]; then
 #     echo "Usage: $0 <toolchain name>"
@@ -72,7 +72,7 @@ if [[ ! -e $BASE_CONFIG ]]; then
     echo "Can't find $BASE_CONFIG. Check that it exists."
     exit 1
 fi
-CTNG_CONFIG_DIR=$(dirname $BASE_CONFIG)
+CTNG_CONFIG_DIR=$(dirname "$BASE_CONFIG")
 # Append host-specific modifications to the base defconfig
 HOST_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
 if [[ ! -e $HOST_CONFIG ]]; then
@@ -90,7 +90,7 @@ if [[ ! -e $CTNG_CONFIG_DIR/VERSION ]]; then
     exit 1
 fi
 
-NERVES_TOOLCHAIN_VERSION=$(cat $CTNG_CONFIG_DIR/VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+NERVES_TOOLCHAIN_VERSION=$(cat "$CTNG_CONFIG_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
 LOCAL_INSTALL_DIR=$WORK_DIR/usr
@@ -137,45 +137,45 @@ init()
 {
     # Clean up an old build and create the work directory
     if [[ $BUILD_OS = "darwin" ]]; then
-        hdiutil detach /Volumes/$WORK_DMG_VOLNAME 2>/dev/null || true
-        rm -fr $WORK_DIR $WORK_DMG
-        hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname $WORK_DMG_VOLNAME $WORK_DMG
-        hdiutil attach $WORK_DMG
-        ln -s /Volumes/$WORK_DMG_VOLNAME $WORK_DIR
+        hdiutil detach "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
+        rm -fr "$WORK_DIR" "$WORK_DMG"
+        hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname "$WORK_DMG_VOLNAME" "$WORK_DMG"
+        hdiutil attach "$WORK_DMG"
+        ln -s "/Volumes/$WORK_DMG_VOLNAME" "$WORK_DIR"
     elif [[ $BUILD_OS = "linux" || $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
         if [[ -e $WORK_DIR ]]; then
-            chmod -R u+w $WORK_DIR
-            rm -fr $WORK_DIR
+            chmod -R u+w "$WORK_DIR"
+            rm -fr "$WORK_DIR"
         fi
-        mkdir -p $WORK_DIR
+        mkdir -p "$WORK_DIR"
     fi
 
-    mkdir -p $GCC_INSTALL_DIR
-    mkdir -p $DL_DIR
+    mkdir -p "$GCC_INSTALL_DIR"
+    mkdir -p "$DL_DIR"
 }
 
 gcc_tuple()
 {
     # Figure out the target's tuple. It's the name of the only directory.
     # Don't call this until after build_gcc()
-    tuplepath=$(ls $GCC_INSTALL_DIR)
+    tuplepath=$(ls "$GCC_INSTALL_DIR")
     if [[ -e $tuplepath ]]; then
         echo "unknown"
     else
-        echo $(basename $tuplepath)
+        basename "$tuplepath"
     fi
 }
 
 gcc_tuple_underscores()
 {
-    echo $(gcc_tuple) | tr - _
+    gcc_tuple | tr - _
 }
 
 build_gcc()
 {
     # Build and install ct-ng to the work directory
-    cd $WORK_DIR
-    ln -sf $DL_DIR dl
+    cd "$WORK_DIR"
+    ln -sf "$DL_DIR" dl
     rm -fr crosstool-ng
 
     CTNG_TAR_XZ=crosstool-ng-$CTNG_TAG.tar.xz
@@ -185,28 +185,28 @@ build_gcc()
             cd crosstool-ng
             git checkout $CTNG_TAG
             cd ..
-            $TAR -c -J --exclude=.git -f $DL_DIR/$CTNG_TAR_XZ crosstool-ng
+            $TAR -c -J --exclude=.git -f "$DL_DIR/$CTNG_TAR_XZ" crosstool-ng
         else
-            curl -L -o $DL_DIR/$CTNG_TAR_XZ http://crosstool-ng.org/download/crosstool-ng/$CTNG_TAR_XZ
-            $TAR xf $DL_DIR/$CTNG_TAR_XZ
+            curl -L -o "$DL_DIR/$CTNG_TAR_XZ" http://crosstool-ng.org/download/crosstool-ng/$CTNG_TAR_XZ
+            $TAR xf "$DL_DIR/$CTNG_TAR_XZ"
         fi
     else
-        $TAR xf $DL_DIR/$CTNG_TAR_XZ
+        $TAR xf "$DL_DIR/$CTNG_TAR_XZ"
     fi
 
     # Apply patches
-    $SCRIPT_DIR/scripts/apply-patches.sh crosstool-ng $SCRIPT_DIR/patches/crosstool-ng
+    "$SCRIPT_DIR/scripts/apply-patches.sh" crosstool-ng "$SCRIPT_DIR/patches/crosstool-ng"
 
     cd crosstool-ng
     if [[ $CTNG_USE_GIT = "true" ]]; then
         ./bootstrap
     fi
     if [[  $BUILD_OS = "freebsd" ]]; then
-	./configure --prefix=$LOCAL_INSTALL_DIR --with-sed=/usr/local/bin/gsed --with-make=/usr/local/bin/gmake --with-patch=/usr/local/bin/gpatch
+	./configure --prefix="$LOCAL_INSTALL_DIR" --with-sed=/usr/local/bin/gsed --with-make=/usr/local/bin/gmake --with-patch=/usr/local/bin/gpatch
 	gmake
 	gmake install
     else
-	LDFLAGS="$CTNG_LDFLAGS" ./configure --prefix=$LOCAL_INSTALL_DIR
+	LDFLAGS="$CTNG_LDFLAGS" ./configure --prefix="$LOCAL_INSTALL_DIR"
 	make
 	make install
     fi
@@ -218,10 +218,10 @@ build_gcc()
     fi
 
     # Setup the toolchain build directory
-    mkdir -p $WORK_DIR/build
-    cd $WORK_DIR/build
+    mkdir -p "$WORK_DIR/build"
+    cd "$WORK_DIR/build"
     CTNG_CONFIG=$PWD/defconfig
-    cat $BASE_CONFIG $HOST_CONFIG > $CTNG_CONFIG
+    cat "$BASE_CONFIG" "$HOST_CONFIG" > "$CTNG_CONFIG"
 
     CTNG=$LOCAL_INSTALL_DIR/bin/ct-ng
 
@@ -229,16 +229,16 @@ build_gcc()
     $CTNG defconfig
 
     # Save the defconfig back for later review
-    cp $CTNG_CONFIG $CTNG_CONFIG.orig
+    cp "$CTNG_CONFIG" "$CTNG_CONFIG.orig"
     $CTNG savedefconfig
 
     echo "Original defconfig"
-    cat $CTNG_CONFIG.orig
+    cat "$CTNG_CONFIG.orig"
     echo "Resaved defconfig"
-    cat $CTNG_CONFIG
+    cat "$CTNG_CONFIG"
 
     # Check the defconfig didn't change or lose entries
-    $SCRIPT_DIR/scripts/unmerge_defconfig.exs $BASE_CONFIG $HOST_CONFIG $CTNG_CONFIG
+    "$SCRIPT_DIR/scripts/unmerge_defconfig.exs" "$BASE_CONFIG" "$HOST_CONFIG" "$CTNG_CONFIG"
 
     # Build the toolchain
     if [[ -z $CTNG_CC ]]; then
@@ -260,12 +260,12 @@ build_gcc()
         -e 's/^.*\(CT_LOG_PROGRESS_BAR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOCAL_TARBALLS_DIR\).*$/\1="${HOME}\/src"/' \
         -e 's/^.*\(CT_SAVE_TARBALLS\).*$/\1=y/' \
-        $WORK_DIR/build/.config
+        "$WORK_DIR/build/.config"
     fi
 
     # Start building and print dots to keep CI from killing the build due
     # to console inactivity.
-    $PREFIX $CTNG build &
+    $PREFIX "$CTNG" build &
     local build_pid=$!
     {
         while ps -p $build_pid >/dev/null; do
@@ -287,10 +287,10 @@ build_gcc()
     echo "Fixing permissions on release"
     # ct-ng likes to mark everything read-only which seems reasonable, but it
     # can be really annoying when trying to cleanup a toolchain.
-    chmod -R u+w $GCC_INSTALL_DIR/$TARGET_TUPLE
+    chmod -R u+w "$GCC_INSTALL_DIR/$TARGET_TUPLE"
 
     # Clean up the build product
-    rm -f $GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2
+    rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
 }
 
 toolchain_base_name()
@@ -303,10 +303,9 @@ save_build_info()
 {
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
-    TOOLCHAIN_BASE_NAME=$(toolchain_base_name)
-    echo "$NERVES_TOOLCHAIN_VERSION" > $GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag
-    cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig
-    cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config
+    echo "$NERVES_TOOLCHAIN_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag"
+    cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
+    cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
 }
 
 assemble_dmg()
@@ -326,10 +325,10 @@ assemble_dmg()
     TARGET_TUPLE=$(gcc_tuple)
     DMG_PATH=$WORK_DIR/$(toolchain_base_name).dmg
 
-    rm -f $DMG_PATH
+    rm -f "$DMG_PATH"
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
-                    -srcfolder $WORK_DIR/x-tools/$TARGET_TUPLE/. \
-                    $DMG_PATH
+                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." \
+                    "$DMG_PATH"
 }
 
 fix_kernel_case_conflicts()
@@ -338,14 +337,14 @@ fix_kernel_case_conflicts()
     # use case sensitive filesystems on OSX. See comment in assemble_dmg().
     TARGET_TUPLE=$(gcc_tuple)
     LINUX_INCLUDE_DIR=$GCC_INSTALL_DIR/$TARGET_TUPLE/$TARGET_TUPLE/sysroot/usr/include/linux
-    rm -f $LINUX_INCLUDE_DIR/netfilter/xt_CONNMARK.h \
-          $LINUX_INCLUDE_DIR/netfilter/xt_DSCP.h \
-          $LINUX_INCLUDE_DIR/netfilter/xt_MARK.h \
-          $LINUX_INCLUDE_DIR/netfilter/xt_RATEEST.h \
-          $LINUX_INCLUDE_DIR/netfilter/xt_TCPMSS.h \
-          $LINUX_INCLUDE_DIR/netfilter_ipv4/ipt_ECN.h \
-          $LINUX_INCLUDE_DIR/netfilter_ipv4/ipt_TTL.h \
-          $LINUX_INCLUDE_DIR/netfilter_ipv6/ip6t_HL.h
+    rm -f "$LINUX_INCLUDE_DIR/netfilter/xt_CONNMARK.h" \
+          "$LINUX_INCLUDE_DIR/netfilter/xt_DSCP.h" \
+          "$LINUX_INCLUDE_DIR/netfilter/xt_MARK.h" \
+          "$LINUX_INCLUDE_DIR/netfilter/xt_RATEEST.h" \
+          "$LINUX_INCLUDE_DIR/netfilter/xt_TCPMSS.h" \
+          "$LINUX_INCLUDE_DIR/netfilter_ipv4/ipt_ECN.h" \
+          "$LINUX_INCLUDE_DIR/netfilter_ipv4/ipt_TTL.h" \
+          "$LINUX_INCLUDE_DIR/netfilter_ipv6/ip6t_HL.h"
 }
 
 finalize_products()
