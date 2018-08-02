@@ -231,6 +231,9 @@ build_gcc()
     # Save the defconfig back for later review
     $CTNG savedefconfig
 
+    # Check the defconfig didn't change or lose entries
+    $SCRIPT_DIR/scripts/unmerge_defconfig.exs $BASE_CONFIG $HOST_CONFIG defconfig
+
     # Build the toolchain
     if [[ -z $CTNG_CC ]]; then
         PREFIX=""
