@@ -220,19 +220,25 @@ build_gcc()
     # Setup the toolchain build directory
     mkdir -p $WORK_DIR/build
     cd $WORK_DIR/build
-    CTNG_CONFIG=$WORK_DIR/build/defconfig
-    cat $BASE_CONFIG $HOST_CONFIG >> $CTNG_CONFIG
+    CTNG_CONFIG=$PWD/defconfig
+    cat $BASE_CONFIG $HOST_CONFIG > $CTNG_CONFIG
 
     CTNG=$LOCAL_INSTALL_DIR/bin/ct-ng
 
     # Process the configuration
-    DEFCONFIG=$CTNG_CONFIG $CTNG defconfig
+    $CTNG defconfig
 
     # Save the defconfig back for later review
+    cp $CTNG_CONFIG $CTNG_CONFIG.orig
     $CTNG savedefconfig
 
+    echo "Original defconfig"
+    cat $CTNG_CONFIG.orig
+    echo "Resaved defconfig"
+    cat $CTNG_CONFIG
+
     # Check the defconfig didn't change or lose entries
-    $SCRIPT_DIR/scripts/unmerge_defconfig.exs $BASE_CONFIG $HOST_CONFIG defconfig
+    $SCRIPT_DIR/scripts/unmerge_defconfig.exs $BASE_CONFIG $HOST_CONFIG $CTNG_CONFIG
 
     # Build the toolchain
     if [[ -z $CTNG_CC ]]; then
