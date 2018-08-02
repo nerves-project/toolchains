@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -e
+
 # Load in all of the configs
 . ./support/scripts/all-configs.sh
 
