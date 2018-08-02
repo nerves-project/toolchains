@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.5.0-rc.3
+
+This adds a check that toolchain defconfigs are applied cleanly.
+
+* Bug fixes
+  * Ensure that all toolchains are static
+
 ## v1.5.0-rc.2
 
 * Bug fixes
