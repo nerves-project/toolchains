@@ -1,28 +1,17 @@
 # Changelog
 
-## v1.5.0-rc.3
-
-This adds a check that toolchain defconfigs are applied cleanly.
-
-* Bug fixes
-  * Ensure that all toolchains are static
-
-## v1.5.0-rc.2
-
-* Bug fixes
-  * Fix typo in archive script from rc.1
-
-## v1.5.0-rc.1
-
-* Bug fixes
-  * Pull in arm_acle.h fix to address compiler errors when building Qt
-  * Fix directory path inside of generated tarball
-
-## v1.5.0-rc.0
+## v1.5.0
 
 * Enhancements
   * Update crosstool-ng to latest to use gcc 7.3.0. This addresses a C++
     compiler issue and may bring in performance improvements.
+  * Update build scripts to throw errors when configurations are out of sync
+    so that if crosstool-ng drops any options, we definitely know. The checks
+    are currently pretty strict (config option order matters, for example)
+    since the pain from silent option drops was so great.
+
+* Bug fixes
+  * Ensure that all toolchains are static
 
 ## v1.4.0
 
