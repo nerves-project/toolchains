@@ -48,7 +48,7 @@ defmodule NervesToolchainAarch64UnknownLinuxGnueabi.Mixfile do
   defp deps do
     [
       {:nerves, "~> 1.0", runtime: false},
-      {:nerves_toolchain_ctng, "~> 1.5.0-rc.0", runtime: false}
+      {:nerves_toolchain_ctng, "~> 1.5.0", runtime: false}
     ]
   end
 
