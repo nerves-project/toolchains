@@ -1,4 +1,4 @@
-defmodule NervesToolchainMipselUnknownLinuxMusl.Mixfile do
+defmodule NervesToolchainMipselUnknownLinuxMusl.MixProject do
   use Mix.Project
 
   @app :nerves_toolchain_mipsel_unknown_linux_musl
@@ -60,7 +60,6 @@ defmodule NervesToolchainMipselUnknownLinuxMusl.Mixfile do
 
   defp package do
     [
-      maintainers: ["Frank Hunleth", "Justin Schneck"],
       files: package_files(),
       licenses: ["Apache 2.0"],
       links: %{

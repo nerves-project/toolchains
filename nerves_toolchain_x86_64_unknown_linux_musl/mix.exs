@@ -1,4 +1,4 @@
-defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
+defmodule NervesToolchainX8664UnknownLinuxMusl.MixProject do
   use Mix.Project
 
   @app :nerves_toolchain_x86_64_unknown_linux_musl
@@ -60,7 +60,6 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.Mixfile do
 
   defp package do
     [
-      maintainers: ["Frank Hunleth", "Justin Schneck"],
       files: package_files(),
       licenses: ["Apache 2.0"],
       links: %{

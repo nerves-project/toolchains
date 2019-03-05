@@ -1,4 +1,4 @@
-defmodule NervesToolchainArmv6RpiLinuxGnueabi.Mixfile do
+defmodule NervesToolchainArmv6RpiLinuxGnueabi.MixProject do
   use Mix.Project
 
   @app :nerves_toolchain_armv6_rpi_linux_gnueabi
@@ -60,7 +60,6 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.Mixfile do
 
   defp package do
     [
-      maintainers: ["Frank Hunleth", "Justin Schneck"],
       files: package_files(),
       licenses: ["Apache 2.0"],
       links: %{"Github" => "https://github.com/nerves-project/toolchains/tree/master/#{@app}"}
