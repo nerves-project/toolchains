@@ -19,6 +19,11 @@ echo
 echo "Hit CTRL-C to stop..."
 sleep 2
 
+# Do some basic cleanup to avoid easy mistakes from stale files
+find . -name .nerves | xargs rm -fr
+find . -name deps | xargs rm -fr
+find . -name _build | xargs rm -fr
+
 for CONFIG in $CONFIGS; do
     echo "Building $CONFIG..."
     # ./nerves_toolchain_ctng/build.sh $CONFIG
