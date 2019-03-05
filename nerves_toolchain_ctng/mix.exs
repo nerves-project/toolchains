@@ -1,4 +1,4 @@
-defmodule Nerves.Toolchain.Ctng.Mixfile do
+defmodule Nerves.Toolchain.Ctng.MixProject do
   use Mix.Project
 
   @app :nerves_toolchain_ctng
@@ -30,7 +30,6 @@ defmodule Nerves.Toolchain.Ctng.Mixfile do
 
   defp package do
     [
-      maintainers: ["Frank Hunleth", "Justin Schneck"],
       files: [
         "lib",
         "patches",

@@ -1,4 +1,4 @@
-defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
+defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.MixProject do
   use Mix.Project
 
   @app :nerves_toolchain_armv5tejl_unknown_linux_musleabi
@@ -60,7 +60,6 @@ defmodule NervesToolchainArmv5tejlUnknownLinuxMusleabi.Mixfile do
 
   defp package do
     [
-      maintainers: ["Frank Hunleth", "Justin Schneck"],
       files: package_files(),
       licenses: ["Apache 2.0"],
       links: %{
