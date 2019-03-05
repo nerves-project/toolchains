@@ -117,21 +117,21 @@ jobs:
   #-------------------------------
   # Build
   #-------------------------------
-  # aarch64_unknown_linux_gnueabi
+  # aarch64_unknown_linux_gnu
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi:
+  build_linux_nerves_toolchain_aarch64_unknown_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi:
+  build_rpi_nerves_toolchain_aarch64_unknown_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
       <<: *canadian_rpi
     <<: *build
 
@@ -273,16 +273,16 @@ jobs:
   #-------------------------------
   # Test Trusty
   #-------------------------------
-  # aarch64_unknown_linux_gnueabi
+  # aarch64_unknown_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_aarch64_unknown_linux_gnueabi:
+  test_linux_trusty_aarch64_unknown_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
       <<: *linux
     <<: *test
 
@@ -388,16 +388,16 @@ jobs:
   #-------------------------------
   # Test Xenial
   #-------------------------------
-  # aarch64_unknown_linux_gnueabi
+  # aarch64_unknown_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_aarch64_unknown_linux_gnueabi:
+  test_linux_xenial_aarch64_unknown_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
       <<: *linux
     <<: *test
 
@@ -508,8 +508,8 @@ jobs:
           name: Create Artifacts Dir
           command: mkdir -p /home/nerves/deploy/artifacts
       - run:
-          name: nerves_toolchain_aarch64_unknown_linux_gnueabi
-          command: echo "nerves_toolchain_aarch64_unknown_linux_gnueabi" > .toolchain
+          name: nerves_toolchain_aarch64_unknown_linux_gnu
+          command: echo "nerves_toolchain_aarch64_unknown_linux_gnu" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -633,11 +633,11 @@ workflows:
       #-------------------------------
       # Build Toolchains
       #-------------------------------
-      # aarch64_unknown_linux_gnueabi
+      # aarch64_unknown_linux_gnu
       #-------------------------------
-      - build_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi:
+      - build_linux_nerves_toolchain_aarch64_unknown_linux_gnu:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi:
+      - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnu:
           <<: *build_workflow
 
       #-------------------------------
@@ -699,16 +699,16 @@ workflows:
       #-------------------------------
       # Test Toolchains
       #-------------------------------
-      # aarch64_unknown_linux_gnueabi
+      # aarch64_unknown_linux_gnu
       #-------------------------------
-      - test_linux_trusty_aarch64_unknown_linux_gnueabi:
+      - test_linux_trusty_aarch64_unknown_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi
-      - test_linux_xenial_aarch64_unknown_linux_gnueabi:
+            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnu
+      - test_linux_xenial_aarch64_unknown_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnueabi
+            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnu
 
       #-------------------------------
       # arm_unknown_linux_gnueabihf
@@ -800,9 +800,9 @@ workflows:
       - deploy:
           <<: *deploy_workflow
           requires:
-            - test_linux_trusty_aarch64_unknown_linux_gnueabi
-            - test_linux_xenial_aarch64_unknown_linux_gnueabi
-            - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnueabi
+            - test_linux_trusty_aarch64_unknown_linux_gnu
+            - test_linux_xenial_aarch64_unknown_linux_gnu
+            - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnu
             - test_linux_trusty_arm_unknown_linux_gnueabihf
             - test_linux_xenial_arm_unknown_linux_gnueabihf
             - build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf
