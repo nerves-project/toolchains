@@ -1,7 +1,7 @@
-defmodule NervesToolchainAarch64UnknownLinuxGnueabi.Mixfile do
+defmodule NervesToolchainAarch64UnknownLinuxGnu.Mixfile do
   use Mix.Project
 
-  @app :nerves_toolchain_aarch64_unknown_linux_gnueabi
+  @app :nerves_toolchain_aarch64_unknown_linux_gnu
   @version Path.join(__DIR__, "VERSION")
            |> File.read!()
            |> String.trim()
@@ -37,7 +37,7 @@ defmodule NervesToolchainAarch64UnknownLinuxGnueabi.Mixfile do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :aarch64_unknown_linux_gnueabi,
+      target_tuple: :aarch64_unknown_linux_gnu,
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],
