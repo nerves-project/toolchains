@@ -8,7 +8,6 @@ description="Container with everything needed to build Nerves toolchains"
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG=C.UTF-8
 ENV TERM=xterm
-ENV ERLANG_OTP_VERSION=21.2
 ENV ERLANG_PKG='erlang-solutions_1.0_all.deb'
 ENV ERLANG_URL="https://packages.erlang-solutions.com/${ERLANG_PKG}"
 ENV ELIXIR_VERSION=1.8.1
@@ -39,7 +38,7 @@ RUN set -xe \
   && dpkg -i "/tmp/${ERLANG_PKG}" \
   && apt-get update \
   && apt-get -y install \
-    "esl-erlang=1:${ERLANG_OTP_VERSION}" \
+    "esl-erlang" \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /root/.ssh \
   && ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts \
