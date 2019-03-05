@@ -30,8 +30,8 @@ an experimental feature and not built by default due to issues on OSX.
 
 Install the following packages:
 
-```
-sudo apt-get install bison flex gperf libncurses5-dev texinfo help2man libssl-dev gawk libtool-bin automake
+```sh
+sudo apt install bison flex gperf libncurses5-dev texinfo help2man libssl-dev gawk libtool-bin automake lzip
 ```
 
 Run `build_release.sh` and wait.
@@ -40,11 +40,11 @@ Run `build_release.sh` and wait.
 
 Install the following packages:
 
-```
+```sh
 brew update
 brew tap homebrew/dupes
 brew install gawk binutils xz wget automake gnu-tar help2man bash
-brew install libtool autoconf gnu-sed mpfr gmp gcc bison
+brew install libtool autoconf gnu-sed mpfr gmp gcc bison lzip
 brew install grep -—with-default-names
 brew unlink gettext && brew link --force gettext
 ```
@@ -58,7 +58,7 @@ Run `build_release.sh` and wait.
 Install [Chocolatey](https://chocolatey.org/). Then, from a command prompt with
 administrative privileges (not the same one that you installed Chocolatey), run:
 
-```
+```sh
 choco install cyg-get
 cyg-get autoconf make gcc-g++ gperf bison flex texinfo awk wget curl patch libtool automake diffutils libncurses-devel help2man libssl-dev ca-certificates
 cyg-get mingw64-i686-gcc-g++ mingw64-x86_64-gcc-g++ #??
@@ -66,21 +66,21 @@ cyg-get mingw64-i686-gcc-g++ mingw64-x86_64-gcc-g++ #??
 
 Enable case-sensitive filesystem support on NTFS using the registry: (https://cygwin.com/cygwin-ug-net/using-specialnames.html)
 
-```
+```text
 HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel\obcaseinsensitive=0
 ```
 
 Then tell Cygwin to mount your `cygdrive` as case sensitive. In a Cygwin64 terminal,
 edit `/etc/fstab` and set `posix=1` in the mount options. For example:
 
-```
+```text
 none /cygdrive cygdrive binary,posix=1,user 0 0
 ```
 
 Something didn't work for me when downloading the ca-certificates. This will cause
 https downloads to fail. To fix, here's what I did:
 
-```
+```sh
 rm /usr/ssl/certs/ca-bundle.crt
 ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /usr/ssl/certs/ca-bundle.crt
 echo "ca_directory = /usr/ssl/certs" > ~/.wgetrc
