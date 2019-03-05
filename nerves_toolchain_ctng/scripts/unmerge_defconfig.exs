@@ -9,7 +9,7 @@ defmodule Unmerger do
 
   def remove_fragments(result, frag) do
     result
-    |> Enum.filter(fn line -> not line in frag end)
+    |> Enum.filter(fn line -> line not in frag end)
   end
 
   # Check if the configs are similar enough. Some discrepancies
