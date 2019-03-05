@@ -9,7 +9,7 @@ set -e
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 
 CTNG_USE_GIT=true
-CTNG_TAG=d5900debd397b8909d9cafeb9a1093fb7a5dc6e6
+CTNG_TAG=crosstool-ng-1.24.0-rc2
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -17,7 +17,7 @@ BASE_CONFIG=$1
 WORK_DIR=$2
 
 if [[ -z $BASE_CONFIG ]] || [[ -z $WORK_DIR ]]; then
-    echo "build.sh <defconfig> <word directory>"
+    echo "build.sh <defconfig> <work directory>"
     exit 1
 fi
 
