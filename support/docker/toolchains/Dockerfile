@@ -34,6 +34,7 @@ RUN set -xe \
 	ca-certificates \
 	unzip \
 	lzip \
+	python \
   && curl -o "/tmp/${ERLANG_PKG}" ${ERLANG_URL} \
   && dpkg -i "/tmp/${ERLANG_PKG}" \
   && apt-get update \
