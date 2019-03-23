@@ -116,7 +116,7 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
     # I'm not sure why ctng doesn't include this. Maybe a bug?
-    CTNG_LDFLAGS=-lintl
+    CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.1/lib"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
     export PATH="/usr/local/opt/bison/bin:$PATH"
