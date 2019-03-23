@@ -103,11 +103,6 @@ copy the result to the `configs` directory.
 
 ## Toolchain configuration notes
 
-### GCC 4.9.x vs. GCC 5.x
-
-The Nerves toolchains use gcc 4.9.x, since it was found that gcc 5 does
-not compile some older Linux kernels that are still in use.
-
 ### Hard float vs. soft float
 
 When possible hard float ABI (`eabihf`) toolchains are preferred. This appears to be
