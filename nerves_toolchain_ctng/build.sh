@@ -115,7 +115,8 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
-    # I'm not sure why ctng doesn't include this. Maybe a bug?
+    # I'm not sure why homebrew doesn't install this. Maybe a bug?
+    #export PKG_CONFIG_PATH="/usr/local/Cellar/ncurses/6.1/lib/pkgconfig:$PKG_CONFIG_PATH"
     CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.1/lib"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
