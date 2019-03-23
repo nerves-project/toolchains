@@ -43,7 +43,7 @@ Install the following packages:
 ```sh
 brew update
 brew tap homebrew/dupes
-brew install gawk binutils xz wget automake gnu-tar help2man bash
+brew install gawk binutils xz wget automake gnu-tar help2man bash make
 brew install libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3
 brew install grep -—with-default-names
 brew unlink gettext && brew link --force gettext

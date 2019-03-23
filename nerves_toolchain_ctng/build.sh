@@ -207,7 +207,11 @@ build_gcc()
         ./bootstrap
     fi
     if [[  $BUILD_OS = "freebsd" ]]; then
-	./configure --prefix="$LOCAL_INSTALL_DIR" --with-sed=/usr/local/bin/gsed --with-make=/usr/local/bin/gmake --with-patch=/usr/local/bin/gpatch
+	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
+	gmake
+	gmake install
+    elif [[ $BUILD_OS = "darwin" ]]; then
+	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake LDFLAGS="$CTNG_LDFLAGS" ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
     else
