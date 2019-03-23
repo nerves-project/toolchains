@@ -1,3 +1,4 @@
+CT_CONFIG_VERSION="3"
 CT_CANADIAN=y
 CT_HOST="arm-linux-gnueabihf"
 CT_GDB_CROSS_STATIC=y
