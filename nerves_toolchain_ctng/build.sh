@@ -117,7 +117,10 @@ if [[ $BUILD_OS = "darwin" ]]; then
 
     # I'm not sure why homebrew doesn't install this. Maybe a bug?
     #export PKG_CONFIG_PATH="/usr/local/Cellar/ncurses/6.1/lib/pkgconfig:$PKG_CONFIG_PATH"
-    CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.1/lib"
+    #CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.1/lib"
+    export CURSES_LIBS="-L/usr/local/Cellar/ncurses/6.1/lib -lncursesw"
+    CROSSTOOL_LDFLAGS="-L/usr/local/Cellar/gettext/0.19.8.1/lib -lintl"
+    CROSSTOOL_CFLAGS="-I/usr/local/Cellar/gettext/0.19.8.1/include"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
     export PATH="/usr/local/opt/bison/bin:$PATH"
@@ -212,11 +215,13 @@ build_gcc()
 	gmake
 	gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
-	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake LDFLAGS="$CTNG_LDFLAGS" ./configure --prefix="$LOCAL_INSTALL_DIR"
+        # Homebrew's gcc is gcc-8
+        CC=gcc-8 CXX=g++-8 OBJDUMP=/usr/local/Cellar/binutils/2.32/bin/gobjdump OBJCOPY=/usr/local/Cellar/binutils/2.32/bin/gobjcopy READELF=/usr/local/Cellar/binutils/2.32/bin/greadelf \
+	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
     else
-	LDFLAGS="$CTNG_LDFLAGS" ./configure --prefix="$LOCAL_INSTALL_DIR"
+	./configure --prefix="$LOCAL_INSTALL_DIR"
 	make
 	make install
     fi
