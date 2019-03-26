@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.0
+
+* Enhancements
+  * Update croostool-ng to crosstool-ng-1.24.0-rc3. This pulls in many updates
+    including a bump from gcc 7.3.0 to gcc 8.3.0.
+
 ## v1.5.0
 
 * Enhancements
