@@ -1,5 +1,19 @@
 # Toolchain Releases
 
+## v1.2.0-rc.0
+
+This release updates gcc from version 7.3.0 to 8.3.0 and includes various
+updates to the C runtime. See https://gcc.gnu.org/ for the many changes in the
+gcc 8.x releases.
+
+* Tool versions
+  * glibc 2.29
+  * muslc 1.1.21
+
+* Updated dependencies
+  * nerves v1.4
+  * nerves_toolchain_ctng v1.6.0
+
 ## v1.1.0
 
 This release upgrades gcc from version 6.3.0 to 7.3.0. This addresses a C++
