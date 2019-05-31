@@ -1,6 +1,6 @@
 # Toolchain Releases
 
-## v1.2.0-rc.0
+## v1.2.0
 
 This release updates gcc from version 7.3.0 to 8.3.0 and includes various
 updates to the C runtime. See https://gcc.gnu.org/ for the many changes in the
