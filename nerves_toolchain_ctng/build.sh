@@ -9,7 +9,7 @@ set -e
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 
 CTNG_USE_GIT=true
-CTNG_TAG=crosstool-ng-1.24.0-rc3
+CTNG_TAG=crosstool-ng-1.24.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
