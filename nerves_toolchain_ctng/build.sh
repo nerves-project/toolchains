@@ -128,6 +128,14 @@ if [[ $BUILD_OS = "darwin" ]]; then
         echo "Building gcc requires a more recent version on bison than Apple provides. Install with 'brew install bison'"
         exit 1
     fi
+
+    # Pull in GNU grep
+    export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
+    if [[ ! -e /usr/local/opt/grep/libexec/gnubin/grep ]]; then
+        echo "Building gcc requires GNU grep. Install with 'brew install grep'"
+        exit 1
+    fi
+
 elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
