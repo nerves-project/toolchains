@@ -139,6 +139,12 @@ if [[ $BUILD_OS = "darwin" ]]; then
 elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
+
+    # Long path lengths cause gcc builds to fail. This is due to argument
+    # length exceeded errors from long Make commandlines. To work around this
+    # issue, we tell crosstool-ng to do its work under /tmp/ctng-work. This
+    # forces one build at a time.
+    CT_WORK_DIR="/tmp/ctng-work"
 elif [[ $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
     # Windows-specific updates
     TAR=tar
@@ -163,6 +169,10 @@ init()
         if [[ -e $WORK_DIR ]]; then
             chmod -R u+w "$WORK_DIR"
             rm -fr "$WORK_DIR"
+        fi
+        if [[ -e "$CT_WORK_DIR" ]]; then
+            chmod -R u+w "$CT_WORK_DIR"
+            rm -fr "$CT_WORK_DIR"
         fi
         mkdir -p "$WORK_DIR"
     fi
@@ -314,6 +324,12 @@ build_gcc()
 
     # Clean up the build product
     rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
+
+    # Clean up crosstool-ng's work directory if we put it in a global location
+    if [[ -e "$CT_WORK_DIR" ]]; then
+        chmod -R u+w "$CT_WORK_DIR"
+        rm -fr "$CT_WORK_DIR"
+    fi
 }
 
 toolchain_base_name()
