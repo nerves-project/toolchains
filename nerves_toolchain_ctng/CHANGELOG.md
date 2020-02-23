@@ -1,9 +1,21 @@
 # Changelog
 
+## v1.7.0
+
+This release bumps gcc 8.3.0 to gcc 9.2.0.
+
+* Enhancements
+  * Update crosstool-ng to latest git commit. This pulls in gcc 9.2 support and
+    a variety of C library and related version bumps.
+
+* Bug fixes
+  * Fixed a variety of build issues on Linux, OSX, and CI. If you're building
+    your own toolchains, you may want to review commits to see what has changed.
+
 ## v1.6.0
 
 * Enhancements
-  * Update croostool-ng to crosstool-ng-1.24.0-rc3. This pulls in many updates
+  * Update crosstool-ng to crosstool-ng-1.24.0-rc3. This pulls in many updates
     including a bump from gcc 7.3.0 to gcc 8.3.0.
 
 ## v1.5.0
