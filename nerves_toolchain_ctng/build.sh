@@ -106,6 +106,13 @@ if [ "${n_open_files}" -lt 2048 ]; then
      ulimit -n 2048
 fi
 
+if [[ "$CIRCLECI" = "true" ]]; then
+    # CircleCI runs out of memory if too many concurrent builds go at once
+    CTNG_BUILD=build.4
+else
+    CTNG_BUILD=build
+fi
+
 if [[ $BUILD_OS = "darwin" ]]; then
     # Mac-specific updates
 
@@ -298,7 +305,7 @@ build_gcc()
 
     # Start building and print dots to keep CI from killing the build due
     # to console inactivity.
-    $PREFIX "$CTNG" build &
+    $PREFIX "$CTNG" $CTNG_BUILD &
     local build_pid=$!
     {
         while ps -p $build_pid >/dev/null; do
