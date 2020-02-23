@@ -7,6 +7,8 @@ set -e
 for CONFIG in $CONFIGS; do
     echo "Updating deps for $CONFIG..."
     cd $CONFIG
-    sed -ri 's/nerves_toolchain_ctng, path: "..\/nerves_toolchain_ctng"/nerves_toolchain_ctng, "~> 1.6.0"/' mix.exs
+    sed -ri 's/nerves_toolchain_ctng, path: "..\/nerves_toolchain_ctng"/nerves_toolchain_ctng, "~> 1.7.0"/' mix.exs
+    rm mix.lock
+    mix deps.update --all
     cd ../
 done
