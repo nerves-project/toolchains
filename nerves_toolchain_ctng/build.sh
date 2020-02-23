@@ -106,7 +106,7 @@ if [ "${n_open_files}" -lt 2048 ]; then
      ulimit -n 2048
 fi
 
-if [[ "$CIRCLECI" = "true" ]]; then
+if [[ "$CI" = "true" ]]; then
     # CircleCI runs out of memory if too many concurrent builds go at once
     CTNG_BUILD=build.4
 else
@@ -288,7 +288,7 @@ build_gcc()
     fi
 
     # Configure logging when on CI (see crosstool-ng's build script)
-    if [[ $CI = "true" ]]; then
+    if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI"
       sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
@@ -333,9 +333,13 @@ build_gcc()
     rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
 
     # Clean up crosstool-ng's work directory if we put it in a global location
-    if [[ -e "$CT_WORK_DIR" ]]; then
-        chmod -R u+w "$CT_WORK_DIR"
-        rm -fr "$CT_WORK_DIR"
+    if [[ "$CI" = "true" ]]; then
+        echo "Not cleaning up work directory since CI build"
+    else
+        if [[ -e "$CT_WORK_DIR" ]]; then
+            chmod -R u+w "$CT_WORK_DIR"
+            rm -fr "$CT_WORK_DIR"
+        fi
     fi
 }
 
