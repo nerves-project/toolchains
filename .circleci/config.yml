@@ -18,7 +18,6 @@ install_nerves_bootstrap: &install_nerves_bootstrap
     command: mix archive.install hex nerves_bootstrap --force
 
 build: &build
-  resource_class: large
   steps:
     - checkout
     - <<: *install_hex_rebar
