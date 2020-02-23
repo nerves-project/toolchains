@@ -116,9 +116,9 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
     # I'm not sure why homebrew doesn't install this. Maybe a bug?
-    #export PKG_CONFIG_PATH="/usr/local/Cellar/ncurses/6.1/lib/pkgconfig:$PKG_CONFIG_PATH"
-    #CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.1/lib"
-    export CURSES_LIBS="-L/usr/local/Cellar/ncurses/6.1/lib -lncursesw"
+    #export PKG_CONFIG_PATH="/usr/local/Cellar/ncurses/6.2/lib/pkgconfig:$PKG_CONFIG_PATH"
+    #CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.2/lib"
+    export CURSES_LIBS="-L/usr/local/Cellar/ncurses/6.2/lib -lncursesw"
     CROSSTOOL_LDFLAGS="-L/usr/local/Cellar/gettext/0.20.1/lib -lintl"
     CROSSTOOL_CFLAGS="-I/usr/local/Cellar/gettext/0.20.1/include"
 
@@ -234,7 +234,7 @@ build_gcc()
 	gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
         # Homebrew's gcc is gcc-9
-        CC=gcc-9 CXX=g++-9 OBJDUMP=/usr/local/Cellar/binutils/2.32/bin/gobjdump OBJCOPY=/usr/local/Cellar/binutils/2.32/bin/gobjcopy READELF=/usr/local/Cellar/binutils/2.32/bin/greadelf \
+        CC=gcc-9 CXX=g++-9 OBJDUMP=/usr/local/Cellar/binutils/2.34/bin/gobjdump OBJCOPY=/usr/local/Cellar/binutils/2.34/bin/gobjcopy READELF=/usr/local/Cellar/binutils/2.34/bin/greadelf \
 	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
