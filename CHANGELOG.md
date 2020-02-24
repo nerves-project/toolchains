@@ -1,5 +1,20 @@
 # Toolchain Releases
 
+## v1.3.0
+
+This release updates gcc from version 8.3.0 to 9.2.0 and includes various
+updates to the C runtime. See https://gcc.gnu.org/ for the many changes in the
+gcc 9.x releases.
+
+* Tool versions
+  * Linux 4.14.160 headers
+  * glibc 2.30
+  * muslc 1.1.24
+
+* Updated dependencies
+  * nerves v1.5
+  * nerves_toolchain_ctng v1.7.0
+
 ## v1.2.0
 
 This release updates gcc from version 7.3.0 to 8.3.0 and includes various
