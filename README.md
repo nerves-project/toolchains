@@ -40,7 +40,13 @@ $ ../usr/bin/ct-ng savedefconfig
 # in nerves_toolchain_ctng/defaults/<platform>
 ```
 
-## Canadian cross builds for Raspberry Pi
+## 64-bit ARM Builds
+
+It's possible to create cross-compilers for 64-bit ARM machines (aarch64) by
+building the toolchains on a 64-bit ARM machine. Canadian cross builds don't
+seem to work. Build as you would on an x86_64 Linux machine.
+
+## Canadian cross builds for Raspberry Pi (arm)
 
 It's possible to build a toolchain that runs on the Raspberry Pi on x86 Linux.
 This is called a Canadian-cross. To do so, first clone the Raspberry Pi
