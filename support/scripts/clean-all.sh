@@ -7,7 +7,6 @@ set -e
 for CONFIG in $CONFIGS; do
     echo "Updating deps for $CONFIG..."
     cd $CONFIG
-    mix nerves.clean --all
     rm -rf _build deps .nerves
     cd ../
 done
