@@ -1,5 +1,3 @@
 %{
-  "artificery": {:hex, :artificery, "0.4.0", "e0b8d3eb9dfe8f42c08a620f90a2aa9cef5dba9fcdfcecad5c2be451df159a77", [:mix], [], "hexpm", "2cdf0748823aa0a9a10739bbd131a2d47f4f11021ad99b5b970f738c0428dab8"},
-  "distillery": {:hex, :distillery, "2.0.12", "6e78fe042df82610ac3fa50bd7d2d8190ad287d120d3cd1682d83a44e8b34dfb", [:mix], [{:artificery, "~> 0.2", [hex: :artificery, repo: "hexpm", optional: false]}], "hexpm", "ad094bfbbd69a39f6118265bc7d76a56534df9af2f06aca0d3fd03e1220fbe31"},
-  "nerves": {:hex, :nerves, "1.4.0", "6709e21ddd4cff9ac126e49f2278452a31d602f1fe3604dae30649bc0869d737", [:mix], [{:distillery, "2.0.12", [hex: :distillery, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "3a862c0e0047e2a403fdd2fea0811891c33d1d5a4e841d685a3aaf03eac82671"},
+  "nerves": {:hex, :nerves, "1.6.0", "57c39740659993a51a50184be2843f36f0df42d51e4ef0c1ccd4bd731b3710d8", [:mix], [{:distillery, "~> 2.1", [hex: :distillery, repo: "hexpm", optional: true]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "bb388c21249943580f70ccf1845b9793fe35e321d2ea212085097c698b1c78b9"},
 }

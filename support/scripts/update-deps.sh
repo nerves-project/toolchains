@@ -7,7 +7,7 @@ set -e
 for CONFIG in $CONFIGS; do
     echo "Updating deps for $CONFIG..."
     cd $CONFIG
-    rm mix.lock
+    rm -f mix.lock
     mix deps.update --all
     cd ../
 done
