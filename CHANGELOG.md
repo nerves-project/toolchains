@@ -1,5 +1,14 @@
 # Toolchain Releases
 
+## v1.3.1
+
+This is a patch release that enables support for 64-bit ARM hosts. There is no
+reason to update from 1.3.0 if that version works for you.
+
+* Updated dependencies
+  * nerves v1.6.0
+  * nerves_toolchain_ctng v1.7.1
+
 ## v1.3.0
 
 This release updates gcc from version 8.3.0 to 9.2.0 and includes various
