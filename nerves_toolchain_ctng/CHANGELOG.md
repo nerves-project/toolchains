@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.7.1
+
+* Enhancements
+  * 64-bit ARM host builds (aarch64) are now possible. They must be built on
+    64-bit ARM machines. Canandian cross versions aren't supported.
+
 ## v1.7.0
 
 This release bumps gcc 8.3.0 to gcc 9.2.0.
