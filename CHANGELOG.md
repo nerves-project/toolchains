@@ -1,5 +1,13 @@
 # Toolchain Releases
 
+## v1.3.2
+
+This is a patch release that adds support for macOS >=  High Sierra. There is no
+reason to update from 1.3.0 if that version works for you.
+
+* Updated dependencies
+  * nerves_toolchain_ctng v1.7.2
+
 ## v1.3.1
 
 This is a patch release that enables support for 64-bit ARM hosts. There is no
