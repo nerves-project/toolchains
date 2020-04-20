@@ -122,12 +122,9 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
-    # I'm not sure why homebrew doesn't install this. Maybe a bug?
-    #export PKG_CONFIG_PATH="/usr/local/Cellar/ncurses/6.2/lib/pkgconfig:$PKG_CONFIG_PATH"
-    #CTNG_LDFLAGS="-lintl -L/usr/local/Cellar/ncurses/6.2/lib"
-    export CURSES_LIBS="-L/usr/local/Cellar/ncurses/6.2/lib -lncursesw"
-    CROSSTOOL_LDFLAGS="-L/usr/local/Cellar/gettext/0.20.1/lib -lintl"
-    CROSSTOOL_CFLAGS="-I/usr/local/Cellar/gettext/0.20.1/include"
+    export CURSES_LIBS="-L/usr/local/opt/ncurses/lib -lncursesw"
+    CROSSTOOL_LDFLAGS="-L/usr/local/opt/gettext/lib -lintl"
+    CROSSTOOL_CFLAGS="-I/usr/local/opt/gettext/include"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
     export PATH="/usr/local/opt/bison/bin:$PATH"
