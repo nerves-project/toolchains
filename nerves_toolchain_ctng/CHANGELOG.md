@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7.2
+
+* Bug fixes
+  * Update macOS homebrew paths for dependencies.
+
 ## v1.7.1
 
 * Enhancements
