@@ -62,7 +62,7 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.MixProject do
     [
       files: package_files(),
       licenses: ["Apache 2.0"],
-      links: %{"Github" => "https://github.com/nerves-project/toolchains/tree/master/#{@app}"}
+      links: %{"Github" => "https://github.com/nerves-project/toolchains/tree/main/#{@app}"}
     ]
   end
 
