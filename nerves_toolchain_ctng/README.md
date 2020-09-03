@@ -88,7 +88,7 @@ echo "ca_directory = /usr/ssl/certs" > ~/.wgetrc
 Reboot to make the registry change take effect.
 
 NOTE: Windows is a work in progress. The link step segfaults. The following
-[doc](https://github.com/crosstool-ng/crosstool-ng/blob/master/docs/C%20-%20Misc.%20tutorials.txt)
+[doc](https://github.com/crosstool-ng/crosstool-ng/blob/main/docs/C%20-%20Misc.%20tutorials.txt)
 may provide some help.
 
 ## Updating ctng config files
