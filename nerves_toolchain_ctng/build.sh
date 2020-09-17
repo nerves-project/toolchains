@@ -237,8 +237,8 @@ build_gcc()
 	gmake
 	gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
-        # Homebrew's gcc is gcc-9
-        CC=gcc-9 CXX=g++-9 OBJDUMP=/usr/local/Cellar/binutils/2.34/bin/gobjdump OBJCOPY=/usr/local/Cellar/binutils/2.34/bin/gobjcopy READELF=/usr/local/Cellar/binutils/2.34/bin/greadelf \
+        # Homebrew's gcc is gcc-10
+        CC=gcc-10 CXX=g++-10 OBJDUMP=/usr/local/Cellar/binutils/2.34/bin/gobjdump OBJCOPY=/usr/local/Cellar/binutils/2.34/bin/gobjcopy READELF=/usr/local/Cellar/binutils/2.34/bin/greadelf \
 	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
