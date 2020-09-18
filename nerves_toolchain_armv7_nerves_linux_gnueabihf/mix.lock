@@ -1,0 +1,4 @@
+%{
+  "nerves": {:hex, :nerves, "1.6.3", "ac0155508a6eb0e3c8e92a6c7c0524dbe38dcc289e89cf0ef129df673a89f2ea", [:mix], [{:distillery, "~> 2.1", [hex: :distillery, repo: "hexpm", optional: true]}, {:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "ce150c9aaf2ccffb2cf2fbfe1da462f363ceb322ee515c0a23394235346f71fc"},
+  "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "1.7.2", "0683dff3b81483879a57e14d8e020314a4d1ecc6ee91952c1d7d9f1f528924a4", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}], "hexpm", "5d44f279705119defac7f28a70edb0273f92b38bc8ae668db4f271cd91f6eaee"},
+}
