@@ -1,4 +1,4 @@
-defmodule NervesToolchainX8664UnknownLinuxMusl.MixProject do
+defmodule NervesToolchainX8664NervesLinuxMusl.MixProject do
   use Mix.Project
 
   @version Path.join(__DIR__, "VERSION")
@@ -7,7 +7,7 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.MixProject do
 
   def project do
     [
-      app: :nerves_toolchain_x86_64_unknown_linux_musl,
+      app: :nerves_toolchain_x86_64_nerves_linux_musl,
       version: @version,
       elixir: "~> 1.4",
       compilers: Mix.compilers() ++ [:nerves_package],
@@ -20,7 +20,7 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.MixProject do
   def application do
     [
       env: [
-        target_tuple: :x86_64_unknown_linux_musl
+        target_tuple: :x86_64_nerves_linux_musl
       ]
     ]
   end
@@ -31,7 +31,7 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.MixProject do
 
   defp description do
     """
-    Nerves Toolchain - x86_64-unknown-linux-musl
+    Nerves Toolchain - x86_64-nerves-linux-musl
     """
   end
 
@@ -41,7 +41,7 @@ defmodule NervesToolchainX8664UnknownLinuxMusl.MixProject do
       licenses: ["Apache 2.0"],
       links: %{
         "Github" =>
-          "https://github.com/nerves-project/toolchains/nerves_toolchain_x86_64_unknown_linux_musl"
+          "https://github.com/nerves-project/toolchains/nerves_toolchain_x86_64_nerves_linux_musl"
       }
     ]
   end

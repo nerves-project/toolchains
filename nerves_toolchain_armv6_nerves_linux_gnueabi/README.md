@@ -1,6 +1,6 @@
-# Nerves Toolchain: x86_64-nerves-linux-musl
+# Nerves Toolchain: armv6_nerves_linux_gnueabi
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_x86_64_nerves_linux_musl.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_x86_64_nerves_linux_musl)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv6_nerves_linux_gnueabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv6_nerves_linux_gnueabi)
 
 This is a Nerves Toolchain repository.
 
@@ -13,5 +13,6 @@ cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
 
-This toolchain is used for 64-bit Intel platforms.
-
+This Toolchain is only used by the `rpi` target to support slightly more hardware
+acceleration on the Raspberry Pi Zero, Model A+, and Model B+ than would otherwise
+be possible.

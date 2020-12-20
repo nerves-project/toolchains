@@ -1,2 +1,0 @@
-defmodule NervesToolchainAarch64UnknownLinuxGnu do
-end

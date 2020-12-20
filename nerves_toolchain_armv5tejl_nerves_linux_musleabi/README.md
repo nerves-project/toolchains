@@ -1,6 +1,6 @@
-# Nerves Toolchain: x86_64-nerves-linux-musl
+# Nerves Toolchain: armv5tejl-nerves-linux-musleabi
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_x86_64_nerves_linux_musl.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_x86_64_nerves_linux_musl)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv5tejl_nerves_linux_musleabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv5tejl_nerves_linux_musleabi)
 
 This is a Nerves Toolchain repository.
 
@@ -13,5 +13,6 @@ cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
 
-This toolchain is used for 64-bit Intel platforms.
+This toolchain is used by the `ev3` target. It is useful for ARM7 processors
+that lack hardware floating point.
 

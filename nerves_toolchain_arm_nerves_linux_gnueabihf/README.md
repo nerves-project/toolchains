@@ -1,6 +1,6 @@
-# Nerves Toolchain: x86_64-nerves-linux-musl
+# Nerves Toolchain: arm_nerves_linux_gnueabihf
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_x86_64_nerves_linux_musl.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_x86_64_nerves_linux_musl)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_arm_nerves_linux_gnueabihf.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_arm_nerves_linux_gnueabihf)
 
 This is a Nerves Toolchain repository.
 
@@ -12,6 +12,4 @@ This project's purpose is to contain the information for hex.pm so that Nerves
 cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
-
-This toolchain is used for 64-bit Intel platforms.
 

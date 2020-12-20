@@ -1,4 +1,4 @@
-# Nerves Toolchain: arm_unknown_linux_gnueabihf
+# Nerves Toolchain: arm_nerves_linux_gnueabihf
 
 [![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv7_nerves_linux_gnueabihf.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv7_nerves_linux_gnueabihf)
 
