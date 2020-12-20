@@ -16,7 +16,7 @@ are the architecture (e.g., `arm`) and the C Library and ABI (e.g.,
 easy way to decide which toolchain you need is the following:
 
   * Raspberry Pi Model A+, B, or B+ - `armv6-rpi-linux-gnueabi`
-  * Raspberry Pi 2, BBB, and most other ARM boards - `arm-unknown-linux-gnueabihf`
+  * Raspberry Pi 2, BBB, and most other ARM boards - `arm-nerves-linux-gnueabihf`
 
 The `host OS` and `host architecture` describe your system. If you're running on
 a Mac, this is `Darwin-x86_64`.

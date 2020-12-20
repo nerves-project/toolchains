@@ -116,386 +116,386 @@ jobs:
   #-------------------------------
   # Build
   #-------------------------------
-  # aarch64_unknown_linux_gnu
+  # aarch64_nerves_linux_gnu
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_aarch64_unknown_linux_gnu:
+  build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_aarch64_unknown_linux_gnu:
+  build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *canadian_rpi
     <<: *build
 
 
   #-------------------------------
-  # arm_unknown_linux_gnueabihf
+  # arm_nerves_linux_gnueabihf
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_arm_unknown_linux_gnueabihf:
+  build_linux_nerves_toolchain_arm_nerves_linux_gnueabihf:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
+      TOOLCHAIN: nerves_toolchain_arm_nerves_linux_gnueabihf
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf:
+  build_rpi_nerves_toolchain_arm_nerves_linux_gnueabihf:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
+      TOOLCHAIN: nerves_toolchain_arm_nerves_linux_gnueabihf
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
-  # armv5tejl_unknown_linux_musleabi
+  # armv5tejl_nerves_linux_musleabi
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
+  build_linux_nerves_toolchain_armv5tejl_nerves_linux_musleabi:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
+      TOOLCHAIN: nerves_toolchain_armv5tejl_nerves_linux_musleabi
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
+  build_rpi_nerves_toolchain_armv5tejl_nerves_linux_musleabi:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
+      TOOLCHAIN: nerves_toolchain_armv5tejl_nerves_linux_musleabi
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
-  # armv6_rpi_linux_gnueabi
+  # armv6_nerves_linux_gnueabi
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_armv6_rpi_linux_gnueabi:
+  build_linux_nerves_toolchain_armv6_nerves_linux_gnueabi:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabi
       <<: *linux
     <<: *build
 
   #  rpi
-  build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi:
+  build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabi:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabi
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
-  # i586_unknown_linux_gnu
+  # i586_nerves_linux_gnu
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_i586_unknown_linux_gnu:
+  build_linux_nerves_toolchain_i586_nerves_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_i586_unknown_linux_gnu:
+  build_rpi_nerves_toolchain_i586_nerves_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
-  # mipsel_unknown_linux_musl
+  # mipsel_nerves_linux_musl
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_mipsel_unknown_linux_musl:
+  build_linux_nerves_toolchain_mipsel_nerves_linux_musl:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_mipsel_unknown_linux_musl:
+  build_rpi_nerves_toolchain_mipsel_nerves_linux_musl:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
-  # x86_64_unknown_linux_gnu
+  # x86_64_nerves_linux_gnu
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_x86_64_unknown_linux_gnu:
+  build_linux_nerves_toolchain_x86_64_nerves_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu:
+  build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
-  # x86_64_unknown_linux_musl
+  # x86_64_nerves_linux_musl
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_x86_64_unknown_linux_musl:
+  build_linux_nerves_toolchain_x86_64_nerves_linux_musl:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *linux
     <<: *build
   #  rpi
-  build_rpi_nerves_toolchain_x86_64_unknown_linux_musl:
+  build_rpi_nerves_toolchain_x86_64_nerves_linux_musl:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
   # Test Trusty
   #-------------------------------
-  # aarch64_unknown_linux_gnu
+  # aarch64_nerves_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_aarch64_unknown_linux_gnu:
+  test_linux_trusty_aarch64_nerves_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
     <<: *test
 
 
   #-------------------------------
-  # arm_unknown_linux_gnueabihf
+  # arm_nerves_linux_gnueabihf
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_arm_unknown_linux_gnueabihf:
+  test_linux_trusty_arm_nerves_linux_gnueabihf:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
+      TOOLCHAIN: nerves_toolchain_arm_nerves_linux_gnueabihf
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # armv5tejl_unknown_linux_musleabi
+  # armv5tejl_nerves_linux_musleabi
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_armv5tejl_unknown_linux_musleabi:
+  test_linux_trusty_armv5tejl_nerves_linux_musleabi:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
+      TOOLCHAIN: nerves_toolchain_armv5tejl_nerves_linux_musleabi
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # armv6_rpi_linux_gnueabi
+  # armv6_nerves_linux_gnueabi
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_armv6_rpi_linux_gnueabi:
+  test_linux_trusty_armv6_nerves_linux_gnueabi:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabi
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # i586_unknown_linux_gnu
+  # i586_nerves_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_i586_unknown_linux_gnu:
+  test_linux_trusty_i586_nerves_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # mipsel_unknown_linux_musl
+  # mipsel_nerves_linux_musl
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_mipsel_unknown_linux_musl:
+  test_linux_trusty_mipsel_nerves_linux_musl:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # x86_64_unknown_linux_gnu
+  # x86_64_nerves_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_x86_64_unknown_linux_gnu:
+  test_linux_trusty_x86_64_nerves_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # x86_64_unknown_linux_musl
+  # x86_64_nerves_linux_musl
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_x86_64_unknown_linux_musl:
+  test_linux_trusty_x86_64_nerves_linux_musl:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *linux
     <<: *test
 
   #-------------------------------
   # Test Xenial
   #-------------------------------
-  # aarch64_unknown_linux_gnu
+  # aarch64_nerves_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_aarch64_unknown_linux_gnu:
+  test_linux_xenial_aarch64_nerves_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
     <<: *test
 
 
   #-------------------------------
-  # arm_unknown_linux_gnueabihf
+  # arm_nerves_linux_gnueabihf
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_arm_unknown_linux_gnueabihf:
+  test_linux_xenial_arm_nerves_linux_gnueabihf:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_arm_unknown_linux_gnueabihf
+      TOOLCHAIN: nerves_toolchain_arm_nerves_linux_gnueabihf
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # armv5tejl_unknown_linux_musleabi
+  # armv5tejl_nerves_linux_musleabi
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_armv5tejl_unknown_linux_musleabi:
+  test_linux_xenial_armv5tejl_nerves_linux_musleabi:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_armv5tejl_unknown_linux_musleabi
+      TOOLCHAIN: nerves_toolchain_armv5tejl_nerves_linux_musleabi
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # armv6_rpi_linux_gnueabi
+  # armv6_nerves_linux_gnueabi
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_armv6_rpi_linux_gnueabi:
+  test_linux_xenial_armv6_nerves_linux_gnueabi:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_armv6_rpi_linux_gnueabi
+      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabi
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # i586_unknown_linux_gnu
+  # i586_nerves_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_i586_unknown_linux_gnu:
+  test_linux_xenial_i586_nerves_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_i586_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # mipsel_unknown_linux_musl
+  # mipsel_nerves_linux_musl
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_mipsel_unknown_linux_musl:
+  test_linux_xenial_mipsel_nerves_linux_musl:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # x86_64_unknown_linux_gnu
+  # x86_64_nerves_linux_gnu
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_x86_64_unknown_linux_gnu:
+  test_linux_xenial_x86_64_nerves_linux_gnu:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_gnu
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *linux
     <<: *test
 
   #-------------------------------
-  # x86_64_unknown_linux_musl
+  # x86_64_nerves_linux_musl
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_x86_64_unknown_linux_musl:
+  test_linux_xenial_x86_64_nerves_linux_musl:
     working_directory: /root
     docker:
       - image: nervesproject/toolchain-test-ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_unknown_linux_musl
+      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *linux
     <<: *test
 
@@ -507,8 +507,8 @@ jobs:
           name: Create Artifacts Dir
           command: mkdir -p /home/nerves/deploy/artifacts
       - run:
-          name: nerves_toolchain_aarch64_unknown_linux_gnu
-          command: echo "nerves_toolchain_aarch64_unknown_linux_gnu" > .toolchain
+          name: nerves_toolchain_aarch64_nerves_linux_gnu
+          command: echo "nerves_toolchain_aarch64_nerves_linux_gnu" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -520,8 +520,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_arm_unknown_linux_gnueabihf
-          command: echo "nerves_toolchain_arm_unknown_linux_gnueabihf" > .toolchain
+          name: nerves_toolchain_arm_nerves_linux_gnueabihf
+          command: echo "nerves_toolchain_arm_nerves_linux_gnueabihf" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -533,8 +533,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_armv5tejl_unknown_linux_musleabi
-          command: echo "nerves_toolchain_armv5tejl_unknown_linux_musleabi" > .toolchain
+          name: nerves_toolchain_armv5tejl_nerves_linux_musleabi
+          command: echo "nerves_toolchain_armv5tejl_nerves_linux_musleabi" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -546,8 +546,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_armv6_rpi_linux_gnueabi
-          command: echo "nerves_toolchain_armv6_rpi_linux_gnueabi" > .toolchain
+          name: nerves_toolchain_armv6_nerves_linux_gnueabi
+          command: echo "nerves_toolchain_armv6_nerves_linux_gnueabi" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -559,8 +559,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_i586_unknown_linux_gnu
-          command: echo "nerves_toolchain_i586_unknown_linux_gnu" > .toolchain
+          name: nerves_toolchain_i586_nerves_linux_gnu
+          command: echo "nerves_toolchain_i586_nerves_linux_gnu" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -572,8 +572,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_mipsel_unknown_linux_musl
-          command: echo "nerves_toolchain_mipsel_unknown_linux_musl" > .toolchain
+          name: nerves_toolchain_mipsel_nerves_linux_musl
+          command: echo "nerves_toolchain_mipsel_nerves_linux_musl" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -585,8 +585,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_x86_64_unknown_linux_gnu
-          command: echo "nerves_toolchain_x86_64_unknown_linux_gnu" > .toolchain
+          name: nerves_toolchain_x86_64_nerves_linux_gnu
+          command: echo "nerves_toolchain_x86_64_nerves_linux_gnu" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -598,8 +598,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_x86_64_unknown_linux_musl
-          command: echo "nerves_toolchain_x86_64_unknown_linux_musl" > .toolchain
+          name: nerves_toolchain_x86_64_nerves_linux_musl
+          command: echo "nerves_toolchain_x86_64_nerves_linux_musl" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -632,166 +632,166 @@ workflows:
       #-------------------------------
       # Build Toolchains
       #-------------------------------
-      # aarch64_unknown_linux_gnu
+      # aarch64_nerves_linux_gnu
       #-------------------------------
-      - build_linux_nerves_toolchain_aarch64_unknown_linux_gnu:
+      - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnu:
-          <<: *build_workflow
-
-      #-------------------------------
-      # arm_unknown_linux_gnueabihf
-      #-------------------------------
-      - build_linux_nerves_toolchain_arm_unknown_linux_gnueabihf:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf:
+      - build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu:
           <<: *build_workflow
 
       #-------------------------------
-      # armv5tejl_unknown_linux_musleabi
+      # arm_nerves_linux_gnueabihf
       #-------------------------------
-      - build_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
+      - build_linux_nerves_toolchain_arm_nerves_linux_gnueabihf:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi:
-          <<: *build_workflow
-
-      #-------------------------------
-      # armv6_rpi_linux_gnueabi
-      #-------------------------------
-      - build_linux_nerves_toolchain_armv6_rpi_linux_gnueabi:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi:
+      - build_rpi_nerves_toolchain_arm_nerves_linux_gnueabihf:
           <<: *build_workflow
 
       #-------------------------------
-      # i586_unknown_linux_gnu
+      # armv5tejl_nerves_linux_musleabi
       #-------------------------------
-      - build_linux_nerves_toolchain_i586_unknown_linux_gnu:
+      - build_linux_nerves_toolchain_armv5tejl_nerves_linux_musleabi:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_i586_unknown_linux_gnu:
-          <<: *build_workflow
-
-      #-------------------------------
-      # mipsel_unknown_linux_musl
-      #-------------------------------
-      - build_linux_nerves_toolchain_mipsel_unknown_linux_musl:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_mipsel_unknown_linux_musl:
+      - build_rpi_nerves_toolchain_armv5tejl_nerves_linux_musleabi:
           <<: *build_workflow
 
       #-------------------------------
-      # x86_64_unknown_linux_gnu
+      # armv6_nerves_linux_gnueabi
       #-------------------------------
-      - build_linux_nerves_toolchain_x86_64_unknown_linux_gnu:
+      - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabi:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu:
+      - build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabi:
           <<: *build_workflow
 
       #-------------------------------
-      # x86_64_unknown_linux_musl
+      # i586_nerves_linux_gnu
       #-------------------------------
-      - build_linux_nerves_toolchain_x86_64_unknown_linux_musl:
+      - build_linux_nerves_toolchain_i586_nerves_linux_gnu:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_x86_64_unknown_linux_musl:
+      - build_rpi_nerves_toolchain_i586_nerves_linux_gnu:
+          <<: *build_workflow
+
+      #-------------------------------
+      # mipsel_nerves_linux_musl
+      #-------------------------------
+      - build_linux_nerves_toolchain_mipsel_nerves_linux_musl:
+          <<: *build_workflow
+      - build_rpi_nerves_toolchain_mipsel_nerves_linux_musl:
+          <<: *build_workflow
+
+      #-------------------------------
+      # x86_64_nerves_linux_gnu
+      #-------------------------------
+      - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu:
+          <<: *build_workflow
+      - build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu:
+          <<: *build_workflow
+
+      #-------------------------------
+      # x86_64_nerves_linux_musl
+      #-------------------------------
+      - build_linux_nerves_toolchain_x86_64_nerves_linux_musl:
+          <<: *build_workflow
+      - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl:
           <<: *build_workflow
 
       #-------------------------------
       # Test Toolchains
       #-------------------------------
-      # aarch64_unknown_linux_gnu
+      # aarch64_nerves_linux_gnu
       #-------------------------------
-      - test_linux_trusty_aarch64_unknown_linux_gnu:
+      - test_linux_trusty_aarch64_nerves_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnu
-      - test_linux_xenial_aarch64_unknown_linux_gnu:
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
+      - test_linux_xenial_aarch64_nerves_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_aarch64_unknown_linux_gnu
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
 
       #-------------------------------
-      # arm_unknown_linux_gnueabihf
+      # arm_nerves_linux_gnueabihf
       #-------------------------------
-      - test_linux_trusty_arm_unknown_linux_gnueabihf:
+      - test_linux_trusty_arm_nerves_linux_gnueabihf:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_arm_unknown_linux_gnueabihf
-      - test_linux_xenial_arm_unknown_linux_gnueabihf:
+            - build_linux_nerves_toolchain_arm_nerves_linux_gnueabihf
+      - test_linux_xenial_arm_nerves_linux_gnueabihf:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_arm_unknown_linux_gnueabihf
+            - build_linux_nerves_toolchain_arm_nerves_linux_gnueabihf
 
       #-------------------------------
-      # armv5tejl_unknown_linux_musleabi
+      # armv5tejl_nerves_linux_musleabi
       #-------------------------------
-      - test_linux_trusty_armv5tejl_unknown_linux_musleabi:
+      - test_linux_trusty_armv5tejl_nerves_linux_musleabi:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi
-      - test_linux_xenial_armv5tejl_unknown_linux_musleabi:
+            - build_linux_nerves_toolchain_armv5tejl_nerves_linux_musleabi
+      - test_linux_xenial_armv5tejl_nerves_linux_musleabi:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_armv5tejl_unknown_linux_musleabi
+            - build_linux_nerves_toolchain_armv5tejl_nerves_linux_musleabi
 
       #-------------------------------
-      # armv6_rpi_linux_gnueabi
+      # armv6_nerves_linux_gnueabi
       #-------------------------------
-      - test_linux_trusty_armv6_rpi_linux_gnueabi:
+      - test_linux_trusty_armv6_nerves_linux_gnueabi:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_armv6_rpi_linux_gnueabi
-      - test_linux_xenial_armv6_rpi_linux_gnueabi:
+            - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabi
+      - test_linux_xenial_armv6_nerves_linux_gnueabi:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_armv6_rpi_linux_gnueabi
+            - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabi
 
       #-------------------------------
-      # i586_unknown_linux_gnu
+      # i586_nerves_linux_gnu
       #-------------------------------
-      - test_linux_trusty_i586_unknown_linux_gnu:
+      - test_linux_trusty_i586_nerves_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_i586_unknown_linux_gnu
-      - test_linux_xenial_i586_unknown_linux_gnu:
+            - build_linux_nerves_toolchain_i586_nerves_linux_gnu
+      - test_linux_xenial_i586_nerves_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_i586_unknown_linux_gnu
+            - build_linux_nerves_toolchain_i586_nerves_linux_gnu
 
       #-------------------------------
-      # mipsel_unknown_linux_musl
+      # mipsel_nerves_linux_musl
       #-------------------------------
-      - test_linux_trusty_mipsel_unknown_linux_musl:
+      - test_linux_trusty_mipsel_nerves_linux_musl:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_mipsel_unknown_linux_musl
-      - test_linux_xenial_mipsel_unknown_linux_musl:
+            - build_linux_nerves_toolchain_mipsel_nerves_linux_musl
+      - test_linux_xenial_mipsel_nerves_linux_musl:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_mipsel_unknown_linux_musl
+            - build_linux_nerves_toolchain_mipsel_nerves_linux_musl
 
       #-------------------------------
-      # x86_64_unknown_linux_gnu
+      # x86_64_nerves_linux_gnu
       #-------------------------------
-      - test_linux_trusty_x86_64_unknown_linux_gnu:
+      - test_linux_trusty_x86_64_nerves_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_x86_64_unknown_linux_gnu
-      - test_linux_xenial_x86_64_unknown_linux_gnu:
+            - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu
+      - test_linux_xenial_x86_64_nerves_linux_gnu:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_x86_64_unknown_linux_gnu
+            - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu
 
       #-------------------------------
-      # x86_64_unknown_linux_musl
+      # x86_64_nerves_linux_musl
       #-------------------------------
-      - test_linux_trusty_x86_64_unknown_linux_musl:
+      - test_linux_trusty_x86_64_nerves_linux_musl:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_x86_64_unknown_linux_musl
-      - test_linux_xenial_x86_64_unknown_linux_musl:
+            - build_linux_nerves_toolchain_x86_64_nerves_linux_musl
+      - test_linux_xenial_x86_64_nerves_linux_musl:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_x86_64_unknown_linux_musl
+            - build_linux_nerves_toolchain_x86_64_nerves_linux_musl
 
       #-------------------------------
       # Deploy Toolchains
@@ -799,27 +799,27 @@ workflows:
       - deploy:
           <<: *deploy_workflow
           requires:
-            - test_linux_trusty_aarch64_unknown_linux_gnu
-            - test_linux_xenial_aarch64_unknown_linux_gnu
-            - build_rpi_nerves_toolchain_aarch64_unknown_linux_gnu
-            - test_linux_trusty_arm_unknown_linux_gnueabihf
-            - test_linux_xenial_arm_unknown_linux_gnueabihf
-            - build_rpi_nerves_toolchain_arm_unknown_linux_gnueabihf
-            - test_linux_trusty_armv5tejl_unknown_linux_musleabi
-            - test_linux_xenial_armv5tejl_unknown_linux_musleabi
-            - build_rpi_nerves_toolchain_armv5tejl_unknown_linux_musleabi
-            - test_linux_trusty_armv6_rpi_linux_gnueabi
-            - test_linux_xenial_armv6_rpi_linux_gnueabi
-            - build_rpi_nerves_toolchain_armv6_rpi_linux_gnueabi
-            - test_linux_trusty_i586_unknown_linux_gnu
-            - test_linux_xenial_i586_unknown_linux_gnu
-            - build_rpi_nerves_toolchain_i586_unknown_linux_gnu
-            - test_linux_trusty_mipsel_unknown_linux_musl
-            - test_linux_xenial_mipsel_unknown_linux_musl
-            - build_rpi_nerves_toolchain_mipsel_unknown_linux_musl
-            - test_linux_trusty_x86_64_unknown_linux_gnu
-            - test_linux_xenial_x86_64_unknown_linux_gnu
-            - build_rpi_nerves_toolchain_x86_64_unknown_linux_gnu
-            - test_linux_trusty_x86_64_unknown_linux_musl
-            - test_linux_xenial_x86_64_unknown_linux_musl
-            - build_rpi_nerves_toolchain_x86_64_unknown_linux_musl
+            - test_linux_trusty_aarch64_nerves_linux_gnu
+            - test_linux_xenial_aarch64_nerves_linux_gnu
+            - build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu
+            - test_linux_trusty_arm_nerves_linux_gnueabihf
+            - test_linux_xenial_arm_nerves_linux_gnueabihf
+            - build_rpi_nerves_toolchain_arm_nerves_linux_gnueabihf
+            - test_linux_trusty_armv5tejl_nerves_linux_musleabi
+            - test_linux_xenial_armv5tejl_nerves_linux_musleabi
+            - build_rpi_nerves_toolchain_armv5tejl_nerves_linux_musleabi
+            - test_linux_trusty_armv6_nerves_linux_gnueabi
+            - test_linux_xenial_armv6_nerves_linux_gnueabi
+            - build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabi
+            - test_linux_trusty_i586_nerves_linux_gnu
+            - test_linux_xenial_i586_nerves_linux_gnu
+            - build_rpi_nerves_toolchain_i586_nerves_linux_gnu
+            - test_linux_trusty_mipsel_nerves_linux_musl
+            - test_linux_xenial_mipsel_nerves_linux_musl
+            - build_rpi_nerves_toolchain_mipsel_nerves_linux_musl
+            - test_linux_trusty_x86_64_nerves_linux_gnu
+            - test_linux_xenial_x86_64_nerves_linux_gnu
+            - build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu
+            - test_linux_trusty_x86_64_nerves_linux_musl
+            - test_linux_xenial_x86_64_nerves_linux_musl
+            - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl

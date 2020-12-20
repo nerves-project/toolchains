@@ -18,7 +18,7 @@ one of the toolchain subdirectories to build the toolchain. This process uses
 manually, run something like:
 
 ```sh
-./nerves_toolchain_ctng/build.sh nerves_toolchain_arm_unknown_linux_gnueabihf/defconfig work
+./nerves_toolchain_ctng/build.sh nerves_toolchain_arm_nerves_linux_gnueabihf/defconfig work
 ```
 
 This will build the toolchain in the `work` directory. If you want to modify the
@@ -35,7 +35,7 @@ $ ../usr/bin/ct-ng menuconfig
 $ ../usr/bin/ct-ng savedefconfig
 
 # merge defconfig changes over to
-# nerves_toolchain_arm_unknown_linux_gnueabihf/defconfig or whatever you're
+# nerves_toolchain_arm_nerves_linux_gnueabihf/defconfig or whatever you're
 # building. Some configuration options are platform-specific and should be put
 # in nerves_toolchain_ctng/defaults/<platform>
 ```

@@ -156,7 +156,7 @@ elif [[ $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
     # For crosstool-ng
     export AWK=gawk
 else
-    echo "Unknown host OS: $BUILD_OS"
+    echo "unknown host OS: $BUILD_OS"
     exit 1
 fi
 

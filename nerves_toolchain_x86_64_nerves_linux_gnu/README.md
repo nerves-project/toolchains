@@ -1,6 +1,6 @@
-# Nerves Toolchain: x86_64-nerves-linux-musl
+# Nerves Toolchain: x86_64_nerves_linux_gnu
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_x86_64_nerves_linux_musl.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_x86_64_nerves_linux_musl)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_x86_64_nerves_linux_gnu.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_x86_64_nerves_linux_gnu)
 
 This is a Nerves Toolchain repository.
 

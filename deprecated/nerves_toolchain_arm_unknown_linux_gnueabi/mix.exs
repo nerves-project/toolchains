@@ -1,4 +1,4 @@
-defmodule NervesToolchainArmUnknownLinuxGnueabi.MixProject do
+defmodule NervesToolchainArmNervesLinuxGnueabi.MixProject do
   use Mix.Project
 
   @version Path.join(__DIR__, "VERSION")
@@ -7,7 +7,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabi.MixProject do
 
   def project do
     [
-      app: :nerves_toolchain_arm_unknown_linux_gnueabi,
+      app: :nerves_toolchain_arm_nerves_linux_gnueabi,
       version: @version,
       elixir: "~> 1.4",
       compilers: Mix.compilers() ++ [:nerves_package],
@@ -20,7 +20,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabi.MixProject do
   def application do
     [
       env: [
-        target_tuple: :arm_unknown_linux_gnueabi
+        target_tuple: :arm_nerves_linux_gnueabi
       ]
     ]
   end
@@ -31,7 +31,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabi.MixProject do
 
   defp description do
     """
-    Nerves Toolchain - arm-unknown-linux-gnueabi
+    Nerves Toolchain - arm-nerves-linux-gnueabi
     """
   end
 
@@ -50,7 +50,7 @@ defmodule NervesToolchainArmUnknownLinuxGnueabi.MixProject do
       licenses: ["Apache 2.0"],
       links: %{
         "Github" =>
-          "https://github.com/nerves-project/toolchains/nerves_toolchain_arm_unknown_linux_gnueabi"
+          "https://github.com/nerves-project/toolchains/nerves_toolchain_arm_nerves_linux_gnueabi"
       }
     ]
   end
