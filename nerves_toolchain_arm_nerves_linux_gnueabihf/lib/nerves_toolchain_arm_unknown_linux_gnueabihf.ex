@@ -1,2 +1,0 @@
-defmodule NervesToolchainArmNervesLinuxGnueabihf do
-end
