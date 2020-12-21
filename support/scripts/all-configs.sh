@@ -1,7 +1,7 @@
 # This file lists out all of the currently supported configurations
 
 CONFIGS="\
-    nerves_toolchain_arm_nerves_linux_gnueabihf \
+    nerves_toolchain_armv7_nerves_linux_gnueabihf \
     nerves_toolchain_x86_64_nerves_linux_musl \
     nerves_toolchain_armv6_nerves_linux_gnueabi \
     nerves_toolchain_x86_64_nerves_linux_gnu \
