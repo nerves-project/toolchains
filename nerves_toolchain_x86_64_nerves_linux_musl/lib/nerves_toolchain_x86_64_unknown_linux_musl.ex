@@ -1,2 +1,0 @@
-defmodule NervesToolchainX8664NervesLinuxMusl do
-end

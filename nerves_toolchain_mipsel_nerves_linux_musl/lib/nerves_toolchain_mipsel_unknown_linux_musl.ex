@@ -1,2 +1,0 @@
-defmodule NervesToolchainMipselNervesLinuxMusl do
-end
