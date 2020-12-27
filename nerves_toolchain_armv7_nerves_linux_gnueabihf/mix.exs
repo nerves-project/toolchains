@@ -37,7 +37,11 @@ defmodule NervesToolchainArmV7NervesLinuxGnueabihf.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :armv7_nerves_linux_gnueabihf,
+      env: %{
+        "TARGET_ARCH" => "armv7",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "gnueabihf",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],

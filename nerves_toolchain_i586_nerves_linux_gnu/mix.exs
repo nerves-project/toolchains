@@ -37,7 +37,11 @@ defmodule NervesToolchainI586NervesLinuxGnu.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :i586_nerves_linux_gnu,
+      env: %{
+        "TARGET_ARCH" => "i586",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "gnu",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],

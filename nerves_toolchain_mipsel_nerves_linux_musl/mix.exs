@@ -37,7 +37,11 @@ defmodule NervesToolchainMipselNervesLinuxMusl.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :mipsel_nerves_linux_musl,
+      env: %{
+        "TARGET_ARCH" => "mipsel",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "musl",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],

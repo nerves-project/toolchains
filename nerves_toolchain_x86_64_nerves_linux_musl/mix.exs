@@ -37,7 +37,11 @@ defmodule NervesToolchainX8664NervesLinuxMusl.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :x86_64_nerves_linux_musl,
+      env: %{
+        "TARGET_ARCH" => "x86_64",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "musl",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],

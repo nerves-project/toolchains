@@ -37,7 +37,11 @@ defmodule NervesToolchainArmv6RpiLinuxGnueabi.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :armv6_nerves_linux_gnueabi,
+      env: %{
+        "TARGET_ARCH" => "armv6",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "gnueabi",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],

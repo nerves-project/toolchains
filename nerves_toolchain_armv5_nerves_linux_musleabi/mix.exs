@@ -37,7 +37,11 @@ defmodule NervesToolchainArmv5NervesLinuxMusleabi.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :armv5tejl_nerves_linux_musleabi,
+      env: %{
+        "TARGET_ARCH" => "armv5",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "musleabi",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],

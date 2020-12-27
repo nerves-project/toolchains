@@ -37,7 +37,11 @@ defmodule NervesToolchainAarch64NervesLinuxGnu.MixProject do
       platform_config: [
         defconfig: "defconfig"
       ],
-      target_tuple: :aarch64_nerves_linux_gnu,
+      env: %{
+        "TARGET_ARCH" => "aarch64",
+        "TARGET_OS" => "linux",
+        "TARGET_ABI" => "gnu",
+      },
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],
