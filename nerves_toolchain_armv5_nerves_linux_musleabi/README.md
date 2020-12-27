@@ -1,6 +1,6 @@
-# Nerves Toolchain: armv5tejl-nerves-linux-musleabi
+# Nerves Toolchain: armv5-nerves-linux-musleabi
 
-[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv5tejl_nerves_linux_musleabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv5tejl_nerves_linux_musleabi)
+[![Hex version](https://img.shields.io/hexpm/v/nerves_toolchain_armv5_nerves_linux_musleabi.svg "Hex version")](https://hex.pm/packages/nerves_toolchain_armv5_nerves_linux_musleabi)
 
 This is a Nerves Toolchain repository.
 
