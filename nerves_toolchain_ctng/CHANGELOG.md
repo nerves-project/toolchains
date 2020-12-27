@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.8.0
+
+This release bumps gcc 9.2.0 to gcc 10.2.0.
+
+* Enhancements
+  * Update crosstool-ng git commit. This pulls in gcc 10.2 support and
+    a variety of C library and related version bumps.
+  * Update macOS build homebrew paths to latest versions.
+  * Update toolchain vendor to `nerves` in default defconfigs.
+
 ## v1.7.2
 
 * Bug fixes
