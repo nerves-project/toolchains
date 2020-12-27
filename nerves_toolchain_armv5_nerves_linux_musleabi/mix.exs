@@ -1,7 +1,7 @@
-defmodule NervesToolchainArmv5tejlNervesLinuxMusleabi.MixProject do
+defmodule NervesToolchainArmv5NervesLinuxMusleabi.MixProject do
   use Mix.Project
 
-  @app :nerves_toolchain_armv5tejl_nerves_linux_musleabi
+  @app :nerves_toolchain_armv5_nerves_linux_musleabi
   @version Path.join(__DIR__, "VERSION")
            |> File.read!()
            |> String.trim()
@@ -54,7 +54,7 @@ defmodule NervesToolchainArmv5tejlNervesLinuxMusleabi.MixProject do
 
   defp description do
     """
-    Nerves Toolchain - armv5tejl-nerves-linux-musleabi
+    Nerves Toolchain - armv5-nerves-linux-musleabi
     """
   end
 
