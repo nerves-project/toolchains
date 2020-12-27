@@ -1,5 +1,32 @@
 # Toolchain Releases
 
+## v1.4.0
+
+All toolchains have been renamed to set the vendor to nerves. ARM32 toolchains
+were renamed for consistency with https://toolchains.bootlin.com naming.
+
+```text
+nerves_toolchain_aarch64_unknown_linux_gnu        -> nerves_toolchain_aarch64_nerves_linux_gnu
+nerves_toolchain_armv5tejl_unknown_linux_musleabi -> nerves_toolchain_armv5_nerves_linux_musleabi
+nerves_toolchain_armv6_rpi_linux_gnueabi          -> nerves_toolchain_armv6_nerves_linux_gnueabi
+nerves_toolchain_arm_unknown_linux_gnueabihf      -> nerves_toolchain_armv7_nerves_linux_gnueabihf
+nerves_toolchain_i586_unknown_linux_gnu           -> nerves_toolchain_i586_nerves_linux_gnu
+nerves_toolchain_mipsel_unknown_linux_musl        -> nerves_toolchain_mipsel_nerves_linux_musl
+nerves_toolchain_x86_64_unknown_linux_gnu         -> nerves_toolchain_x86_64_nerves_linux_gnu
+nerves_toolchain_x86_64_unknown_linux_musl        -> nerves_toolchain_x86_64_nerves_linux_musl
+```
+
+Linux headers were downgraded from 4.14.160 to 4.4.214 to support using
+toolchains with systems using older versions of Linux.
+
+* Tool versions
+  * Linux 4.4.214 headers
+  * glibc 2.32
+
+* Updated dependencies
+  * nerves v1.7
+  * nerves_toolchain_ctng v1.8.0
+
 ## v1.3.2
 
 This is a patch release that adds support for macOS >=  High Sierra. There is no
