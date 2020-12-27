@@ -1,4 +1,5 @@
 %{
-  "nerves": {:hex, :nerves, "1.6.3", "ac0155508a6eb0e3c8e92a6c7c0524dbe38dcc289e89cf0ef129df673a89f2ea", [:mix], [{:distillery, "~> 2.1", [hex: :distillery, repo: "hexpm", optional: true]}, {:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "ce150c9aaf2ccffb2cf2fbfe1da462f363ceb322ee515c0a23394235346f71fc"},
-  "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "1.7.2", "0683dff3b81483879a57e14d8e020314a4d1ecc6ee91952c1d7d9f1f528924a4", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}], "hexpm", "5d44f279705119defac7f28a70edb0273f92b38bc8ae668db4f271cd91f6eaee"},
+  "elixir_make": {:hex, :elixir_make, "0.6.2", "7dffacd77dec4c37b39af867cedaabb0b59f6a871f89722c25b28fcd4bd70530", [:mix], [], "hexpm", "03e49eadda22526a7e5279d53321d1cced6552f344ba4e03e619063de75348d9"},
+  "nerves": {:hex, :nerves, "1.7.1", "cae6aee88adc8dc6f697976f6bf337e26a24f45f5439b5bbd352b9b716b7c116", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "45bab096fae3b2efbbc105154234143caadc12b8584c120728b5a636e334e94d"},
+  "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "1.8.0", "bcde515adc783462b0180760e8301060634d6b519b00888cbf53fb878f7cb7f1", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}], "hexpm", "1caff9b49e20b0fb00e0c5a67b5d20802c9f62322a0ff1182779a8e5d688de23"},
 }
