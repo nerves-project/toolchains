@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.1
+
+* Bug fixes
+  * Update crosstool-ng git commit. This fixes issues with building the aarch64
+    crosscompiler on macOS x86_64 host.
+
 ## v1.8.0
 
 This release bumps gcc 9.2.0 to gcc 10.2.0.
