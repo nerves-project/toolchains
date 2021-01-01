@@ -2,6 +2,10 @@
 
 ## v1.4.0
 
+This release updates gcc from version 9.2.0 to 10.2.0 and includes various
+updates to the C runtime. See https://gcc.gnu.org/ for the many changes in the
+gcc 10.x releases.
+
 All toolchains have been renamed to set the vendor to nerves. ARM32 toolchains
 were renamed for consistency with https://toolchains.bootlin.com naming.
 
@@ -20,6 +24,7 @@ Linux headers were downgraded from 4.14.160 to 4.4.214 to support using
 toolchains with systems using older versions of Linux.
 
 * Tool versions
+  * GCC 10.2
   * Linux 4.4.214 headers
   * glibc 2.32
 
