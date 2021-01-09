@@ -30,6 +30,9 @@ if [[ $BUILD_OS = "CYGWIN_NT-6.1" ]]; then
     # A simple Cygwin looks better.
     BUILD_OS="cygwin"
 elif [[ $BUILD_OS = "Darwin" ]]; then
+    # Homebrew has a different prefix depending on x86_64 or aarch64
+    HOMEBREW_PREFIX="$(brew --prefix)"
+
     # Make sure that we use GNU readlink on OSX
     READLINK=greadlink
 fi
@@ -122,21 +125,23 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG=$WORK_DIR.dmg
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
-    export CURSES_LIBS="-L/usr/local/opt/ncurses/lib -lncursesw"
-    CROSSTOOL_LDFLAGS="-L/usr/local/opt/gettext/lib -lintl"
-    CROSSTOOL_CFLAGS="-I/usr/local/opt/gettext/include"
+    export CURSES_LIBS="-L$(brew --prefix ncurses)/lib -lncursesw"
+    CROSSTOOL_LDFLAGS="-L$HOMEBREW_PREFIX/lib -lintl"
+    CROSSTOOL_CFLAGS="-I$HOMEBREW_PREFIX/include"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
-    export PATH="/usr/local/opt/bison/bin:$PATH"
-    if [[ ! -e /usr/local/opt/bison/bin/bison ]]; then
+    export PATH="$(brew --prefix bison)/bin:$PATH"
+    if [[ ! -e $(brew --prefix bison)/bin/bison ]]; then
         echo "Building gcc requires a more recent version on bison than Apple provides. Install with 'brew install bison'"
+        echo "Expecting to find bison at '$(brew --prefix bison)/bin/bison'."
         exit 1
     fi
 
     # Pull in GNU grep
-    export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
-    if [[ ! -e /usr/local/opt/grep/libexec/gnubin/grep ]]; then
+    export PATH="$(brew --prefix grep)/libexec/gnubin:$PATH"
+    if [[ ! -e $(brew --prefix grep)/libexec/gnubin/grep ]]; then
         echo "Building gcc requires GNU grep. Install with 'brew install grep'"
+        echo "Expecting to find grep at '$(brew --prefix grep)/libexec/gnubin/grep'."
         exit 1
     fi
 
@@ -238,8 +243,9 @@ build_gcc()
 	gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
         # Homebrew's gcc is gcc-10
-        CC=gcc-10 CXX=g++-10 OBJDUMP=/usr/local/Cellar/binutils/2.35.1_1/bin/gobjdump OBJCOPY=/usr/local/Cellar/binutils/2.35.1_1/bin/gobjcopy READELF=/usr/local/Cellar/binutils/2.35.1_1/bin/greadelf \
-	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
+        BINUTILS=$(brew --prefix binutils)
+        CC=gcc-10 CXX=g++-10 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
+	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
     else
