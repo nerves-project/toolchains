@@ -45,36 +45,22 @@ if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
 
+if [[ ! -e $BASE_CONFIG ]]; then
+    echo "Can't find $BASE_CONFIG. Check that it exists."
+    echo
+    echo "Here are some options:"
+    for dir in $(ls $BASE_DIR); do
+        if [[ -f $dir/defconfig ]]; then
+            echo $dir
+        fi
+    done
+    exit 1
+fi
+
 # Ensure that the config and work paths are absolute
 BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
 WORK_DIR=$($READLINK -f "$WORK_DIR")
 
-# if [[ $# -lt 1 ]]; then
-#     echo "Usage: $0 <toolchain name>"
-#     echo
-#     echo "This is the Nerves toolchain builder. It produces cross-compilers that"
-#     echo "work across the operating systems supported by Nerves."
-#     echo
-#     echo "By convention, toolchains are identified by gcc tuples but using underscores"
-#     echo "instead of hyphens to make the names Elixir/Erlang friendly."
-#     echo
-#     echo "To do Canadian-cross builds (cross-compile the cross-compiler), set the"
-#     echo "HOST_ARCH and HOST_OS environment variables to what you want."
-#     echo
-#     echo "Valid options:"
-#     for dir in $(ls $BASE_DIR); do
-#         if [[ -f $dir/defconfig ]]; then
-#             echo $dir
-#         fi
-#     done
-#     exit 1
-# fi
-
-
-if [[ ! -e $BASE_CONFIG ]]; then
-    echo "Can't find $BASE_CONFIG. Check that it exists."
-    exit 1
-fi
 CTNG_CONFIG_DIR=$(dirname "$BASE_CONFIG")
 # Append host-specific modifications to the base defconfig
 HOST_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
