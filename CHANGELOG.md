@@ -1,5 +1,15 @@
 # Toolchain Releases
 
+## v1.4.1
+
+This release adds host support for native Mac M1 toolchains.
+
+Hardware float has been enabled on the `armv6` toolchain to further
+consistency with https://toolchains.bootlin.com configurations.
+
+* Updated dependencies
+  * nerves_toolchain_ctng v1.8.2
+
 ## v1.4.0
 
 This release updates gcc from version 9.2.0 to 10.2.0 and includes various
