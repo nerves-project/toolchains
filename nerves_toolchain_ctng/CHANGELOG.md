@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.8.2
+
+* Enhancements
+  * Added support for Darwin ARM64 builds.
+
 ## v1.8.1
 
 * Bug fixes
