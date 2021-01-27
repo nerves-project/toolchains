@@ -1,7 +1,7 @@
-defmodule NervesToolchainArmv6RpiLinuxGnueabi.MixProject do
+defmodule NervesToolchainArmv6RpiLinuxGnueabihf.MixProject do
   use Mix.Project
 
-  @app :nerves_toolchain_armv6_nerves_linux_gnueabi
+  @app :nerves_toolchain_armv6_nerves_linux_gnueabihf
   @version Path.join(__DIR__, "VERSION")
            |> File.read!()
            |> String.trim()
