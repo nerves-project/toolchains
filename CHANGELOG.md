@@ -1,5 +1,23 @@
 # Toolchain Releases
 
+## v1.4.2
+
+This release reverts the switch from 4.14 headers to 4.4 headers in v1.4.0. This
+re-enables `libgpiod` (cdev), `bluez5`, `iwd`, and `ply` (eBPF) which required
+headers after 4.4.
+
+* Fixes
+  * ARMv7 toolchain now defaults to "generic-arm-v7a" rather than "cortex-a9".
+    This fixes a potential issue of generating invalid ARM instructions, but it
+    appears that this did not affect ARM Cortex-A7 and A8 platforms supported by
+    Nerves.
+
+* Tool versions
+  * GCC 10.2
+  * Linux 4.14 headers
+  * glibc 2.33
+  * binutils 2.36.1
+
 ## v1.4.1
 
 This release adds host support for native Mac M1 toolchains.
