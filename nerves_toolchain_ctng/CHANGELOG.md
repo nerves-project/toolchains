@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.8.3
+
+This release bumps crosstool-ng to the latest to pull in glibc 2.33.
+
 ## v1.8.2
 
 * Enhancements
