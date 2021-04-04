@@ -1,10 +1,18 @@
+version: 2.1
+
 defaults: &defaults
   working_directory: /home/nerves/build
   environment:
     ENV: CI
   docker:
-    - image: nervesproject/toolchains
+    - image: nervesproject/toolchains-nonexistant
   resource_class: large
+
+orbs:
+  my-macos: circleci/macos@1.1.0
+  #mac-permissions: circleci/macos
+  # This will likely have to change since it means we're using a docker container instead of running on macOS
+  # https://circleci.com/docs/2.0/executor-types/
 
 install_hex_rebar: &install_hex_rebar
   run:
@@ -57,6 +65,36 @@ build: &build
         paths:
           - /home/nerves/deploy/toolchain
 
+build_mac: &build_mac
+  #xcode: 11.7.0
+  steps:
+  - checkout
+  # Free up extra space on macOS
+  # https://support.circleci.com/hc/en-us/articles/360037142773-Freeing-up-Disk-Space-on-macOS
+  - run:
+      name: df
+      command: df -h
+  - run:
+      name: Free up extra space
+      command: sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes/
+  - run:
+      name: df
+      command: df -h
+  - run:
+      name: Install cowsay
+      command: brew install cowsay
+  - run:
+      name: cowsay hi
+      command: cowsay Hi!
+  - run:
+      name: brew deps
+      command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
+  - <<: *install_hex_rebar
+  - <<: *install_nerves_bootstrap
+  - run:
+      name: Build release
+      command: ./build_release.sh
+
 test: &test
   working_directory: /home/nerves/build
   steps:
@@ -82,6 +120,13 @@ test: &test
         name: Compile hello world app
         command: /root/toolchain/bin/*-g++ /home/nerves/build/support/smoketest/main.cpp
 
+#-------------------------------
+# Re-usable YAML anchors (to be merged with `<<`)
+#-------------------------------
+docker_default: &docker_default
+  docker:
+    - image: nervesproject/toolchains
+
 build_workflow: &build_workflow
   context: org-global
   filters:
@@ -102,10 +147,15 @@ deploy_workflow: &deploy_workflow
     tags:
       only: /v.*/
 
-linux: &linux
-  BUILD_OS: linux
+mac_xcode: &mac_xcode
+  xcode: 11.7.0
 
-version: 2.0
+mac_env: &mac_env
+  BUILD_OS: darwin
+  HOMEBREW_NO_AUTO_UPDATE: 1
+
+linux_env: &linux_env
+  BUILD_OS: linux
 
 jobs:
   #-------------------------------
@@ -116,10 +166,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -133,9 +183,20 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
+  build_mac_nerves_toolchain_aarch64_nerves_mac_gnu:
+    macos:
+      <<: *mac_xcode
+    # TODO: these should be in mac_defaults
+    #working_directory: /home/nerves/build
+    environment:
+    # Don't need darwin_arm
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
+      ENV: CI
+      <<: *mac_env
+    <<: *build_mac
 
   #-------------------------------
   # armv7_nerves_linux_gnueabihf
@@ -143,10 +204,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -158,19 +219,19 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
-  # armv5_nerves_linux_musleabi
+  # armv5_nerves_linux_musleabi 1 (jobs) (build)
   #-------------------------------
   # build
   #  linux
   build_linux_nerves_toolchain_armv5_nerves_linux_musleabi:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -179,10 +240,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_armv6_nerves_linux_gnueabihf:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -191,10 +252,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_i586_nerves_linux_gnu:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -203,10 +264,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_mipsel_nerves_linux_musl:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -215,10 +276,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_x86_64_nerves_linux_gnu:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -227,10 +288,10 @@ jobs:
   # build
   #  linux
   build_linux_nerves_toolchain_x86_64_nerves_linux_musl:
-    <<: *defaults
+    <<: [ *defaults, *docker_default ]
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
   #-------------------------------
@@ -242,8 +303,23 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *build
+
+
+  test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64:
+    working_directory: /root
+    docker:
+      - image: nervesproject/toolchain-test-ubuntu:trusty
+    environment:
+      # TODO: Should this be mac_gnu?
+               # nerves_toolchain_armv7_nerves_linux_gnueabihf-darwin_x86_64-1.4.2
+               # nerves_toolchain_aarch64_nerves_linux_gnu
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
+      # TODO: add this as well
+      # nerves_toolchain_aarch64_nerves_linux_gnu-darwin_x86_64
+      <<: *mac_env
+    <<: *test
 
   #-------------------------------
   # riscv64_nerves_linux_gnu
@@ -254,7 +330,7 @@ jobs:
     <<: *defaults
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *build
 
 
@@ -270,7 +346,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -285,7 +361,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -298,7 +374,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -311,7 +387,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -324,7 +400,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -337,7 +413,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -350,7 +426,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -363,7 +439,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -376,7 +452,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -389,7 +465,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -402,7 +478,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -415,7 +491,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -430,7 +506,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -445,7 +521,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -458,7 +534,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -471,7 +547,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -484,7 +560,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -497,7 +573,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -510,7 +586,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -523,7 +599,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -536,7 +612,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -549,7 +625,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -562,7 +638,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -575,7 +651,7 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
 
@@ -593,7 +669,7 @@ jobs:
       - image: ubuntu:bionic
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -608,7 +684,7 @@ jobs:
       - image: ubuntu:focal
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
   #-------------------------------
@@ -623,16 +699,41 @@ jobs:
       - image: ubuntu:jammy
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
+      <<: *linux_env
     <<: *test
 
+  # build_macos_toolchain:
+  #   #working_directory: /home/nerves/build
+  #   environment:
+  #     <<: *mac_env
+  #   <<: *mac_xcode
+  #   steps:
+  #   - checkout
+  #   - run:
+  #       name: Install cowsay
+  #       command: brew install cowsay
+  #   - run:
+  #       name: cowsay hi
+  #       command: cowsay Hi!
+  #   - run:
+  #       name: brew deps
+  #       command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
+  #   - <<: *install_hex_rebar
+  #   - <<: *install_nerves_bootstrap
+  #   - run:
+  #       name: Build release
+  #       command: ./build_release.sh
+
+
   deploy:
+    # Hmmmmmmm, do I need to replace this whole section?
     <<: *defaults
     steps:
       - checkout
       - run:
           name: Create Artifacts Dir
           command: mkdir -p /home/nerves/deploy/artifacts
+      # These steps seem a bit odd. Could they be paramaterized?
       - run:
           name: nerves_toolchain_aarch64_nerves_linux_gnu
           command: echo "nerves_toolchain_aarch64_nerves_linux_gnu" > .toolchain
@@ -732,6 +833,7 @@ jobs:
       - run:
           name: Copy Artifacts
           command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+      # Will need to run these steps on macos as well
       - run:
           name: Install dependencies
           command: |
@@ -751,6 +853,9 @@ workflows:
       #-------------------------------
       # Build Toolchains
       #-------------------------------
+      - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu:
+          <<: *build_workflow
+
       # aarch64_nerves_linux_gnu
       #-------------------------------
       - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
@@ -982,6 +1087,31 @@ workflows:
           requires:
             - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
 
+      # macOS Stuff
+      #-------------------------------
+      # https://circleci.com/docs/2.0/testing-macos/
+      # https://circleci.com/docs/2.0/hello-world-macos/
+      # Example mac application: https://github.com/CircleCI-Public/circleci-demo-macos
+      # Using homebrew on CircleCI: https://circleci.com/docs/2.0/testing-ios/#using-homebrew
+      # Maybe disable homebrew auto-update https://circleci.com/docs/2.0/testing-ios/#optimizing-homebrew
+      # Will probably require a macOS orb: https://circleci.com/developer/orbs/orb/circleci/macos
+      #
+      # From Frank
+      # brew update
+      # brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses
+      # brew install libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils
+      # mix archive.install hex nerves_bootstrap
+      # git clone https://github.com/nerves-project/toolchains.git
+      # cd toolchains
+      # ./build_release.sh
+      # <wait>
+      # copy *.tar.xz to GitHub releases
+      -  test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64:
+          # TODO: Is test_workflow correct?
+          <<: *test_workflow
+          requires:
+            - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu
+
       #-------------------------------
       # Deploy Toolchains
       #-------------------------------
@@ -1035,3 +1165,9 @@ workflows:
             # riscv linux glibc
             - test_linux_trusty_riscv64_nerves_linux_gnu
             - test_linux_xenial_riscv64_nerves_linux_gnu
+
+            # macOS
+            #- build_macos_toolchain
+            - test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64
+            # aarch64 is incorrect!
+            - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu
