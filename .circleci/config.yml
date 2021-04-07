@@ -123,11 +123,20 @@ canadian_rpi: &canadian_rpi
   HOST_ARCH: arm
   BUILD_OS: rpi
 
+canadian_rpi_mac: &canadian_rpi_mac
+  HOST_OS: mac
+  HOST_ARCH: arm
+  BUILD_OS: rpi
+
+mac_xcode: &mac_xcode
+  xcode: 11.7.0
+
+mac_env: &mac_env
+  BUILD_OS: mac
+  HOMEBREW_NO_AUTO_UPDATE: 1
+
 linux_env: &linux_env
   BUILD_OS: linux
-
-macos: &macos
-  BUILD_OS: macos
 
 jobs:
   #-------------------------------
@@ -151,6 +160,13 @@ jobs:
       <<: *canadian_rpi
     <<: *build
 
+  build_mac_nerves_toolchain_aarch64_nerves_mac_gnu:
+    <<: *defaults
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
+      <<: *mac_env
+      <<: *canadian_rpi_mac
+    <<: *build
 
   #-------------------------------
   # armv7_nerves_linux_gnueabihf
@@ -285,6 +301,21 @@ jobs:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *canadian_rpi
     <<: *build
+
+
+  test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64:
+    working_directory: /root
+    docker:
+      - image: nervesproject/toolchain-test-ubuntu:trusty
+    environment:
+      # TODO: Should this be mac_gnu?
+               # nerves_toolchain_armv7_nerves_linux_gnueabihf-darwin_x86_64-1.4.2
+               # nerves_toolchain_aarch64_nerves_linux_gnu
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
+      # TODO: add this as well
+      # nerves_toolchain_aarch64_nerves_linux_gnu-darwin_x86_64
+      <<: *mac_env
+    <<: *test
 
   #-------------------------------
   # Test Trusty
@@ -519,9 +550,8 @@ jobs:
   build_macos_toolchain:
     #working_directory: /home/nerves/build
     environment:
-      HOMEBREW_NO_AUTO_UPDATE: 1
-    macos:
-      xcode: 11.7.0
+      <<: *mac_env
+    <<: *mac_xcode
     steps:
     - checkout
     - run:
@@ -908,4 +938,6 @@ workflows:
             - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl
 
             # macOS
-            - build_macos_toolchain
+            #- build_macos_toolchain
+            - test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64
+            - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu
