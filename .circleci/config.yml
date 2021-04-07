@@ -518,6 +518,8 @@ jobs:
 
   build_macos_toolchain:
     #working_directory: /home/nerves/build
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
     macos:
       xcode: 11.7.0
     steps:
@@ -528,6 +530,12 @@ jobs:
     - run:
         name: cowsay hi
         command: cowsay Hi!
+    - run:
+        name: brew deps
+        command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils
+    - run:
+        name: install hex and nerves_bootstrap
+        command: mix archive.install hex nerves_bootstrap
 
   deploy:
     # Hmmmmmmm, do I need to replace this whole section?
