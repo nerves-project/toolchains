@@ -536,8 +536,9 @@ jobs:
     - <<: *install_hex_rebar
     - <<: *install_nerves_bootstrap
     - run:
-        name: install hex and nerves_bootstrap
-        command: mix archive.install hex nerves_bootstrap
+        name: Build release
+        command: ./build_release.sh
+
 
   deploy:
     # Hmmmmmmm, do I need to replace this whole section?
