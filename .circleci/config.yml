@@ -183,7 +183,7 @@ jobs:
     macos:
       <<: *mac_xcode
     # TODO: these should be in mac_defaults
-    working_directory: /home/nerves/build
+    #working_directory: /home/nerves/build
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
       ENV: CI
