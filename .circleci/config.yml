@@ -547,27 +547,27 @@ jobs:
       <<: *linux_env
     <<: *test
 
-  build_macos_toolchain:
-    #working_directory: /home/nerves/build
-    environment:
-      <<: *mac_env
-    <<: *mac_xcode
-    steps:
-    - checkout
-    - run:
-        name: Install cowsay
-        command: brew install cowsay
-    - run:
-        name: cowsay hi
-        command: cowsay Hi!
-    - run:
-        name: brew deps
-        command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
-    - <<: *install_hex_rebar
-    - <<: *install_nerves_bootstrap
-    - run:
-        name: Build release
-        command: ./build_release.sh
+  # build_macos_toolchain:
+  #   #working_directory: /home/nerves/build
+  #   environment:
+  #     <<: *mac_env
+  #   <<: *mac_xcode
+  #   steps:
+  #   - checkout
+  #   - run:
+  #       name: Install cowsay
+  #       command: brew install cowsay
+  #   - run:
+  #       name: cowsay hi
+  #       command: cowsay Hi!
+  #   - run:
+  #       name: brew deps
+  #       command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
+  #   - <<: *install_hex_rebar
+  #   - <<: *install_nerves_bootstrap
+  #   - run:
+  #       name: Build release
+  #       command: ./build_release.sh
 
 
   deploy:
@@ -706,6 +706,9 @@ workflows:
       #-------------------------------
       # Build Toolchains
       #-------------------------------
+      - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu:
+          <<: *build_workflow
+
       # aarch64_nerves_linux_gnu
       #-------------------------------
       - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
@@ -887,9 +890,12 @@ workflows:
       # ./build_release.sh
       # <wait>
       # copy *.tar.xz to GitHub releases
-      - build_macos_toolchain:
+      -  test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64:
           # TODO: Is test_workflow correct?
           <<: *test_workflow
+          requires:
+            - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu
+
 
       #-------------------------------
       # Deploy Toolchains
