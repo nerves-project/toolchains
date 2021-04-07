@@ -517,7 +517,7 @@ jobs:
     <<: *test
 
   build_macos_toolchain:
-    working_directory: /root
+    working_directory: /home/nerves/build
     macos:
       xcode: 11.7.0
     steps:
