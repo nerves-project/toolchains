@@ -73,6 +73,24 @@ build: &build
         paths:
           - /home/nerves/deploy/toolchain
 
+build_mac: &build_mac
+  steps:
+  - checkout
+  - run:
+      name: Install cowsay
+      command: brew install cowsay
+  - run:
+      name: cowsay hi
+      command: cowsay Hi!
+  - run:
+      name: brew deps
+      command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
+  - <<: *install_hex_rebar
+  - <<: *install_nerves_bootstrap
+  - run:
+      name: Build release
+      command: ./build_release.sh
+
 test: &test
   steps:
     - run:
@@ -166,7 +184,8 @@ jobs:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
       <<: *mac_env
       <<: *canadian_rpi_mac
-    <<: *build
+    <<: *mac_xcode
+    <<: *build_mac
 
   #-------------------------------
   # armv7_nerves_linux_gnueabihf
