@@ -74,6 +74,7 @@ build: &build
           - /home/nerves/deploy/toolchain
 
 build_mac: &build_mac
+  #xcode: 11.7.0
   steps:
   - checkout
   - run:
@@ -184,7 +185,6 @@ jobs:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
       <<: *mac_env
       <<: *canadian_rpi_mac
-    <<: *mac_xcode
     <<: *build_mac
 
   #-------------------------------
