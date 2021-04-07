@@ -5,7 +5,7 @@ defaults: &defaults
   environment:
     ENV: CI
   docker:                                                                                                                                                                      
-  - image: nervesproject/toolchains
+  - image: nervesproject/toolchains-nonexistant
 
 orbs:
   my-macos: circleci/macos@1.1.0
@@ -532,7 +532,9 @@ jobs:
         command: cowsay Hi!
     - run:
         name: brew deps
-        command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils
+        command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
+    - <<: *install_hex_rebar
+    - <<: *install_nerves_bootstrap
     - run:
         name: install hex and nerves_bootstrap
         command: mix archive.install hex nerves_bootstrap
