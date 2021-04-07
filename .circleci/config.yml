@@ -1,7 +1,15 @@
+version: 2.1
+
 defaults: &defaults
   working_directory: /home/nerves/build
   environment:
     ENV: CI
+  docker:                                                                                                                                                                      
+  - image: nervesproject/toolchains
+
+orbs:
+  my-macos: circleci/macos@1.1.0
+  #mac-permissions: circleci/macos
   # This will likely have to change since it means we're using a docker container instead of running on macOS
   # https://circleci.com/docs/2.0/executor-types/
 
@@ -120,8 +128,6 @@ linux_env: &linux_env
 
 macos: &macos
   BUILD_OS: macos
-
-version: 2.0
 
 jobs:
   #-------------------------------
@@ -510,6 +516,19 @@ jobs:
       <<: *linux_env
     <<: *test
 
+  build_macos_toolchain:
+    working_directory: /root
+    macos:
+      xcode: 11.7.0
+    steps:
+    - checkout
+    - run:
+        name: Install cowsay
+        command: brew install cowsay
+    - run:
+        name: cowsay hi
+        command: cowsay Hi!
+
   deploy:
     # Hmmmmmmm, do I need to replace this whole section?
     <<: *defaults
@@ -827,6 +846,9 @@ workflows:
       # ./build_release.sh
       # <wait>
       # copy *.tar.xz to GitHub releases
+      - build_macos_toolchain:
+          # TODO: Is test_workflow correct?
+          <<: *test_workflow
 
       #-------------------------------
       # Deploy Toolchains
@@ -875,3 +897,4 @@ workflows:
             - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl
 
             # macOS
+            - build_macos_toolchain
