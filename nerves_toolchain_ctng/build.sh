@@ -282,6 +282,10 @@ build_gcc()
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI"
+      echo "In work dir: $WORK_DIR"
+      BUILD_DIR_CONTENTS=$(ls $WORK_DIR/build/.config)
+      echo "build dir contents: $BUILD_DIR_CONTENTS"
+
       sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
