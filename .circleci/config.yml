@@ -151,7 +151,7 @@ mac_xcode: &mac_xcode
   xcode: 11.7.0
 
 mac_env: &mac_env
-  BUILD_OS: mac
+  BUILD_OS: Darwin
   HOMEBREW_NO_AUTO_UPDATE: 1
 
 linux_env: &linux_env
