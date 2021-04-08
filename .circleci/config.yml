@@ -4,7 +4,7 @@ defaults: &defaults
   working_directory: /home/nerves/build
   environment:
     ENV: CI
-  docker:                                                                                                                                                                      
+  docker:
   - image: nervesproject/toolchains-nonexistant
 
 orbs:
@@ -146,7 +146,7 @@ mac_xcode: &mac_xcode
   xcode: 11.7.0
 
 mac_env: &mac_env
-  BUILD_OS: Darwin
+  BUILD_OS: darwin
   HOMEBREW_NO_AUTO_UPDATE: 1
 
 linux_env: &linux_env
