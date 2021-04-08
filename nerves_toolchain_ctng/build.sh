@@ -45,6 +45,10 @@ if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
 
+echo "Using HOST_ARCH: $HOST_ARCH"
+echo "Using HOST_OS: $HOST_OS"
+echo "Using BUILD_OS: $BUILD_OS"
+
 if [[ ! -e $BASE_CONFIG ]]; then
     echo "Can't find $BASE_CONFIG. Check that it exists."
     echo
