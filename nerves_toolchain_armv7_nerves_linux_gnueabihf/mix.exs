@@ -48,7 +48,7 @@ defmodule NervesToolchainArmV7NervesLinuxGnueabihf.MixProject do
   defp deps do
     [
       #{:nerves, "~> 1.0", runtime: false},
-      {:nerves, github: "axelson/nerves", runtime: false, branch: "debug"},
+      {:nerves, github: "axelson/nerves", runtime: false, branch: "debug", override: true},
       {:nerves_toolchain_ctng, "~> 1.8.1", runtime: false}
     ]
   end
