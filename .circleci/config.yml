@@ -142,11 +142,6 @@ canadian_rpi: &canadian_rpi
   HOST_ARCH: arm
   BUILD_OS: rpi
 
-canadian_rpi_mac: &canadian_rpi_mac
-  HOST_OS: mac
-  HOST_ARCH: arm
-  BUILD_OS: rpi
-
 mac_xcode: &mac_xcode
   xcode: 11.7.0
 
@@ -185,10 +180,10 @@ jobs:
     # TODO: these should be in mac_defaults
     #working_directory: /home/nerves/build
     environment:
+    # Don't need darwin_arm
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu-darwin_arm
       ENV: CI
       <<: *mac_env
-      <<: *canadian_rpi_mac
     <<: *build_mac
 
   #-------------------------------
@@ -969,4 +964,5 @@ workflows:
             # macOS
             #- build_macos_toolchain
             - test_mac_trusty_aarch64_nerves_linux_gnu-darwin_x86_64
+            # aarch64 is incorrect!
             - build_mac_nerves_toolchain_aarch64_nerves_mac_gnu
