@@ -25,18 +25,17 @@ ARTIFACT_NAME=$(basename "$WORK_DIR")
 
 READLINK=readlink
 BUILD_ARCH=$(uname -m)
-BUILD_OS=$(uname -s)
-if [[ $BUILD_OS = "CYGWIN_NT-6.1" ]]; then
-    # A simple Cygwin looks better.
+BUILD_OS=$(uname -s | awk '{print tolower($0)}')
+if [[ $BUILD_OS = "cygwin_nt-6.1" ]]; then
+    # A simple cygwin looks better.
     BUILD_OS="cygwin"
-elif [[ $BUILD_OS = "Darwin" ]]; then
+elif [[ $BUILD_OS = "darwin" ]]; then
     # Homebrew has a different prefix depending on x86_64 or aarch64
     HOMEBREW_PREFIX="$(brew --prefix)"
 
     # Make sure that we use GNU readlink on OSX
     READLINK=greadlink
 fi
-BUILD_OS=$(echo "$BUILD_OS" | awk '{print tolower($0)}')
 
 if [[ -z $HOST_ARCH ]]; then
     HOST_ARCH=$BUILD_ARCH
