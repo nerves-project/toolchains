@@ -236,6 +236,8 @@ build_gcc()
         CC=gcc-10 CXX=g++-10 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
             CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
         echo "BUILD_OS is darwin and sed is $SED"
+        SED2=$HOMEBREW_PREFIX/bin/gsed
+        echo "BUILD_OS is darwin and sed2 is $SED2"
         gmake
 	    gmake install
     else
