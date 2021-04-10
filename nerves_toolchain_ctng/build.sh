@@ -198,6 +198,14 @@ gcc_tuple_underscores()
 
 build_gcc()
 {
+    if [[  $BUILD_OS = "freebsd" ]]; then
+        SED=/usr/local/bin/gsed
+    elif [[ $BUILD_OS = "darwin" ]]; then
+        SED=$HOMEBREW_PREFIX/bin/gsed
+    else
+        SED="sed"
+    fi
+
     # Build and install ct-ng to the work directory
     cd "$WORK_DIR"
     ln -sf "$DL_DIR" dl
@@ -234,17 +242,13 @@ build_gcc()
         # Homebrew's gcc is gcc-10
         BINUTILS=$(brew --prefix binutils)
         CC=gcc-10 CXX=g++-10 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-            CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
-        echo "BUILD_OS is darwin and sed is $SED"
-        SED2=$HOMEBREW_PREFIX/bin/gsed
-        echo "BUILD_OS is darwin and sed2 is $SED2"
+            CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
         gmake
 	    gmake install
     else
         ./configure --prefix="$LOCAL_INSTALL_DIR"
         make
         make install
-        SED=sed
     fi
 
     # Check for ct-ng
@@ -290,9 +294,9 @@ build_gcc()
       BUILD_DIR_CONTENTS=$(ls $WORK_DIR/build/.config)
       echo "build dir contents: $BUILD_DIR_CONTENTS"
 
-      #SED_VERSION="$($SED --version)"
-      #echo "SED version: $SED_VERSION"
       echo "SED is: $SED"
+      SED_VERSION="$($SED --version)"
+      echo "SED version: $SED_VERSION"
 
       $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
