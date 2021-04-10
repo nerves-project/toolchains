@@ -198,6 +198,14 @@ gcc_tuple_underscores()
 
 build_gcc()
 {
+    if [[  $BUILD_OS = "freebsd" ]]; then
+        SED=/usr/local/bin/gsed
+    elif [[ $BUILD_OS = "darwin" ]]; then
+        SED=$HOMEBREW_PREFIX/bin/gsed
+    else
+        SED="sed"
+    fi
+
     # Build and install ct-ng to the work directory
     cd "$WORK_DIR"
     ln -sf "$DL_DIR" dl
@@ -241,7 +249,6 @@ build_gcc()
         ./configure --prefix="$LOCAL_INSTALL_DIR"
         make
         make install
-        SED=sed
     fi
 
     # Check for ct-ng
@@ -287,9 +294,9 @@ build_gcc()
       BUILD_DIR_CONTENTS=$(ls $WORK_DIR/build/.config)
       echo "build dir contents: $BUILD_DIR_CONTENTS"
 
-      #SED_VERSION="$($SED --version)"
-      #echo "SED version: $SED_VERSION"
       echo "SED is: $SED"
+      SED_VERSION="$($SED --version)"
+      echo "SED version: $SED_VERSION"
 
       $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
