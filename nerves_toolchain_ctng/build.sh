@@ -227,20 +227,22 @@ build_gcc()
         ./bootstrap
     fi
     if [[  $BUILD_OS = "freebsd" ]]; then
-	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
+        SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
+        gmake
+        gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
         # Homebrew's gcc is gcc-10
         BINUTILS=$(brew --prefix binutils)
         CC=gcc-10 CXX=g++-10 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
+            CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
+        echo "BUILD_OS is darwin and sed is $SED"
+        gmake
+	    gmake install
     else
-	./configure --prefix="$LOCAL_INSTALL_DIR"
-	make
-	make install
+        ./configure --prefix="$LOCAL_INSTALL_DIR"
+        make
+        make install
+        SED=sed
     fi
 
     # Check for ct-ng
@@ -285,8 +287,10 @@ build_gcc()
       echo "In work dir: $WORK_DIR"
       BUILD_DIR_CONTENTS=$(ls $WORK_DIR/build/.config)
       echo "build dir contents: $BUILD_DIR_CONTENTS"
-      SED_VERSION=$($SED --version)
-      echo "SED version: $SED_VERSION"
+
+      #SED_VERSION="$($SED --version)"
+      #echo "SED version: $SED_VERSION"
+      echo "SED is: $SED"
 
       $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
