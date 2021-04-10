@@ -282,13 +282,13 @@ build_gcc()
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI2"
-      SED_VERSION=$(sed --version)
-      echo "SED version: $SED_VERSION"
       echo "In work dir: $WORK_DIR"
       BUILD_DIR_CONTENTS=$(ls $WORK_DIR/build/.config)
       echo "build dir contents: $BUILD_DIR_CONTENTS"
+      SED_VERSION=$($SED --version)
+      echo "SED version: $SED_VERSION"
 
-      sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
+      $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_EXTRA\).*$/\1=y/' \
