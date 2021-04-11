@@ -77,6 +77,17 @@ build_mac: &build_mac
   #xcode: 11.7.0
   steps:
   - checkout
+  # Free up extra space on macOS
+  # https://support.circleci.com/hc/en-us/articles/360037142773-Freeing-up-Disk-Space-on-macOS
+  - run:
+      name: df
+      command: df -h
+  - run:
+      name: Free up extra space
+      command: sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes/
+  - run:
+      name: df
+      command: df -h
   - run:
       name: Install cowsay
       command: brew install cowsay
