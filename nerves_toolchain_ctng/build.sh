@@ -385,7 +385,7 @@ assemble_dmg()
 
     rm -f "$DMG_PATH"
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
-                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." \
+                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." -verbose \
                     "$DMG_PATH"
 }
 
@@ -413,6 +413,7 @@ finalize_products()
         # On OSX, always create .dmg files for debugging builds and
         # fix the case issues.
         assemble_dmg
+        echo "Done building dmg"
 
         # Prune out filenames with case conflicts and before make a tarball
         fix_kernel_case_conflicts

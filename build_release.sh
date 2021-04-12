@@ -30,6 +30,10 @@ for CONFIG in $CONFIGS; do
     cd $CONFIG
     mix deps.get
     mix nerves.artifact --path ../
+    echo "Done building $CONFIG"
+    # TMP
+    echo "df -h:"
+    df -h
     cd ../
 done
 
