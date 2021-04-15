@@ -291,12 +291,6 @@ build_gcc()
     if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI2"
       echo "In work dir: $WORK_DIR"
-      BUILD_DIR_CONTENTS=$(ls $WORK_DIR/build/.config)
-      echo "build dir contents: $BUILD_DIR_CONTENTS"
-
-      echo "SED is: $SED"
-      SED_VERSION="$($SED --version)"
-      echo "SED version: $SED_VERSION"
 
       $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
@@ -311,6 +305,8 @@ build_gcc()
         "$WORK_DIR/build/.config"
     fi
 
+    echo "BEFORE DOTS"
+
     # Start building and print dots to keep CI from killing the build due
     # to console inactivity.
     $PREFIX "$CTNG" $CTNG_BUILD &
@@ -319,9 +315,12 @@ build_gcc()
         while ps -p $build_pid >/dev/null; do
            sleep 12
            printf "."
+           echo "DOT $(date)"
         done
     } &
     local keepalive_pid=$!
+
+    echo "Waiting for $build_pid build to finish"
 
     # Wait for the build to finish
     wait $build_pid 2>/dev/null
