@@ -361,7 +361,9 @@ save_build_info()
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
     echo "$NERVES_TOOLCHAIN_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag"
+    echo "running: cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
+    echo "running: cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
 }
 
@@ -382,9 +384,11 @@ assemble_dmg()
     TARGET_TUPLE=$(gcc_tuple)
     DMG_PATH=$WORK_DIR/$(toolchain_base_name).dmg
 
+    echo "Removing existing dmg path: $DMG_PATH $(date)"
+    df -h
     rm -f "$DMG_PATH"
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
-                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." -verbose \
+                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." -debug \
                     "$DMG_PATH"
 }
 
@@ -406,11 +410,13 @@ fix_kernel_case_conflicts()
 
 finalize_products()
 {
+    echo "Beginning of finalize_products"
     save_build_info
 
     if [[ $BUILD_OS = "darwin" ]]; then
         # On OSX, always create .dmg files for debugging builds and
         # fix the case issues.
+        echo "Beging building dmg"
         assemble_dmg
         echo "Done building dmg"
 
