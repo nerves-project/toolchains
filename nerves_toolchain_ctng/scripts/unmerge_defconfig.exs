@@ -43,10 +43,14 @@ defmodule Unmerger do
   def main([original_defconfig, fragment_defconfig, resulting_defconfig]) do
     IO.puts("Unmerging #{resulting_defconfig} into #{original_defconfig} using #{fragment_defconfig}\n")
     orig = load(original_defconfig)
+    IO.inspect(orig, label: "orig")
     frag = load(fragment_defconfig)
+    IO.inspect(frag, label: "frag")
     result = load(resulting_defconfig)
+    IO.inspect(result, label: "result")
 
     desired = remove_fragments(result, frag)
+    IO.inspect(desired, label: "desired")
 
     if !is_similar_enough(orig, desired) do
       IO.puts("\n\nDifferences detected between the original defconfig and the resulting one!!!")

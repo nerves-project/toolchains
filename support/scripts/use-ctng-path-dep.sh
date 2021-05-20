@@ -5,7 +5,7 @@ set -e
 . ./support/scripts/all-configs.sh
 
 BUILD_OS=$(uname -s)
-if [[ $BUILD_OS = "Darwin" ]]; then
+if [[ $BUILD_OS = "Darwin" || $BUILD_OS = "darwin" ]]; then
     SED=gsed
 else
     SED=sed

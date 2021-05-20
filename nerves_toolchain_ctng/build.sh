@@ -25,18 +25,17 @@ ARTIFACT_NAME=$(basename "$WORK_DIR")
 
 READLINK=readlink
 BUILD_ARCH=$(uname -m)
-BUILD_OS=$(uname -s)
-if [[ $BUILD_OS = "CYGWIN_NT-6.1" ]]; then
-    # A simple Cygwin looks better.
+BUILD_OS=$(uname -s | awk '{print tolower($0)}')
+if [[ $BUILD_OS = "cygwin_nt-6.1" ]]; then
+    # A simple cygwin looks better.
     BUILD_OS="cygwin"
-elif [[ $BUILD_OS = "Darwin" ]]; then
+elif [[ $BUILD_OS = "darwin" ]]; then
     # Homebrew has a different prefix depending on x86_64 or aarch64
     HOMEBREW_PREFIX="$(brew --prefix)"
 
     # Make sure that we use GNU readlink on OSX
     READLINK=greadlink
 fi
-BUILD_OS=$(echo "$BUILD_OS" | awk '{print tolower($0)}')
 
 if [[ -z $HOST_ARCH ]]; then
     HOST_ARCH=$BUILD_ARCH
@@ -44,6 +43,10 @@ fi
 if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
+
+echo "Using HOST_ARCH: $HOST_ARCH"
+echo "Using HOST_OS: $HOST_OS"
+echo "Using BUILD_OS: $BUILD_OS"
 
 if [[ ! -e $BASE_CONFIG ]]; then
     echo "Can't find $BASE_CONFIG. Check that it exists."
@@ -195,6 +198,14 @@ gcc_tuple_underscores()
 
 build_gcc()
 {
+    if [[  $BUILD_OS = "freebsd" ]]; then
+        SED=/usr/local/bin/gsed
+    elif [[ $BUILD_OS = "darwin" ]]; then
+        SED=$HOMEBREW_PREFIX/bin/gsed
+    else
+        SED="sed"
+    fi
+
     # Build and install ct-ng to the work directory
     cd "$WORK_DIR"
     ln -sf "$DL_DIR" dl
@@ -224,20 +235,20 @@ build_gcc()
         ./bootstrap
     fi
     if [[  $BUILD_OS = "freebsd" ]]; then
-	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
+        SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
+        gmake
+        gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
         # Homebrew's gcc is gcc-10
         BINUTILS=$(brew --prefix binutils)
         CC=gcc-10 CXX=g++-10 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
+            CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
+        gmake
+	    gmake install
     else
-	./configure --prefix="$LOCAL_INSTALL_DIR"
-	make
-	make install
+        ./configure --prefix="$LOCAL_INSTALL_DIR"
+        make
+        make install
     fi
 
     # Check for ct-ng
@@ -278,8 +289,10 @@ build_gcc()
 
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then
-      echo "Modifying logging for CI"
-      sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
+      echo "Modifying logging for CI2"
+      echo "In work dir: $WORK_DIR"
+
+      $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_EXTRA\).*$/\1=y/' \
@@ -292,6 +305,8 @@ build_gcc()
         "$WORK_DIR/build/.config"
     fi
 
+    echo "BEFORE DOTS"
+
     # Start building and print dots to keep CI from killing the build due
     # to console inactivity.
     $PREFIX "$CTNG" $CTNG_BUILD &
@@ -300,9 +315,12 @@ build_gcc()
         while ps -p $build_pid >/dev/null; do
            sleep 12
            printf "."
+           echo "DOT $(date)"
         done
     } &
     local keepalive_pid=$!
+
+    echo "Waiting for $build_pid build to finish"
 
     # Wait for the build to finish
     wait $build_pid 2>/dev/null
@@ -322,14 +340,17 @@ build_gcc()
     rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
 
     # Clean up crosstool-ng's work directory if we put it in a global location
-    if [[ "$CI" = "true" ]]; then
-        echo "Not cleaning up work directory since CI build"
-    else
+    echo "Cleaning up work directory since CI build"
+    # if [[ "$CI" = "true" ]]; then
+    #     echo "Not cleaning up work directory since CI build"
+    # else
         if [[ -e "$CT_WORK_DIR" ]]; then
             chmod -R u+w "$CT_WORK_DIR"
             rm -fr "$CT_WORK_DIR"
         fi
-    fi
+    # fi
+    df -h
+    du -hs *
 }
 
 toolchain_base_name()
@@ -343,7 +364,9 @@ save_build_info()
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
     echo "$NERVES_TOOLCHAIN_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag"
+    echo "running: cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
+    echo "running: cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
 }
 
@@ -364,9 +387,11 @@ assemble_dmg()
     TARGET_TUPLE=$(gcc_tuple)
     DMG_PATH=$WORK_DIR/$(toolchain_base_name).dmg
 
+    echo "Removing existing dmg path: $DMG_PATH $(date)"
+    df -h
     rm -f "$DMG_PATH"
     hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
-                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." \
+                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." -debug \
                     "$DMG_PATH"
 }
 
@@ -388,12 +413,15 @@ fix_kernel_case_conflicts()
 
 finalize_products()
 {
+    echo "Beginning of finalize_products"
     save_build_info
 
     if [[ $BUILD_OS = "darwin" ]]; then
         # On OSX, always create .dmg files for debugging builds and
         # fix the case issues.
+        echo "Beging building dmg"
         assemble_dmg
+        echo "Done building dmg"
 
         # Prune out filenames with case conflicts and before make a tarball
         fix_kernel_case_conflicts
