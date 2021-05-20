@@ -34,6 +34,8 @@ for CONFIG in $CONFIGS; do
     # TMP
     echo "df -h:"
     df -h
+    echo "ls -lh *"
+    ls -lh *
     cd ../
 done
 
