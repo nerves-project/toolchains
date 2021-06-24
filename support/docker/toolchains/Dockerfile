@@ -8,9 +8,9 @@ description="Container with everything needed to build Nerves toolchains"
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG=C.UTF-8
 ENV TERM=xterm
-ENV ERLANG_PKG='erlang-solutions_1.0_all.deb'
+ENV ERLANG_PKG='erlang-solutions_2.0_all.deb'
 ENV ERLANG_URL="https://packages.erlang-solutions.com/${ERLANG_PKG}"
-ENV ELIXIR_VERSION=1.8.1
+ENV ELIXIR_VERSION=1.12.1
 ENV PATH="/usr/local/elixir/bin:${PATH}"
 # The container has no package lists, so need to update first
 RUN useradd -ms /bin/bash nerves
