@@ -350,33 +350,16 @@ save_build_info()
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
 }
 
-assemble_dmg()
+fix_kernel_case_conflicts()
 {
     # On Macs, the file system is case-preserving, but case-insensitive. The netfilter
     # module in the Linux kernel provides header files that differ only in case, so this
     # won't work if you need to use both the capitalized and lowercase versions of the
-    # header files. Therefore, the workaround is to create a case-sensitive .dmg file.
+    # header files.
     #
-    # This can be annoying since you need to use hdiutil to mount it, etc., so we also
-    # create a tarball for OSX users that don't use netfilter with Nerves. Since the
-    # Linux kernels shipped with Nerves don't even enable netfilter, it's likely that most
-    # users will never notice.
-    echo Building DMG...
-
-    # Assemble the tarball for the toolchain
-    TARGET_TUPLE=$(gcc_tuple)
-    DMG_PATH=$WORK_DIR/$(toolchain_base_name).dmg
-
-    rm -f "$DMG_PATH"
-    hdiutil create -fs "Case-sensitive HFS+" -volname nerves-toolchain \
-                    -srcfolder "$WORK_DIR/x-tools/$TARGET_TUPLE/." \
-                    "$DMG_PATH"
-}
-
-fix_kernel_case_conflicts()
-{
-    # Remove case conflicts in the kernel include directory so that users don't need to
-    # use case sensitive filesystems on OSX. See comment in assemble_dmg().
+    # The workaround is to remove case conflicts in the kernel include
+    # directory so that users don't need to use case sensitive filesystems on
+    # OSX.
     TARGET_TUPLE=$(gcc_tuple)
     LINUX_INCLUDE_DIR=$GCC_INSTALL_DIR/$TARGET_TUPLE/$TARGET_TUPLE/sysroot/usr/include/linux
     rm -f "$LINUX_INCLUDE_DIR/netfilter/xt_CONNMARK.h" \
@@ -395,10 +378,6 @@ finalize_products()
     save_build_info
 
     if [[ $BUILD_OS = "darwin" ]]; then
-        # On OSX, always create .dmg files for debugging builds and
-        # fix the case issues.
-        assemble_dmg
-
         # Prune out filenames with case conflicts and before make a tarball
         fix_kernel_case_conflicts
     elif [[ $HOST_OS = "linux" || $HOST_OS = "freebsd" ]]; then

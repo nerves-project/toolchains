@@ -77,9 +77,6 @@ defmodule Nerves.Toolchain.CTNG do
   Clean up all the build files
   """
   def clean(pkg) do
-    dmg = Artifact.name(pkg) <> ".dmg"
-    File.rm(dmg)
-
     pkg
     |> Artifact.dir()
     |> File.rm_rf()
