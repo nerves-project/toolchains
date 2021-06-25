@@ -350,8 +350,6 @@ build_gcc()
             rm -fr "$CT_WORK_DIR"
         fi
     # fi
-    df -h
-    du -hs *
 }
 
 toolchain_base_name()
