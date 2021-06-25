@@ -179,24 +179,6 @@ init()
     mkdir -p "$DL_DIR"
 }
 
-cleanup()
-{
-    # Clean up the build
-    if [[ $BUILD_OS = "darwin" ]]; then
-        hdiutil detach "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
-        rm -fr "$WORK_DIR" "$WORK_DMG"
-    elif [[ $BUILD_OS = "linux" || $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
-        if [[ -e $WORK_DIR ]]; then
-            chmod -R u+w "$WORK_DIR"
-            rm -fr "$WORK_DIR"
-        fi
-        if [[ -e "$CT_WORK_DIR" ]]; then
-            chmod -R u+w "$CT_WORK_DIR"
-            rm -fr "$CT_WORK_DIR"
-        fi
-    fi
-}
-
 gcc_tuple()
 {
     # Figure out the target's tuple. It's the name of the only directory.
@@ -362,6 +344,7 @@ build_gcc()
     # if [[ "$CI" = "true" ]]; then
     #     echo "Not cleaning up work directory since CI build"
     # else
+        rm -fr "$WORK_DIR/build" "$WORK_DIR/dl" "$WORK_DIR/crosstool-ng" "$WORK_DIR/usr"
         if [[ -e "$CT_WORK_DIR" ]]; then
             chmod -R u+w "$CT_WORK_DIR"
             rm -fr "$CT_WORK_DIR"
@@ -430,5 +413,4 @@ finalize_products()
 init
 build_gcc
 finalize_products
-cleanup
 echo "Done making toolchain in $GCC_INSTALL_DIR."
