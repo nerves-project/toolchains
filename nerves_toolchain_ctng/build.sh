@@ -179,6 +179,15 @@ init()
     mkdir -p "$DL_DIR"
 }
 
+cleanup()
+{
+    # if [[ "$CI" = "true" ]]; then
+    #     echo "Not cleaning up work directory since CI build"
+    # else
+        rm -fr "$WORK_DIR/build" "$WORK_DIR/dl" "$WORK_DIR/crosstool-ng" "$WORK_DIR/usr"
+    # fi
+}
+
 gcc_tuple()
 {
     # Figure out the target's tuple. It's the name of the only directory.
@@ -344,7 +353,6 @@ build_gcc()
     # if [[ "$CI" = "true" ]]; then
     #     echo "Not cleaning up work directory since CI build"
     # else
-        rm -fr "$WORK_DIR/build" "$WORK_DIR/dl" "$WORK_DIR/crosstool-ng" "$WORK_DIR/usr"
         if [[ -e "$CT_WORK_DIR" ]]; then
             chmod -R u+w "$CT_WORK_DIR"
             rm -fr "$CT_WORK_DIR"
@@ -411,4 +419,5 @@ finalize_products()
 init
 build_gcc
 finalize_products
+cleanup
 echo "Done making toolchain in $GCC_INSTALL_DIR."
