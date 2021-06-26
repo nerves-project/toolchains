@@ -251,9 +251,9 @@ build_gcc()
         # Homebrew's gcc is gcc-11
         BINUTILS=$(brew --prefix binutils)
         CC=gcc-11 CXX=g++-11 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
+            CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
+        gmake
+        gmake install
     else
         ./configure --prefix="$LOCAL_INSTALL_DIR"
         make
