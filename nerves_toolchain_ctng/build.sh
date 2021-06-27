@@ -227,6 +227,7 @@ build_gcc()
         ./bootstrap
     fi
     if [[  $BUILD_OS = "freebsd" ]]; then
+        SED=/usr/local/bin/gsed
 	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
@@ -234,10 +235,12 @@ build_gcc()
         # Homebrew's gcc is gcc-11
         BINUTILS=$(brew --prefix binutils)
         CC=gcc-11 CXX=g++-11 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-	CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
+	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
+        SED=$HOMEBREW_PREFIX/bin/gsed
 	gmake
 	gmake install
     else
+        SED=sed
 	./configure --prefix="$LOCAL_INSTALL_DIR"
 	make
 	make install
@@ -282,7 +285,7 @@ build_gcc()
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI"
-      sed -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
+      $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_EXTRA\).*$/\1=y/' \
