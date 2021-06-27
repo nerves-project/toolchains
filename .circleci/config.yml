@@ -33,6 +33,7 @@ build: &build
           source $BASH_ENV
     - run:
         name: Fetch Dependencies
+        # This downloads the raspberrypi tools (which is where raspbian comes from)
         command: git clone git://github.com/raspberrypi/tools.git
     - run:
         name: Fetch Deps
@@ -799,27 +800,42 @@ workflows:
       - deploy:
           <<: *deploy_workflow
           requires:
+            # aarch64 linux gnu
             - test_linux_trusty_aarch64_nerves_linux_gnu
             - test_linux_xenial_aarch64_nerves_linux_gnu
             - build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu
+
+            # armv7 linux gnueabihf
             - test_linux_trusty_armv7_nerves_linux_gnueabihf
             - test_linux_xenial_armv7_nerves_linux_gnueabihf
             - build_rpi_nerves_toolchain_armv7_nerves_linux_gnueabihf
+
+            # armv5 linux musleabi
             - test_linux_trusty_armv5_nerves_linux_musleabi
             - test_linux_xenial_armv5_nerves_linux_musleabi
             - build_rpi_nerves_toolchain_armv5_nerves_linux_musleabi
+
+            # armv6 linux gnueabi
             - test_linux_trusty_armv6_nerves_linux_gnueabi
             - test_linux_xenial_armv6_nerves_linux_gnueabi
             - build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabihf
+
+            # i586 linux gnu
             - test_linux_trusty_i586_nerves_linux_gnu
             - test_linux_xenial_i586_nerves_linux_gnu
             - build_rpi_nerves_toolchain_i586_nerves_linux_gnu
+
+            # mipsel linux musl
             - test_linux_trusty_mipsel_nerves_linux_musl
             - test_linux_xenial_mipsel_nerves_linux_musl
             - build_rpi_nerves_toolchain_mipsel_nerves_linux_musl
+
+            # x86_64 linux gnu
             - test_linux_trusty_x86_64_nerves_linux_gnu
             - test_linux_xenial_x86_64_nerves_linux_gnu
             - build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu
+
+            # x86_64 linux musl
             - test_linux_trusty_x86_64_nerves_linux_musl
             - test_linux_xenial_x86_64_nerves_linux_musl
             - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl
