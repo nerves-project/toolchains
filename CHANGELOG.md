@@ -1,5 +1,22 @@
 # Toolchain Releases
 
+## v1.4.3
+
+This release bumps the Linux headers from 4.14 to 4.19. This requires that your
+Nerves system uses Linux 4.19 or later.
+
+* New features
+  * Store a Build-ID by default. A Build-ID uniquely identifies an executable or
+    shared library and is useful for matching up debug symbols to produce useful
+    stack traces from C and C++ programs.
+  * A 64-bit RISC-V crosscompiler is now available.
+
+* Tool versions
+  * GCC 10.2
+  * Linux 4.19 headers (except for RISC-V)
+  * glibc 2.33
+  * binutils 2.36.1
+
 ## v1.4.2
 
 This release reverts the switch from 4.14 headers to 4.4 headers in v1.4.0. This
