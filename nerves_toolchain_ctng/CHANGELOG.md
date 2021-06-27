@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.8.4
+
+* New features
+  * Store a Build-ID by default. A Build-ID uniquely identifies an executable or
+    shared library and is useful for matching up debug symbols to produce useful
+    stack traces from C and C++ programs.
+
+* Bug fixes
+  * Support GCC 11 builds on OSX (Homebrew now installs gcc-11)
+  * Fix various issues to support OSX-based CI builds. OSX CI builds are not
+    supported yet.
+
 ## v1.8.3
 
 This release bumps crosstool-ng to the latest to pull in glibc 2.33.
