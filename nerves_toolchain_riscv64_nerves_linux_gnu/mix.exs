@@ -48,7 +48,7 @@ defmodule NervesToolchainRISCV64NervesLinuxGNU.MixProject do
   defp deps do
     [
       {:nerves, "~> 1.4", runtime: false},
-      {:nerves_toolchain_ctng, "~> 1.8.1", runtime: false}
+      {:nerves_toolchain_ctng, "~> 1.8.4", runtime: false}
     ]
   end
 

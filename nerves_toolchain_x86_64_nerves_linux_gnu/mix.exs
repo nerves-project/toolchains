@@ -48,7 +48,7 @@ defmodule NervesToolchainX8664NervesLinuxGnu.MixProject do
   defp deps do
     [
       {:nerves, "~> 1.0", runtime: false},
-      {:nerves_toolchain_ctng, path: "../nerves_toolchain_ctng", runtime: false}
+      {:nerves_toolchain_ctng, "~> 1.8.4", runtime: false}
     ]
   end
 
