@@ -10,7 +10,7 @@ ENV LANG=C.UTF-8
 ENV TERM=xterm
 ENV ERLANG_PKG='erlang-solutions_2.0_all.deb'
 ENV ERLANG_URL="https://packages.erlang-solutions.com/${ERLANG_PKG}"
-ENV ELIXIR_VERSION=1.12.1
+ENV ELIXIR_VERSION=1.13.0
 ENV PATH="/usr/local/elixir/bin:${PATH}"
 # The container has no package lists, so need to update first
 RUN useradd -ms /bin/bash nerves
