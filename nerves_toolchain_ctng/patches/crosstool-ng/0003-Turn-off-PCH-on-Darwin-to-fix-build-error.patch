@@ -1,0 +1,33 @@
+From 00d3feaf2c2beea980792f20018c4e4901a0ca7b Mon Sep 17 00:00:00 2001
+From: Frank Hunleth <fhunleth@troodon-software.com>
+Date: Tue, 7 Dec 2021 09:08:11 -0500
+Subject: [PATCH 3/3] Turn off PCH on Darwin to fix build error
+
+See https://github.com/riscv-software-src/homebrew-riscv/issues/47#issuecomment-772306695
+---
+ packages/gcc/11.2.0/0009-darwin-no-pch.patch | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+ create mode 100644 packages/gcc/11.2.0/0009-darwin-no-pch.patch
+
+diff --git a/packages/gcc/11.2.0/0009-darwin-no-pch.patch b/packages/gcc/11.2.0/0009-darwin-no-pch.patch
+new file mode 100644
+index 00000000..16b89945
+--- /dev/null
++++ b/packages/gcc/11.2.0/0009-darwin-no-pch.patch
+@@ -0,0 +1,13 @@
++--- a/gcc/config.host.orig	2021-12-07 07:28:40.000000000 -0500
+++++ b/gcc/config.host	2021-12-07 07:28:47.000000000 -0500
++@@ -93,8 +93,8 @@
++ case ${host} in
++   *-darwin*)
++     # Generic darwin host support.
++-    out_host_hook_obj=host-darwin.o
++-    host_xmake_file="${host_xmake_file} x-darwin"
+++    #out_host_hook_obj=host-darwin.o
+++    #host_xmake_file="${host_xmake_file} x-darwin"
++     ;;
++ esac
++
+-- 
+2.34.1
+
