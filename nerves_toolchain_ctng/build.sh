@@ -120,17 +120,27 @@ if [[ $BUILD_OS = "darwin" ]]; then
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
     export PATH="$(brew --prefix bison)/bin:$PATH"
-    if [[ ! -e $(brew --prefix bison)/bin/bison ]]; then
+    BISON="$(brew --prefix bison)/bin/bison"
+    if [[ ! -e "$BISON" ]]; then
         echo "Building gcc requires a more recent version on bison than Apple provides. Install with 'brew install bison'"
-        echo "Expecting to find bison at '$(brew --prefix bison)/bin/bison'."
+        echo "Expecting to find bison at '$BISON'."
+        exit 1
+    fi
+
+    export PATH="$(brew --prefix m4)/bin:$PATH"
+    M4="$(brew --prefix m4)/bin/m4"
+    if [[ ! -e "$M4" ]]; then
+        echo "Building gcc requires a more recent version on m4 than Apple provides. Install with 'brew install m4'"
+        echo "Expecting to find m4 at '$M4'."
         exit 1
     fi
 
     # Pull in GNU grep
     export PATH="$(brew --prefix grep)/libexec/gnubin:$PATH"
-    if [[ ! -e $(brew --prefix grep)/libexec/gnubin/grep ]]; then
+    GREP="$(brew --prefix grep)/libexec/gnubin/grep"
+    if [[ ! -e "$GREP" ]]; then
         echo "Building gcc requires GNU grep. Install with 'brew install grep'"
-        echo "Expecting to find grep at '$(brew --prefix grep)/libexec/gnubin/grep'."
+        echo "Expecting to find grep at '$GREP'."
         exit 1
     fi
 
