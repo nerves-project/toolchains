@@ -39,8 +39,8 @@ defmodule Nerves.Toolchain.CTNG do
         toolchain_path = Path.join(x_tools, tuple)
         {:ok, toolchain_path}
 
-      {error, _} ->
-        {:error, error}
+      {_error, exit_code} ->
+        {:error, "Build exited with #{exit_code}. See build.log."}
     end
   end
 
