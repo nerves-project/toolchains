@@ -30,7 +30,7 @@ if [[ $BUILD_OS = "cygwin_nt-6.1" ]]; then
     # A simple cygwin looks better.
     BUILD_OS="cygwin"
 elif [[ $BUILD_OS = "darwin" ]]; then
-    # Homebrew has a different prefix depending on x86_64 or aarch64
+    # Homebrew has a different prefix depending on x86_64 or arm64
     HOMEBREW_PREFIX="$(brew --prefix)"
 
     # Make sure that we use GNU readlink on OSX

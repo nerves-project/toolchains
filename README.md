@@ -46,6 +46,10 @@ It's possible to create cross-compilers for 64-bit ARM machines (aarch64) by
 building the toolchains on a 64-bit ARM machine. Canadian cross builds don't
 seem to work. Build as you would on an x86_64 Linux machine.
 
+NOTE: "`aarch64` for Darwin" is called `arm64`. They're slightly different. See
+the [gcc arm64
+port](https://github.com/fxcoudert/gcc/tree/gcc-11.2.0-arm#introduction).
+
 ## Canadian cross builds for Raspberry Pi (arm)
 
 It's possible to build a toolchain that runs on the Raspberry Pi on x86 Linux.
