@@ -88,7 +88,10 @@ build_mac: &build_mac
       command: cowsay Hi!
   - run:
       name: brew deps
-      command: brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
+      command: |
+        brew update
+        brew upgrade
+        brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils elixir erlang
   - <<: *install_hex_rebar
   - <<: *install_nerves_bootstrap
   - run:
