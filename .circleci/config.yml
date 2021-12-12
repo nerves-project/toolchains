@@ -67,7 +67,9 @@ build: &build
           - /home/nerves/deploy/toolchain
 
 test: &test
+  working_directory: /home/nerves/build
   steps:
+    - checkout
     - run:
         name: Setup Cache Vars
         command: |
@@ -76,13 +78,18 @@ test: &test
     - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - run:
-        name: Decompress Toolchain Archive
+        name: Install xz
+        command: |
+          apt-get update
+          apt-get -y install xz-utils
+    - run:
+        name: Decompress toolchain archive
         command: |
           mkdir -p /root/toolchain
           tar xvf /home/nerves/deploy/toolchain/*.tar.xz --strip-components=1 -C /root/toolchain
     - run:
-        name: Compile
-        command: /root/toolchain/bin/*-g++ main.cpp
+        name: Compile hello world app
+        command: /root/toolchain/bin/*-g++ /home/nerves/build/support/smoketest/main.cpp
 
 build_workflow: &build_workflow
   context: org-global
@@ -279,9 +286,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_aarch64_nerves_linux_gnu:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
@@ -294,9 +300,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_armv7_nerves_linux_gnueabihf:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
       <<: *linux
@@ -308,9 +313,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_armv5_nerves_linux_musleabi:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
       <<: *linux
@@ -322,9 +326,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_armv6_nerves_linux_gnueabi:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
       <<: *linux
@@ -336,9 +339,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_i586_nerves_linux_gnu:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *linux
@@ -350,9 +352,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_mipsel_nerves_linux_musl:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *linux
@@ -364,9 +365,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_x86_64_nerves_linux_gnu:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *linux
@@ -378,9 +378,8 @@ jobs:
   # test
   #  linux
   test_linux_trusty_x86_64_nerves_linux_musl:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:trusty
+      - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *linux
@@ -394,9 +393,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_aarch64_nerves_linux_gnu:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
@@ -409,9 +407,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_armv7_nerves_linux_gnueabihf:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
       <<: *linux
@@ -423,9 +420,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_armv5_nerves_linux_musleabi:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
       <<: *linux
@@ -437,9 +433,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_armv6_nerves_linux_gnueabi:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
       <<: *linux
@@ -451,9 +446,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_i586_nerves_linux_gnu:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *linux
@@ -465,9 +459,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_mipsel_nerves_linux_musl:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *linux
@@ -479,9 +472,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_x86_64_nerves_linux_gnu:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *linux
@@ -493,9 +485,8 @@ jobs:
   # test
   #  linux
   test_linux_xenial_x86_64_nerves_linux_musl:
-    working_directory: /root
     docker:
-      - image: nervesproject/toolchain-test-ubuntu:xenial
+      - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *linux
