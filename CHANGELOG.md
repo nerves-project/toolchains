@@ -1,5 +1,20 @@
 # Toolchain Releases
 
+## v1.5.0
+
+This should be a low risk update to v1.4.3. The main purpose is to make libgomp
+available. It remains on GCC 10, but pulls in the latest patch releases of
+associated build tools..
+
+* New features
+  * libgomp is available now
+
+* Tool versions
+  * GCC 10.3 (https://gcc.gnu.org/gcc-10/changes.html#GCC10.3)
+  * glibc 2.34 (https://sourceware.org/pipermail/libc-alpha/2021-August/129718.html)
+  * binutils 2.37
+  * Linux 4.19 headers except for RISC-V. RISC-V uses Linux 5.4 headers.
+
 ## v1.4.3
 
 This release bumps the Linux headers from 4.14 to 4.19. This requires that your
