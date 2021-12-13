@@ -279,7 +279,7 @@ jobs:
     <<: *build
 
   #-------------------------------
-  # Test Trusty
+  # Test Trusty (14.04)
   #-------------------------------
   # aarch64_nerves_linux_gnu
   #-------------------------------
@@ -386,7 +386,7 @@ jobs:
     <<: *test
 
   #-------------------------------
-  # Test Xenial
+  # Test Xenial (16.04)
   #-------------------------------
   # aarch64_nerves_linux_gnu
   #-------------------------------
@@ -489,6 +489,54 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
+      <<: *linux
+    <<: *test
+
+
+  # Spot checks on aarch64 across more platforms
+
+  #-------------------------------
+  # Test Bionic (18.04)
+  #-------------------------------
+  # aarch64_nerves_linux_gnu
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_bionic_aarch64_nerves_linux_gnu:
+    docker:
+      - image: ubuntu:bionic
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
+      <<: *linux
+    <<: *test
+
+  #-------------------------------
+  # Test Focal (20.04)
+  #-------------------------------
+  # aarch64_nerves_linux_gnu
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_focal_aarch64_nerves_linux_gnu:
+    docker:
+      - image: ubuntu:focal
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
+      <<: *linux
+    <<: *test
+
+  #-------------------------------
+  # Test Jammy (22.04)
+  #-------------------------------
+  # aarch64_nerves_linux_gnu
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_jammy_aarch64_nerves_linux_gnu:
+    docker:
+      - image: ubuntu:jammy
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
     <<: *test
 
@@ -698,6 +746,18 @@ workflows:
           requires:
             - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
       - test_linux_xenial_aarch64_nerves_linux_gnu:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
+      - test_linux_bionic_aarch64_nerves_linux_gnu:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
+      - test_linux_focal_aarch64_nerves_linux_gnu:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
+      - test_linux_jammy_aarch64_nerves_linux_gnu:
           <<: *test_workflow
           requires:
             - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
