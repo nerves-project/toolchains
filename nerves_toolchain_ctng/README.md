@@ -15,11 +15,11 @@ are the architecture (e.g., `arm`) and the C Library and ABI (e.g.,
 `gnueabihf`). You will receive an error from Nerves if you mix toolchains. The
 easy way to decide which toolchain you need is the following:
 
-  * Raspberry Pi Model A+, B, or B+ - `armv6-rpi-linux-gnueabi`
-  * Raspberry Pi 2, BBB, and most other ARM boards - `arm-nerves-linux-gnueabihf`
+  * Raspberry Pi Model A+, B, or B+ - `armv6-nerves-linux-gnueabihf`
+  * Raspberry Pi 2, BBB, and most other ARM boards - `armv7-nerves-linux-gnueabihf`
 
 The `host OS` and `host architecture` describe your system. If you're running on
-a Mac, this is `Darwin-x86_64`.
+a Mac, this is `Darwin-x86_64` or `Darwin-arm64`.
 
 When in doubt, use the glibc library toolchains. Almost all code works with the
 glibc C library. If you desire the smallest possible target binaries, the musl
@@ -31,7 +31,7 @@ an experimental feature and not built by default due to issues on OSX.
 Install the following packages:
 
 ```sh
-sudo apt install bison flex gperf libncurses5-dev texinfo help2man libssl-dev gawk libtool-bin automake lzip python3
+sudo apt install build-essential bison flex gperf libncurses5-dev texinfo help2man libssl-dev gawk libtool-bin automake lzip unzip python3 wget curl ca-certificates
 ```
 
 Run `build_release.sh` and wait.
