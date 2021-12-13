@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.8.5
+
+This release bumps gcc 10.2.0 to gcc 10.3.0.
+
+* Changes
+  * Use latest crosstool-ng commit. This also updates glibc from 2.33 to 2.34.
+  * Build libgomp. This is a small library that's referenced by torchx.
+  * Fix build error on MacOS 12
+
 ## v1.8.4
 
 * New features
