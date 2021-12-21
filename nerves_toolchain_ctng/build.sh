@@ -208,6 +208,14 @@ gcc_tuple_underscores()
 
 build_gcc()
 {
+    if [[  $BUILD_OS = "freebsd" ]]; then
+        SED=/usr/local/bin/gsed
+    elif [[ $BUILD_OS = "darwin" ]]; then
+        SED=$HOMEBREW_PREFIX/bin/gsed
+    else
+        SED="sed"
+    fi
+
     # Build and install ct-ng to the work directory
     cd "$WORK_DIR"
     ln -sf "$DL_DIR" dl
@@ -237,20 +245,17 @@ build_gcc()
         ./bootstrap
     fi
     if [[  $BUILD_OS = "freebsd" ]]; then
-        SED=/usr/local/bin/gsed
-	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
+        SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
+        gmake
+        gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
-        # Homebrew's gcc is gcc-11
         BINUTILS=$(brew --prefix binutils)
-        CC=gcc-11 CXX=g++-11 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
-        SED=$HOMEBREW_PREFIX/bin/gsed
+
+        OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
+	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
 	gmake
 	gmake install
     else
-        SED=sed
 	./configure --prefix="$LOCAL_INSTALL_DIR"
 	make
 	make install
@@ -295,6 +300,8 @@ build_gcc()
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI"
+      echo "In work dir: $WORK_DIR"
+
       $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
         -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
@@ -308,6 +315,8 @@ build_gcc()
         "$WORK_DIR/build/.config"
     fi
 
+    echo "BEFORE DOTS"
+
     # Start building and print dots to keep CI from killing the build due
     # to console inactivity.
     $PREFIX "$CTNG" $CTNG_BUILD &
@@ -316,9 +325,12 @@ build_gcc()
         while ps -p $build_pid >/dev/null; do
            sleep 12
            printf "."
+           echo "DOT $(date)"
         done
     } &
     local keepalive_pid=$!
+
+    echo "Waiting for $build_pid build to finish"
 
     # Wait for the build to finish
     wait $build_pid 2>/dev/null
@@ -338,14 +350,17 @@ build_gcc()
     rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
 
     # Clean up crosstool-ng's work directory if we put it in a global location
-    if [[ "$CI" = "true" ]]; then
-        echo "Not cleaning up work directory since CI build"
-    else
+    echo "Cleaning up work directory since CI build"
+    # if [[ "$CI" = "true" ]]; then
+    #     echo "Not cleaning up work directory since CI build"
+    # else
         if [[ -e "$CT_WORK_DIR" ]]; then
             chmod -R u+w "$CT_WORK_DIR"
             rm -fr "$CT_WORK_DIR"
         fi
-    fi
+    # fi
+    df -h
+    du -hs *
 }
 
 toolchain_base_name()
@@ -359,7 +374,9 @@ save_build_info()
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
     echo "$NERVES_TOOLCHAIN_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag"
+    echo "running: cp $CTNG_CONFIG $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
+    echo "running: cp $WORK_DIR/build/.config $GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
 }
 
