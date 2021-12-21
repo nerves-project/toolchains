@@ -61,7 +61,7 @@ defmodule NervesToolchainRISCV64NervesLinuxGNU.MixProject do
   defp package do
     [
       files: package_files(),
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       links: %{
         "Github" => "https://github.com/nerves-project/toolchains/tree/main/#{@app}"
       }

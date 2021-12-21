@@ -41,7 +41,7 @@ defmodule Nerves.Toolchain.Ctng.MixProject do
         "VERSION",
         "defaults"
       ],
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       links: %{"Github" => "https://github.com/nerves-project/toolchains"}
     ]
   end
