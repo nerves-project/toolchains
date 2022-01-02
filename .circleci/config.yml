@@ -111,11 +111,6 @@ deploy_workflow: &deploy_workflow
     tags:
       only: /v.*/
 
-canadian_rpi: &canadian_rpi
-  HOST_OS: linux
-  HOST_ARCH: arm
-  BUILD_OS: rpi
-
 linux: &linux
   BUILD_OS: linux
 
@@ -135,13 +130,6 @@ jobs:
       TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
       <<: *linux
     <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *canadian_rpi
-    <<: *build
 
 
   #-------------------------------
@@ -155,13 +143,6 @@ jobs:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
       <<: *linux
     <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_armv7_nerves_linux_gnueabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *canadian_rpi
-    <<: *build
 
   #-------------------------------
   # armv5_nerves_linux_musleabi
@@ -173,13 +154,6 @@ jobs:
     environment:
       TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
       <<: *linux
-    <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_armv5_nerves_linux_musleabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
@@ -194,14 +168,6 @@ jobs:
       <<: *linux
     <<: *build
 
-  #  rpi
-  build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *canadian_rpi
-    <<: *build
-
   #-------------------------------
   # i586_nerves_linux_gnu
   #-------------------------------
@@ -212,13 +178,6 @@ jobs:
     environment:
       TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
       <<: *linux
-    <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_i586_nerves_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
@@ -232,13 +191,6 @@ jobs:
       TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
       <<: *linux
     <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_mipsel_nerves_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *canadian_rpi
-    <<: *build
 
   #-------------------------------
   # x86_64_nerves_linux_gnu
@@ -251,13 +203,6 @@ jobs:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
       <<: *linux
     <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *canadian_rpi
-    <<: *build
 
   #-------------------------------
   # x86_64_nerves_linux_musl
@@ -269,13 +214,6 @@ jobs:
     environment:
       TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
       <<: *linux
-    <<: *build
-  #  rpi
-  build_rpi_nerves_toolchain_x86_64_nerves_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *canadian_rpi
     <<: *build
 
   #-------------------------------
@@ -594,21 +532,11 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: rpi
-          command: echo "rpi" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
           name: nerves_toolchain_armv7_nerves_linux_gnueabihf
           command: echo "nerves_toolchain_armv7_nerves_linux_gnueabihf" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: rpi
-          command: echo "rpi" > .build_os
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
@@ -620,21 +548,11 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: rpi
-          command: echo "rpi" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
           name: nerves_toolchain_armv6_nerves_linux_gnueabihf
           command: echo "nerves_toolchain_armv6_nerves_linux_gnueabihf" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: rpi
-          command: echo "rpi" > .build_os
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
@@ -646,21 +564,11 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: rpi
-          command: echo "rpi" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
           name: nerves_toolchain_mipsel_nerves_linux_musl
           command: echo "nerves_toolchain_mipsel_nerves_linux_musl" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: rpi
-          command: echo "rpi" > .build_os
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
@@ -672,21 +580,11 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: rpi
-          command: echo "rpi" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
           name: nerves_toolchain_x86_64_nerves_linux_musl
           command: echo "nerves_toolchain_x86_64_nerves_linux_musl" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
-      - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: rpi
-          command: echo "rpi" > .build_os
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
@@ -723,15 +621,11 @@ workflows:
       #-------------------------------
       - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu:
-          <<: *build_workflow
 
       #-------------------------------
       # armv7_nerves_linux_gnueabihf
       #-------------------------------
       - build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_armv7_nerves_linux_gnueabihf:
           <<: *build_workflow
 
       #-------------------------------
@@ -739,15 +633,11 @@ workflows:
       #-------------------------------
       - build_linux_nerves_toolchain_armv5_nerves_linux_musleabi:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_armv5_nerves_linux_musleabi:
-          <<: *build_workflow
 
       #-------------------------------
       # armv6_nerves_linux_gnueabi
       #-------------------------------
       - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabihf:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabihf:
           <<: *build_workflow
 
       #-------------------------------
@@ -755,15 +645,11 @@ workflows:
       #-------------------------------
       - build_linux_nerves_toolchain_i586_nerves_linux_gnu:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_i586_nerves_linux_gnu:
-          <<: *build_workflow
 
       #-------------------------------
       # mipsel_nerves_linux_musl
       #-------------------------------
       - build_linux_nerves_toolchain_mipsel_nerves_linux_musl:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_mipsel_nerves_linux_musl:
           <<: *build_workflow
 
       #-------------------------------
@@ -771,15 +657,11 @@ workflows:
       #-------------------------------
       - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu:
           <<: *build_workflow
-      - build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu:
-          <<: *build_workflow
 
       #-------------------------------
       # x86_64_nerves_linux_musl
       #-------------------------------
       - build_linux_nerves_toolchain_x86_64_nerves_linux_musl:
-          <<: *build_workflow
-      - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl:
           <<: *build_workflow
 
       #-------------------------------
@@ -919,42 +801,34 @@ workflows:
             # aarch64 linux gnu
             - test_linux_trusty_aarch64_nerves_linux_gnu
             - test_linux_xenial_aarch64_nerves_linux_gnu
-            - build_rpi_nerves_toolchain_aarch64_nerves_linux_gnu
 
             # armv7 linux gnueabihf
             - test_linux_trusty_armv7_nerves_linux_gnueabihf
             - test_linux_xenial_armv7_nerves_linux_gnueabihf
-            - build_rpi_nerves_toolchain_armv7_nerves_linux_gnueabihf
 
             # armv5 linux musleabi
             - test_linux_trusty_armv5_nerves_linux_musleabi
             - test_linux_xenial_armv5_nerves_linux_musleabi
-            - build_rpi_nerves_toolchain_armv5_nerves_linux_musleabi
 
             # armv6 linux gnueabi
             - test_linux_trusty_armv6_nerves_linux_gnueabi
             - test_linux_xenial_armv6_nerves_linux_gnueabi
-            - build_rpi_nerves_toolchain_armv6_nerves_linux_gnueabihf
 
             # i586 linux gnu
             - test_linux_trusty_i586_nerves_linux_gnu
             - test_linux_xenial_i586_nerves_linux_gnu
-            - build_rpi_nerves_toolchain_i586_nerves_linux_gnu
 
             # mipsel linux musl
             - test_linux_trusty_mipsel_nerves_linux_musl
             - test_linux_xenial_mipsel_nerves_linux_musl
-            - build_rpi_nerves_toolchain_mipsel_nerves_linux_musl
 
             # x86_64 linux gnu
             - test_linux_trusty_x86_64_nerves_linux_gnu
             - test_linux_xenial_x86_64_nerves_linux_gnu
-            - build_rpi_nerves_toolchain_x86_64_nerves_linux_gnu
 
             # x86_64 linux musl
             - test_linux_trusty_x86_64_nerves_linux_musl
             - test_linux_xenial_x86_64_nerves_linux_musl
-            - build_rpi_nerves_toolchain_x86_64_nerves_linux_musl
 
             # riscv linux glibc
             - test_linux_trusty_riscv64_nerves_linux_gnu
