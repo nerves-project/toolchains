@@ -53,9 +53,7 @@ defmodule NervesToolchainRISCV64NervesLinuxGNU.MixProject do
   end
 
   defp description do
-    """
-    Nerves Toolchain - aarch64_nerves_linux_gnu
-    """
+    "Nerves Toolchain - riscv64_nerves_linux_gnu"
   end
 
   defp package do
