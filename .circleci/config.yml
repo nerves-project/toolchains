@@ -208,14 +208,14 @@ jobs:
     <<: *build
 
   #-------------------------------
-  # riscv64_nerves_linux_gnu
+  # riscv64_nerves_linux_musl
   #-------------------------------
   # build
   #  linux
-  build_linux_nerves_toolchain_riscv64_nerves_linux_gnu:
+  build_linux_nerves_toolchain_riscv64_nerves_linux_musl:
     <<: *defaults
     environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
+      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
       <<: *linux
     <<: *build
 
@@ -327,15 +327,15 @@ jobs:
     <<: *test
 
   #-------------------------------
-  # riscv64_nerves_linux_gnu
+  # riscv64_nerves_linux_musl
   #-------------------------------
   # test
   #  linux
-  test_linux_trusty_riscv64_nerves_linux_gnu:
+  test_linux_trusty_riscv64_nerves_linux_musl:
     docker:
       - image: ubuntu:trusty
     environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
+      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
       <<: *linux
     <<: *test
 
@@ -447,15 +447,15 @@ jobs:
     <<: *test
 
   #-------------------------------
-  # riscv64_nerves_linux_gnu
+  # riscv64_nerves_linux_musl
   #-------------------------------
   # test
   #  linux
-  test_linux_xenial_riscv64_nerves_linux_gnu:
+  test_linux_xenial_riscv64_nerves_linux_musl:
     docker:
       - image: ubuntu:xenial
     environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
+      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
       <<: *linux
     <<: *test
 
@@ -579,8 +579,8 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: nerves_toolchain_riscv64_nerves_linux_gnu
-          command: echo "nerves_toolchain_riscv64_nerves_linux_gnu" > .toolchain
+          name: nerves_toolchain_riscv64_nerves_linux_musl
+          command: echo "nerves_toolchain_riscv64_nerves_linux_musl" > .toolchain
       - run:
           name: linux
           command: echo "linux" > .build_os
@@ -656,9 +656,9 @@ workflows:
           <<: *build_workflow
 
       #-------------------------------
-      # riscv64_nerves_linux_gnu
+      # riscv64_nerves_linux_musl
       #-------------------------------
-      - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu:
+      - build_linux_nerves_toolchain_riscv64_nerves_linux_musl:
           <<: *build_workflow
 
       #-------------------------------
@@ -772,16 +772,16 @@ workflows:
             - build_linux_nerves_toolchain_x86_64_nerves_linux_musl
 
       #-------------------------------
-      # riscv64_nerves_linux_gnu
+      # riscv64_nerves_linux_musl
       #-------------------------------
-      - test_linux_trusty_riscv64_nerves_linux_gnu:
+      - test_linux_trusty_riscv64_nerves_linux_musl:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
-      - test_linux_xenial_riscv64_nerves_linux_gnu:
+            - build_linux_nerves_toolchain_riscv64_nerves_linux_musl
+      - test_linux_xenial_riscv64_nerves_linux_musl:
           <<: *test_workflow
           requires:
-            - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
+            - build_linux_nerves_toolchain_riscv64_nerves_linux_musl
 
       #-------------------------------
       # Deploy Toolchains
@@ -822,5 +822,5 @@ workflows:
             - test_linux_xenial_x86_64_nerves_linux_musl
 
             # riscv linux glibc
-            - test_linux_trusty_riscv64_nerves_linux_gnu
-            - test_linux_xenial_riscv64_nerves_linux_gnu
+            - test_linux_trusty_riscv64_nerves_linux_musl
+            - test_linux_xenial_riscv64_nerves_linux_musl
