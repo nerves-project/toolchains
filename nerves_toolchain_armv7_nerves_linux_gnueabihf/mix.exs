@@ -48,7 +48,7 @@ defmodule NervesToolchainArmV7NervesLinuxGnueabihf.MixProject do
   defp deps do
     [
       {:nerves, "~> 1.0", runtime: false},
-      {:nerves_toolchain_ctng, "~> 1.8.5", runtime: false}
+      {:nerves_toolchain_ctng, "~> 1.9.0", runtime: false}
     ]
   end
 
