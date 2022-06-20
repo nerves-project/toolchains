@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.9.0
+
+This release bumps gcc 10.3.0 to gcc 12.1.
+
+* Changes
+  * Use latest crosstool-ng commit. This also updates glibc from 2.34 to 2.35.
+  * Enable Fortran by default. This makes it possible to enable Fortran in
+    Nerves systems that want to use it without completely rebuilding a
+    toolchain.
+
 ## v1.8.5
 
 This release bumps gcc 10.2.0 to gcc 10.3.0.
