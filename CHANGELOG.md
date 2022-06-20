@@ -1,5 +1,20 @@
 # Toolchain Releases
 
+## v1.6.0
+
+This release bumps GCC from 10.3 to 11.3
+
+* New features
+  * Include a Fortran compiler to make it easier to create Nerves systems that
+    require Fortran.
+
+* Tool versions
+  * GCC 11.3 (https://gcc.gnu.org/gcc-11/changes.html#GCC11.3)
+  * glibc 2.35
+  * musl 1.2.3
+  * binutils 2.38
+  * Linux 4.19 headers except for RISC-V. RISC-V uses Linux 5.10 headers.
+
 ## v1.5.0
 
 This should be a low risk update to v1.4.3. The main purpose is to make libgomp
