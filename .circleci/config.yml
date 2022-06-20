@@ -28,15 +28,6 @@ build: &build
     - restore_cache:
         key: nerves/dl/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Branch }}
     - run:
-        name: Update Path
-        command: |
-          echo 'export PATH=$HOME/build/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH' >> $BASH_ENV
-          source $BASH_ENV
-    - run:
-        name: Fetch Dependencies
-        # This downloads the raspberrypi tools (which is where raspbian comes from)
-        command: git clone git://github.com/raspberrypi/tools.git
-    - run:
         name: Fetch Deps
         command: |
           cd $TOOLCHAIN
