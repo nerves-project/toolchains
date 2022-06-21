@@ -35,6 +35,7 @@ RUN set -xe \
 	unzip \
 	lzip \
 	python3 \
+	rsync \
   && curl -o "/tmp/${ERLANG_PKG}" ${ERLANG_URL} \
   && dpkg -i "/tmp/${ERLANG_PKG}" \
   && apt-get update \
