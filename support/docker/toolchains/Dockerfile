@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM hexpm/elixir:1.13.3-erlang-25.0.2-ubuntu-bionic-20210930
 MAINTAINER Nerves Project
 LABEL maintainer="Nerves Project developers <nerves@nerves-project.org>" \
       vendor="NervesProject" \
@@ -8,10 +8,6 @@ description="Container with everything needed to build Nerves toolchains"
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG=C.UTF-8
 ENV TERM=xterm
-ENV ERLANG_PKG='erlang-solutions_2.0_all.deb'
-ENV ERLANG_URL="https://packages.erlang-solutions.com/${ERLANG_PKG}"
-ENV ELIXIR_VERSION=1.13.0
-ENV PATH="/usr/local/elixir/bin:${PATH}"
 # The container has no package lists, so need to update first
 RUN useradd -ms /bin/bash nerves
 RUN set -xe \
@@ -36,17 +32,10 @@ RUN set -xe \
 	lzip \
 	python3 \
 	rsync \
-  && curl -o "/tmp/${ERLANG_PKG}" ${ERLANG_URL} \
-  && dpkg -i "/tmp/${ERLANG_PKG}" \
-  && apt-get update \
-  && apt-get -y install \
-    "esl-erlang" \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /root/.ssh \
   && ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts \
   && chmod 700 /root/.ssh \
-  && chmod 600 /root/.ssh/known_hosts \
-	&& wget https://github.com/elixir-lang/elixir/releases/download/v$ELIXIR_VERSION/Precompiled.zip \
-  && unzip -d /usr/local/elixir Precompiled.zip
+  && chmod 600 /root/.ssh/known_hosts
 
 USER nerves
