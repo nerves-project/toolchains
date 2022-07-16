@@ -122,6 +122,20 @@ jobs:
       <<: *linux
     <<: *build
 
+  #-------------------------------
+  # Build
+  #-------------------------------
+  # aarch64_nerves_linux_musl
+  #-------------------------------
+  # build
+  #  linux
+  build_linux_nerves_toolchain_aarch64_nerves_linux_musl:
+    <<: *defaults
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
+      <<: *linux
+    <<: *build
+
 
   #-------------------------------
   # armv7_nerves_linux_gnueabihf
@@ -219,7 +233,7 @@ jobs:
       <<: *linux
     <<: *build
 
-   #-------------------------------
+  #-------------------------------
   # Test Trusty (14.04)
   #-------------------------------
   # aarch64_nerves_linux_gnu
@@ -234,6 +248,20 @@ jobs:
       <<: *linux
     <<: *test
 
+  #-------------------------------
+  # Test Trusty (14.04)
+  #-------------------------------
+  # aarch64_nerves_linux_musl
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_trusty_aarch64_nerves_linux_musl:
+    docker:
+      - image: ubuntu:trusty
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
+      <<: *linux
+    <<: *test
 
   #-------------------------------
   # armv7_nerves_linux_gnueabihf
@@ -354,6 +382,20 @@ jobs:
       <<: *linux
     <<: *test
 
+  #-------------------------------
+  # Test Xenial (16.04)
+  #-------------------------------
+  # aarch64_nerves_linux_musl
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_xenial_aarch64_nerves_linux_musl:
+    docker:
+      - image: ubuntu:xenial
+    environment:
+      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
+      <<: *linux
+    <<: *test
 
   #-------------------------------
   # armv7_nerves_linux_gnueabihf
@@ -614,6 +656,14 @@ workflows:
           <<: *build_workflow
 
       #-------------------------------
+      # Build Toolchains
+      #-------------------------------
+      # aarch64_nerves_linux_musl
+      #-------------------------------
+      - build_linux_nerves_toolchain_aarch64_nerves_linux_musl:
+          <<: *build_workflow
+
+      #-------------------------------
       # armv7_nerves_linux_gnueabihf
       #-------------------------------
       - build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf:
@@ -686,6 +736,18 @@ workflows:
           <<: *test_workflow
           requires:
             - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
+
+      #-------------------------------
+      # aarch64_nerves_linux_musl
+      #-------------------------------
+      - test_linux_trusty_aarch64_nerves_linux_musl:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_musl
+      - test_linux_xenial_aarch64_nerves_linux_musl:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_aarch64_nerves_linux_musl
 
       #-------------------------------
       # armv7_nerves_linux_gnueabihf
@@ -790,6 +852,10 @@ workflows:
           <<: *deploy_workflow
           requires:
             # aarch64 linux gnu
+            - test_linux_trusty_aarch64_nerves_linux_gnu
+            - test_linux_xenial_aarch64_nerves_linux_gnu
+
+            # aarch64 linux musl
             - test_linux_trusty_aarch64_nerves_linux_gnu
             - test_linux_xenial_aarch64_nerves_linux_gnu
 
