@@ -3,6 +3,7 @@
 CONFIGS="\
     nerves_toolchain_riscv64_nerves_linux_musl \
     nerves_toolchain_armv7_nerves_linux_gnueabihf \
+    nerves_toolchain_armv7_nerves_linux_musleabihf \
     nerves_toolchain_x86_64_nerves_linux_musl \
     nerves_toolchain_armv6_nerves_linux_gnueabihf \
     nerves_toolchain_x86_64_nerves_linux_gnu \
