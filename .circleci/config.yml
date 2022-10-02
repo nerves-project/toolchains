@@ -150,6 +150,18 @@ jobs:
     <<: *build
 
   #-------------------------------
+  # armv7_nerves_linux_musleabihf
+  #-------------------------------
+  # build
+  #  linux
+  build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf:
+    <<: *defaults
+    environment:
+      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
+      <<: *linux
+    <<: *build
+
+  #-------------------------------
   # armv5_nerves_linux_musleabi
   #-------------------------------
   # build
@@ -273,6 +285,19 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
+      <<: *linux
+    <<: *test
+
+  #-------------------------------
+  # armv7_nerves_linux_musleabihf
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_trusty_armv7_nerves_linux_musleabihf:
+    docker:
+      - image: ubuntu:trusty
+    environment:
+      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
       <<: *linux
     <<: *test
 
@@ -407,6 +432,19 @@ jobs:
       - image: ubuntu:xenial
     environment:
       TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
+      <<: *linux
+    <<: *test
+
+  #-------------------------------
+  # armv7_nerves_linux_musleabihf
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_xenial_armv7_nerves_linux_musleabihf:
+    docker:
+      - image: ubuntu:xenial
+    environment:
+      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
       <<: *linux
     <<: *test
 
@@ -573,6 +611,14 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
+          name: nerves_toolchain_armv7_nerves_linux_musleabihf
+          command: echo "nerves_toolchain_armv7_nerves_linux_musleabihf" > .toolchain
+      - run:
+          name: linux
+          command: echo "linux" > .build_os
+      - restore_cache:
+          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
           name: nerves_toolchain_armv5_nerves_linux_musleabi
           command: echo "nerves_toolchain_armv5_nerves_linux_musleabi" > .toolchain
       - run:
@@ -670,6 +716,12 @@ workflows:
           <<: *build_workflow
 
       #-------------------------------
+      # armv7_nerves_linux_musleabihf
+      #-------------------------------
+      - build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf:
+          <<: *build_workflow
+
+      #-------------------------------
       # armv5_nerves_linux_musleabi
       #-------------------------------
       - build_linux_nerves_toolchain_armv5_nerves_linux_musleabi:
@@ -760,6 +812,18 @@ workflows:
           <<: *test_workflow
           requires:
             - build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf
+
+      #-------------------------------
+      # armv7_nerves_linux_musleabihf
+      #-------------------------------
+      - test_linux_trusty_armv7_nerves_linux_musleabihf:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf
+      - test_linux_xenial_armv7_nerves_linux_musleabihf:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf
 
       #-------------------------------
       # armv5_nerves_linux_musleabi
@@ -862,6 +926,10 @@ workflows:
             # armv7 linux gnueabihf
             - test_linux_trusty_armv7_nerves_linux_gnueabihf
             - test_linux_xenial_armv7_nerves_linux_gnueabihf
+
+            # armv7 linux musleabihf
+            - test_linux_trusty_armv7_nerves_linux_musleabihf
+            - test_linux_xenial_armv7_nerves_linux_musleabihf
 
             # armv5 linux musleabi
             - test_linux_trusty_armv5_nerves_linux_musleabi
