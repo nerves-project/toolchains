@@ -31,7 +31,7 @@ build: &build
         name: Fetch Deps
         command: |
           cd $TOOLCHAIN
-          mix deps.get
+          mix deps.get || (sleep 5; mix deps.get)
     - run:
         name: Build
         command: |
