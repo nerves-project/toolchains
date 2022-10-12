@@ -1,5 +1,12 @@
 # Toolchain Releases
 
+## v1.7.0
+
+This release bumps GCC from 11.3 to 12.2.
+
+* Tool versions
+  * GCC 12.2 (https://gcc.gnu.org/gcc-12/changes.html#12.2)
+
 ## v1.6.2
 
 This release adds a riscv64 glibc toolchain since that has more support than
