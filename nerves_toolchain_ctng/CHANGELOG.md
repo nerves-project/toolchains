@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.9.1
+
+* Bug fixes
+  * Remove unnecessarly libzstd runtime library dependency. This ended up
+    creating a dependency on Homebrew on MacOS. Thanks @mathewprokos for finding
+    this.
+
 ## v1.9.0
 
 This release bumps gcc 10.3.0 to gcc 12.1.
