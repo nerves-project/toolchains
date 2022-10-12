@@ -1,5 +1,15 @@
 # Toolchain Releases
 
+## v1.8.0
+
+This release bumps GCC from 11.3 to 12.2.
+
+* Tool versions
+  * GCC 12.2 (https://gcc.gnu.org/gcc-12/changes.html)
+  * glibc 2.36
+  * musl 1.2.3
+  * Linux 4.19 headers except for RISC-V. RISC-V uses Linux 5.10 headers.
+
 ## v1.7.0
 
 This release adds a riscv64 glibc toolchain since that has more support than
