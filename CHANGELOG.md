@@ -1,5 +1,13 @@
 # Toolchain Releases
 
+## v1.6.1
+
+This release adds musl libc toolchains for aarch64 and armv7.
+
+* Fixes
+  * Remove unneeded runtime dependency on libzstd. This caused an unintentional
+    dependency to Homebrew on MacOS.
+
 ## v1.6.0
 
 This release bumps GCC from 10.3 to 11.3
