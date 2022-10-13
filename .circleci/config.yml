@@ -603,6 +603,14 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
+          name: nerves_toolchain_aarch64_nerves_linux_musl
+          command: echo "nerves_toolchain_aarch64_nerves_linux_musl" > .toolchain
+      - run:
+          name: linux
+          command: echo "linux" > .build_os
+      - restore_cache:
+          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
           name: nerves_toolchain_armv7_nerves_linux_gnueabihf
           command: echo "nerves_toolchain_armv7_nerves_linux_gnueabihf" > .toolchain
       - run:
