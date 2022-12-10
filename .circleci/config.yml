@@ -246,6 +246,19 @@ jobs:
     <<: *build
 
   #-------------------------------
+  # riscv64_nerves_linux_gnu
+  #-------------------------------
+  # build
+  #  linux
+  build_linux_nerves_toolchain_riscv64_nerves_linux_gnu:
+    <<: *defaults
+    environment:
+      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
+      <<: *linux
+    <<: *build
+
+
+  #-------------------------------
   # Test Trusty (14.04)
   #-------------------------------
   # aarch64_nerves_linux_gnu
@@ -389,6 +402,19 @@ jobs:
       - image: ubuntu:trusty
     environment:
       TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
+      <<: *linux
+    <<: *test
+
+  #-------------------------------
+  # riscv64_nerves_linux_gnu
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_trusty_riscv64_nerves_linux_gnu:
+    docker:
+      - image: ubuntu:trusty
+    environment:
+      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
       <<: *linux
     <<: *test
 
@@ -539,6 +565,19 @@ jobs:
       <<: *linux
     <<: *test
 
+  #-------------------------------
+  # riscv64_nerves_linux_gnu
+  #-------------------------------
+  # test
+  #  linux
+  test_linux_xenial_riscv64_nerves_linux_gnu:
+    docker:
+      - image: ubuntu:xenial
+    environment:
+      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
+      <<: *linux
+    <<: *test
+
 
   # Spot checks on aarch64 across more platforms
 
@@ -683,6 +722,14 @@ jobs:
       - restore_cache:
           key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
+          name: nerves_toolchain_riscv64_nerves_linux_gnu
+          command: echo "nerves_toolchain_riscv64_nerves_linux_gnu" > .toolchain
+      - run:
+          name: linux
+          command: echo "linux" > .build_os
+      - restore_cache:
+          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
           name: Copy Artifacts
           command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
       - run:
@@ -769,6 +816,12 @@ workflows:
       # riscv64_nerves_linux_musl
       #-------------------------------
       - build_linux_nerves_toolchain_riscv64_nerves_linux_musl:
+          <<: *build_workflow
+
+      #-------------------------------
+      # riscv64_nerves_linux_gnu
+      #-------------------------------
+      - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu:
           <<: *build_workflow
 
       #-------------------------------
@@ -918,6 +971,18 @@ workflows:
             - build_linux_nerves_toolchain_riscv64_nerves_linux_musl
 
       #-------------------------------
+      # riscv64_nerves_linux_gnu
+      #-------------------------------
+      - test_linux_trusty_riscv64_nerves_linux_gnu:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
+      - test_linux_xenial_riscv64_nerves_linux_gnu:
+          <<: *test_workflow
+          requires:
+            - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
+
+      #-------------------------------
       # Deploy Toolchains
       #-------------------------------
       - deploy:
@@ -963,6 +1028,10 @@ workflows:
             - test_linux_trusty_x86_64_nerves_linux_musl
             - test_linux_xenial_x86_64_nerves_linux_musl
 
-            # riscv linux glibc
+            # riscv linux musl
             - test_linux_trusty_riscv64_nerves_linux_musl
             - test_linux_xenial_riscv64_nerves_linux_musl
+
+            # riscv linux glibc
+            - test_linux_trusty_riscv64_nerves_linux_gnu
+            - test_linux_xenial_riscv64_nerves_linux_gnu
