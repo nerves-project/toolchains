@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.9.2
+
+* Changes
+  * Remove static toolchain option. It turned out that this wasn't being used on
+    MacOS and it disabled LTO on Linux. Therefore, you could, in theory, get
+    different output whether you were building on Linux or MacOS due to the LTO
+    option.
+  * Disable use of zstd for LTO. This should avoid the unintended Homebrew
+    dependency on MacOS.
+  * Update Crosstool-NG to use a newer version of zlib and get it from GitHub
+    rather than sourceforge. This fixes a build error.
+
 ## v1.9.1
 
 * Bug fixes
