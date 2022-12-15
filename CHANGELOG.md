@@ -1,5 +1,28 @@
 # Toolchain Releases
 
+## v1.7.0
+
+This release adds a riscv64 glibc toolchain since that has more support than
+muslc in the RISC-V community at the moment.
+
+* Changes
+  * Removes Python scripting support in gdb (fixes toolchain compilation and
+    probably not used)
+  * Remove the static toolchain option since it was being ignored on MacOS. On
+    Linux, it disabled LTO. LTO is included on all platforms now (the default).
+  * Fixes runtime dependency on libzstd another way by forcibly turning it off
+    with a Crosstool-NG option rather than adding a configure flag. This is
+    possible now. Previously the option was hidden due to the static toolchain
+    option.
+  * Let gcc determine the correct option for SJLJ (setjmp/longjmp). The note
+    where it doesn't work doesn't apply to Nerves platforms.
+
+* Tool versions
+  * GCC 11.3
+  * glibc 2.36 (New!)
+  * musl 1.2.3
+  * Linux 4.19 headers except for RISC-V. RISC-V uses Linux 5.10 headers.
+
 ## v1.6.1
 
 This release adds musl libc toolchains for aarch64 and armv7.
