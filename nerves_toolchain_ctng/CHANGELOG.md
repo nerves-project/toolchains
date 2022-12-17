@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.9.3
+
+* Changes
+  * Update Crosstool-NG to bring in a patch to support GNU Make 4.4. This fixes
+    MacOS builds.
+
 ## v1.9.2
 
 * Changes
