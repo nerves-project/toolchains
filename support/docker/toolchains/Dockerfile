@@ -1,4 +1,4 @@
-FROM hexpm/elixir:1.13.3-erlang-25.0.2-ubuntu-bionic-20210930
+FROM hexpm/elixir:1.14.2-erlang-25.2-ubuntu-bionic-20210930
 MAINTAINER Nerves Project
 LABEL maintainer="Nerves Project developers <nerves@nerves-project.org>" \
       vendor="NervesProject" \
@@ -8,11 +8,10 @@ description="Container with everything needed to build Nerves toolchains"
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG=C.UTF-8
 ENV TERM=xterm
-# The container has no package lists, so need to update first
-RUN useradd -ms /bin/bash nerves
-RUN set -xe \
-  && apt-get update \
-  && apt-get -y install \
+
+# Install packages
+RUN apt-get update && \
+    apt-get -y install \
 	git \
 	curl \
 	build-essential \
@@ -24,18 +23,43 @@ RUN set -xe \
 	wget \
 	gawk \
 	libtool-bin \
-	automake \
 	libncurses5-dev \
 	help2man \
 	ca-certificates \
 	unzip \
 	lzip \
 	python3 \
-	rsync \
-  && rm -rf /var/lib/apt/lists/* \
-  && mkdir -p /root/.ssh \
-  && ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts \
-  && chmod 700 /root/.ssh \
-  && chmod 600 /root/.ssh/known_hosts
+	rsync && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /tmp/build
+
+# Install autoconf and automake since Crosstool-NG requires newer versions
+RUN cd /tmp/build && \
+    wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz && \
+    tar xvzf autoconf-2.71.tar.gz && \
+    cd autoconf-2.71 && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install
+
+RUN cd /tmp/build && \
+    wget https://ftp.gnu.org/gnu/automake/automake-1.16.tar.gz && \
+    tar xvzf automake-1.16.tar.gz && \
+    cd automake-1.16 && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install
+
+RUN rm -fr /tmp/build
+
+# Set up ssh
+RUN mkdir -p /root/.ssh && \
+    ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts && \
+    chmod 700 /root/.ssh && \
+    chmod 600 /root/.ssh/known_hosts
+
+# Add the nerves user
+RUN useradd -ms /bin/bash nerves
 USER nerves
