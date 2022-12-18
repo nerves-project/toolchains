@@ -151,7 +151,7 @@ deploy_workflow: &deploy_workflow
       only: /v.*/
 
 mac_xcode: &mac_xcode
-  xcode: 11.7.0
+  xcode: 12.4.0
 
 mac_env: &mac_env
   BUILD_OS: darwin
