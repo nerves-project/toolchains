@@ -242,9 +242,9 @@ build_gcc()
 	gmake
 	gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
-        # Homebrew's gcc is gcc-12
+        # Homebrew's gcc is gcc-13
         BINUTILS=$(brew --prefix binutils)
-        CC=gcc-12 CXX=g++-12 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
+        CC=gcc-13 CXX=g++-13 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
 	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
         SED=$HOMEBREW_PREFIX/bin/gsed
 	gmake
