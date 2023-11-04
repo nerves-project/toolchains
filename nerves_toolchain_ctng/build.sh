@@ -9,7 +9,7 @@ set -e
 # Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
 
 CTNG_USE_GIT=true
-CTNG_TAG=cf25b4edb096c9b815daa202968c15906b8047e5
+CTNG_TAG=daf19e17615fdc58503ead8ebff252d7ade90fc0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
