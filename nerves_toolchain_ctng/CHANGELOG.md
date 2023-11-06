@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.10.0
+
+* Changes
+  * Update Crosstool-NG to daf19e17 (Nov 2, 2023)
+  * GCC 13.2 can now be selected
+  * Enabling static toolchains no longer disables LTO (see v1.9.2)
+
 ## v1.9.3
 
 * Changes
