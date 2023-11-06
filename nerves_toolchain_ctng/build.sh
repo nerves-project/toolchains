@@ -170,7 +170,7 @@ init()
     if [[ $BUILD_OS = "darwin" ]]; then
         hdiutil detach "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
         rm -fr "$WORK_DIR" "$WORK_DMG"
-        hdiutil create -size 10g -fs "Case-sensitive HFS+" -volname "$WORK_DMG_VOLNAME" "$WORK_DMG"
+        hdiutil create -size 32g -fs "Case-sensitive HFS+" -volname "$WORK_DMG_VOLNAME" "$WORK_DMG"
         hdiutil attach "$WORK_DMG"
         ln -s "/Volumes/$WORK_DMG_VOLNAME" "$WORK_DIR"
     elif [[ $BUILD_OS = "linux" || $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
