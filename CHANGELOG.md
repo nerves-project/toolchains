@@ -1,5 +1,22 @@
 # Toolchain Releases
 
+## v13.2.0
+
+This release bumps GCC from 12.2 to 13.2 and adopts the new version scheme that
+mirrors GCC versions.
+
+* Changes
+  * Re-add static toolchain option since LTO no longer gets turned off when it's
+    enabled.
+  * Build a multilib toolchain for RISC-V glibc builds to support both 32-bit
+    and 64-bit, soft and hard float compilation
+
+* Tool versions
+  * GCC 13.2
+  * glibc 2.38
+  * musl 1.2.4
+  * Linux 5.4 headers except for RISC-V. RISC-V uses Linux 5.15 headers.
+
 ## v1.8.0
 
 This release bumps GCC from 11.3 to 12.2.
