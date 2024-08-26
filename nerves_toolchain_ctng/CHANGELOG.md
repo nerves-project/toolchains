@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.11.0
+
+* Changes
+  * GCC 14.2 can now be selected
+  * Update Crosstool-NG to 5595edc (Aug 21, 2024)
+
 ## v1.10.0
 
 * Changes
