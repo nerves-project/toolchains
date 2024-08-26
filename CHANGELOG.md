@@ -1,5 +1,14 @@
 # Toolchain Releases
 
+## v14.2.0
+
+This release bumps GCC from 13.2 to 14.2.
+
+* Tool versions
+  * GCC 14.2 (https://gcc.gnu.org/gcc-14/changes.html)
+  * glibc 2.40
+  * musl 1.2.5
+
 ## v13.2.0
 
 This release bumps GCC from 12.2 to 13.2 and adopts the new version scheme that
