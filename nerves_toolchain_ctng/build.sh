@@ -115,9 +115,11 @@ if [[ $BUILD_OS = "darwin" ]]; then
     WORK_DMG="$WORK_DIR.dmg"
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
+    # Used by crosstool-ng's configure script
     export CURSES_LIBS="-L$(brew --prefix ncurses)/lib -lncursesw"
+
     CROSSTOOL_LDFLAGS="-L$HOMEBREW_PREFIX/lib -lintl"
-    CROSSTOOL_CFLAGS="-I$HOMEBREW_PREFIX/include"
+    CROSSTOOL_CFLAGS="-I$HOMEBREW_PREFIX/include -I$(brew --prefix ncurses)/include"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
     export PATH="$(brew --prefix bison)/bin:$PATH"
