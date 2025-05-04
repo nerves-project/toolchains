@@ -85,10 +85,10 @@ fi
 NERVES_TOOLCHAIN_VERSION=$(cat "$CTNG_CONFIG_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
-LOCAL_INSTALL_DIR=$WORK_DIR/usr
+LOCAL_INSTALL_DIR="$WORK_DIR/usr"
 
 # Install directories for the tools we make
-GCC_INSTALL_DIR=$WORK_DIR/x-tools  # make sure that this is the same as in the config file
+GCC_INSTALL_DIR="$WORK_DIR/x-tools"  # make sure that this is the same as in the config file
 
 # Bump the number of open files. ct-ng does this now so this can be deleted when we're
 # happy with it. (Probably the next time someone looks at these lines of code.)
@@ -111,7 +111,7 @@ if [[ $BUILD_OS = "darwin" ]]; then
     # Use GNU tar from Homebrew (brew install gnu-tar)
     TAR=gtar
 
-    WORK_DMG=$WORK_DIR.dmg
+    WORK_DMG="$WORK_DIR.dmg"
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
     export CURSES_LIBS="-L$(brew --prefix ncurses)/lib -lncursesw"
@@ -174,7 +174,7 @@ init()
         hdiutil attach "$WORK_DMG"
         ln -s "/Volumes/$WORK_DMG_VOLNAME" "$WORK_DIR"
     elif [[ $BUILD_OS = "linux" || $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
-        if [[ -e $WORK_DIR ]]; then
+        if [[ -e "$WORK_DIR" ]]; then
             chmod -R u+w "$WORK_DIR"
             rm -fr "$WORK_DIR"
         fi
