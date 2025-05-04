@@ -62,6 +62,7 @@ fi
 
 # Ensure that the config and work paths are absolute
 BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
+mkdir -p "$WORK_DIR"
 WORK_DIR=$($READLINK -f "$WORK_DIR")
 
 CTNG_CONFIG_DIR=$(dirname "$BASE_CONFIG")
