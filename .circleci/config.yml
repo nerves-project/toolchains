@@ -218,16 +218,19 @@ jobs:
           name: Copy artifacts
           command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts || true
       - run:
-          name: Install ghr
+          name: Install GitHub CLI
           command: |
-            wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
-            unzip ghr_v0.5.4_linux_amd64.zip
+            apt-get update
+            apt-get install -y gh
       - run:
           name: Create release notes
           command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" ./CHANGELOG.md > /home/nerves/deploy/RELEASE_NOTES
       - run:
           name: Deploy artifacts to GitHub
-          command: ./ghr -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat /home/nerves/deploy/RELEASE_NOTES)" $CIRCLE_TAG /home/nerves/deploy/artifacts
+          command: |
+            gh release create $CIRCLE_TAG /home/nerves/deploy/artifacts/* \
+              --draft \
+              --notes-file /home/nerves/deploy/RELEASE_NOTES
 
 workflows:
   build_test_deploy:
