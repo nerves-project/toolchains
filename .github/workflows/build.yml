@@ -10,10 +10,9 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.toolchain }} on ${{ matrix.arch }}
+    name: Build ${{ matrix.toolchain }} on ${{ matrix.os }}-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container:
-      image: hexpm/elixir:1.17.3-erlang-26.2-ubuntu-focal-20250404
+    container: ${{ matrix.os == 'linux' && fromJSON('{"image":"hexpm/elixir:1.17.3-erlang-26.2-ubuntu-focal-20250404"}') || null }}
     strategy:
       fail-fast: false
       matrix:
@@ -30,18 +29,29 @@ jobs:
           - nerves_toolchain_x86_64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_gnu
+        os: [linux, darwin]
         arch: [x86_64, aarch64]
+        exclude:
+          # Only build macOS on Apple Silicon
+          - os: darwin
+            arch: x86_64
         include:
-          - arch: x86_64
+          - os: linux
+            arch: x86_64
             runner: ubuntu-latest
-          - arch: aarch64
+          - os: linux
+            arch: aarch64
             runner: ubuntu-24.04-arm64
+          - os: darwin
+            arch: aarch64
+            runner: macos-14
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install build dependencies (Linux)
+        if: matrix.os == 'linux'
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
@@ -51,61 +61,123 @@ jobs:
             autoconf automake xz-utils sudo
           rm -rf /var/lib/apt/lists/*
 
-      - name: Setup nerves user
+      - name: Install build dependencies (macOS)
+        if: matrix.os == 'darwin'
+        run: |
+          brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
+
+      - name: Setup nerves user (Linux)
+        if: matrix.os == 'linux'
         run: |
           useradd -ms /bin/bash nerves
           mkdir -p /home/nerves/build
           chown -R nerves:nerves /home/nerves
           chown -R nerves:nerves $GITHUB_WORKSPACE
 
-      - name: Install hex and rebar
+      - name: Install hex and rebar (Linux)
+        if: matrix.os == 'linux'
         run: |
           sudo -u nerves -E HOME=/home/nerves mix local.hex --force
           sudo -u nerves -E HOME=/home/nerves mix local.rebar --force
 
-      - name: Install nerves_bootstrap
+      - name: Install hex and rebar (macOS)
+        if: matrix.os == 'darwin'
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Install nerves_bootstrap (Linux)
+        if: matrix.os == 'linux'
         run: sudo -u nerves -E HOME=/home/nerves mix archive.install hex nerves_bootstrap --force
 
-      - name: Cache crosstool-NG downloads
+      - name: Install nerves_bootstrap (macOS)
+        if: matrix.os == 'darwin'
+        run: mix archive.install hex nerves_bootstrap --force
+
+      - name: Cache crosstool-NG downloads (Linux)
+        if: matrix.os == 'linux'
         uses: actions/cache@v4
         with:
           path: /home/nerves/.nerves/dl
-          key: nerves-dl-${{ matrix.toolchain }}-${{ runner.os }}
+          key: nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
           restore-keys: |
+            nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-
             nerves-dl-${{ matrix.toolchain }}-
-            nerves-dl-
 
-      - name: Fix cache ownership
+      - name: Cache crosstool-NG downloads (macOS)
+        if: matrix.os == 'darwin'
+        uses: actions/cache@v4
+        with:
+          path: ~/.nerves/dl
+          key: nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
+          restore-keys: |
+            nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-
+            nerves-dl-${{ matrix.toolchain }}-
+
+      - name: Fix cache ownership (Linux)
+        if: matrix.os == 'linux'
         run: |
           mkdir -p /home/nerves/.nerves/dl
           chown -R nerves:nerves /home/nerves/.nerves
 
-      - name: Fetch dependencies
+      - name: Fetch dependencies (Linux)
+        if: matrix.os == 'linux'
         working-directory: ${{ matrix.toolchain }}
         run: sudo -u nerves -E HOME=/home/nerves mix deps.get
 
-      - name: Build toolchain
+      - name: Fetch dependencies (macOS)
+        if: matrix.os == 'darwin'
+        working-directory: ${{ matrix.toolchain }}
+        run: mix deps.get
+
+      - name: Build toolchain (Linux)
+        if: matrix.os == 'linux'
         working-directory: ${{ matrix.toolchain }}
         run: sudo -u nerves -E HOME=/home/nerves mix compile
 
-      - name: Create artifact directory
+      - name: Build toolchain (macOS)
+        if: matrix.os == 'darwin'
+        working-directory: ${{ matrix.toolchain }}
+        run: mix compile
+
+      - name: Create artifact directory (Linux)
+        if: matrix.os == 'linux'
         run: |
           mkdir -p /home/nerves/deploy/toolchain
           chown -R nerves:nerves /home/nerves/deploy
 
-      - name: Create artifact
+      - name: Create artifact directory (macOS)
+        if: matrix.os == 'darwin'
+        run: mkdir -p $HOME/deploy/toolchain
+
+      - name: Create artifact (Linux)
+        if: matrix.os == 'linux'
         working-directory: ${{ matrix.toolchain }}
         run: sudo -u nerves -E HOME=/home/nerves mix nerves.artifact ${{ matrix.toolchain }} --path /home/nerves/deploy/toolchain
 
-      - name: Upload artifact
+      - name: Create artifact (macOS)
+        if: matrix.os == 'darwin'
+        working-directory: ${{ matrix.toolchain }}
+        run: mix nerves.artifact ${{ matrix.toolchain }} --path $HOME/deploy/toolchain
+
+      - name: Upload artifact (Linux)
+        if: matrix.os == 'linux'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.toolchain }}-${{ matrix.arch }}
+          name: ${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
           path: /home/nerves/deploy/toolchain/*.tar.xz
           retention-days: 7
 
+      - name: Upload artifact (macOS)
+        if: matrix.os == 'darwin'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
+          path: ~/deploy/toolchain/*.tar.xz
+          retention-days: 7
+
   test:
-    name: Test ${{ matrix.toolchain }} (${{ matrix.build_arch }}) on Ubuntu ${{ matrix.ubuntu_version }}
+    name: Test ${{ matrix.toolchain }} (linux-${{ matrix.build_arch }}) on Ubuntu ${{ matrix.ubuntu_version }}
     needs: build
     runs-on: ubuntu-latest
     container:
@@ -149,7 +221,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.toolchain }}-${{ matrix.build_arch }}
+          name: ${{ matrix.toolchain }}-linux-${{ matrix.build_arch }}
           path: /tmp/toolchain
 
       - name: Decompress toolchain archive
@@ -160,9 +232,48 @@ jobs:
       - name: Compile hello world app
         run: /root/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
 
+  test_macos:
+    name: Test ${{ matrix.toolchain }} (darwin-aarch64) on macOS
+    needs: build
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - nerves_toolchain_aarch64_nerves_linux_gnu
+          - nerves_toolchain_aarch64_nerves_linux_musl
+          - nerves_toolchain_armv7_nerves_linux_gnueabihf
+          - nerves_toolchain_armv7_nerves_linux_musleabihf
+          - nerves_toolchain_armv5_nerves_linux_musleabi
+          - nerves_toolchain_armv6_nerves_linux_gnueabihf
+          - nerves_toolchain_i586_nerves_linux_gnu
+          - nerves_toolchain_mipsel_nerves_linux_musl
+          - nerves_toolchain_x86_64_nerves_linux_gnu
+          - nerves_toolchain_x86_64_nerves_linux_musl
+          - nerves_toolchain_riscv64_nerves_linux_musl
+          - nerves_toolchain_riscv64_nerves_linux_gnu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.toolchain }}-darwin-aarch64
+          path: /tmp/toolchain
+
+      - name: Decompress toolchain archive
+        run: |
+          mkdir -p $HOME/toolchain
+          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+
+      - name: Compile hello world app
+        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
+
   deploy:
     name: Deploy to GitHub Release
-    needs: test
+    needs: [test, test_macos]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
