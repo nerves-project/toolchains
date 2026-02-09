@@ -1,0 +1,183 @@
+name: Build and Test Toolchains
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    container:
+      image: hexpm/elixir:1.18.4-erlang-27.3.4-ubuntu-jammy-20260109
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - nerves_toolchain_aarch64_nerves_linux_gnu
+          - nerves_toolchain_aarch64_nerves_linux_musl
+          - nerves_toolchain_armv7_nerves_linux_gnueabihf
+          - nerves_toolchain_armv7_nerves_linux_musleabihf
+          - nerves_toolchain_armv5_nerves_linux_musleabi
+          - nerves_toolchain_armv6_nerves_linux_gnueabihf
+          - nerves_toolchain_i586_nerves_linux_gnu
+          - nerves_toolchain_mipsel_nerves_linux_musl
+          - nerves_toolchain_x86_64_nerves_linux_gnu
+          - nerves_toolchain_x86_64_nerves_linux_musl
+          - nerves_toolchain_riscv64_nerves_linux_musl
+          - nerves_toolchain_riscv64_nerves_linux_gnu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            git curl build-essential libtool gperf bison flex \
+            texinfo wget gawk libtool-bin libncurses5-dev \
+            help2man ca-certificates unzip lzip python3 rsync \
+            autoconf automake xz-utils sudo
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Setup nerves user
+        run: |
+          useradd -ms /bin/bash nerves
+          mkdir -p /home/nerves/build
+          chown -R nerves:nerves /home/nerves
+          chown -R nerves:nerves $GITHUB_WORKSPACE
+
+      - name: Install hex and rebar
+        run: |
+          sudo -u nerves -E HOME=/home/nerves mix local.hex --force
+          sudo -u nerves -E HOME=/home/nerves mix local.rebar --force
+
+      - name: Install nerves_bootstrap
+        run: sudo -u nerves -E HOME=/home/nerves mix archive.install hex nerves_bootstrap --force
+
+      - name: Cache crosstool-NG downloads
+        uses: actions/cache@v4
+        with:
+          path: /home/nerves/.nerves/dl
+          key: nerves-dl-${{ matrix.toolchain }}-${{ runner.os }}
+          restore-keys: |
+            nerves-dl-${{ matrix.toolchain }}-
+            nerves-dl-
+
+      - name: Fix cache ownership
+        run: |
+          mkdir -p /home/nerves/.nerves/dl
+          chown -R nerves:nerves /home/nerves/.nerves
+
+      - name: Fetch dependencies
+        working-directory: ${{ matrix.toolchain }}
+        run: sudo -u nerves -E HOME=/home/nerves mix deps.get
+
+      - name: Build toolchain
+        working-directory: ${{ matrix.toolchain }}
+        run: sudo -u nerves -E HOME=/home/nerves mix compile
+
+      - name: Create artifact directory
+        run: |
+          mkdir -p /home/nerves/deploy/toolchain
+          chown -R nerves:nerves /home/nerves/deploy
+
+      - name: Create artifact
+        working-directory: ${{ matrix.toolchain }}
+        run: sudo -u nerves -E HOME=/home/nerves mix nerves.artifact ${{ matrix.toolchain }} --path /home/nerves/deploy/toolchain
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.toolchain }}
+          path: /home/nerves/deploy/toolchain/*.tar.xz
+          retention-days: 7
+
+  test:
+    name: Test ${{ matrix.toolchain }} on Ubuntu ${{ matrix.ubuntu_version }}
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:${{ matrix.ubuntu_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - nerves_toolchain_aarch64_nerves_linux_gnu
+          - nerves_toolchain_aarch64_nerves_linux_musl
+          - nerves_toolchain_armv7_nerves_linux_gnueabihf
+          - nerves_toolchain_armv7_nerves_linux_musleabihf
+          - nerves_toolchain_armv5_nerves_linux_musleabi
+          - nerves_toolchain_armv6_nerves_linux_gnueabihf
+          - nerves_toolchain_i586_nerves_linux_gnu
+          - nerves_toolchain_mipsel_nerves_linux_musl
+          - nerves_toolchain_x86_64_nerves_linux_gnu
+          - nerves_toolchain_x86_64_nerves_linux_musl
+          - nerves_toolchain_riscv64_nerves_linux_musl
+          - nerves_toolchain_riscv64_nerves_linux_gnu
+        ubuntu_version: [focal, jammy]
+        # Test aarch64_gnu on noble as well
+        include:
+          - toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+            ubuntu_version: noble
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install xz-utils
+        run: |
+          apt-get update
+          apt-get -y install xz-utils
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.toolchain }}
+          path: /tmp/toolchain
+
+      - name: Decompress toolchain archive
+        run: |
+          mkdir -p /root/toolchain
+          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C /root/toolchain
+
+      - name: Compile hello world app
+        run: /root/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
+
+  deploy:
+    name: Deploy to GitHub Release
+    needs: test
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare artifacts for upload
+        run: |
+          mkdir -p release-artifacts
+          find artifacts -name "*.tar.xz" -exec cp {} release-artifacts/ \;
+          ls -lh release-artifacts/
+
+      - name: Extract release notes
+        run: |
+          grep -Pazo "(?s)(?<=## ${GITHUB_REF_NAME})[^#]+" ./CHANGELOG.md > RELEASE_NOTES.md || echo "No release notes found for ${GITHUB_REF_NAME}" > RELEASE_NOTES.md
+
+      - name: Upload artifacts to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} release-artifacts/*.tar.xz
