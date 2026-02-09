@@ -10,10 +10,10 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.toolchain }}
-    runs-on: ubuntu-latest
+    name: Build ${{ matrix.toolchain }} on ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
     container:
-      image: hexpm/elixir:1.18.4-erlang-27.3.4-ubuntu-jammy-20260109
+      image: hexpm/elixir:1.17.3-erlang-26.2-ubuntu-focal-20250404
     strategy:
       fail-fast: false
       matrix:
@@ -30,6 +30,12 @@ jobs:
           - nerves_toolchain_x86_64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_gnu
+        arch: [x86_64, aarch64]
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm64
 
     steps:
       - name: Checkout code
@@ -94,12 +100,12 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.toolchain }}
+          name: ${{ matrix.toolchain }}-${{ matrix.arch }}
           path: /home/nerves/deploy/toolchain/*.tar.xz
           retention-days: 7
 
   test:
-    name: Test ${{ matrix.toolchain }} on Ubuntu ${{ matrix.ubuntu_version }}
+    name: Test ${{ matrix.toolchain }} (${{ matrix.build_arch }}) on Ubuntu ${{ matrix.ubuntu_version }}
     needs: build
     runs-on: ubuntu-latest
     container:
@@ -120,10 +126,15 @@ jobs:
           - nerves_toolchain_x86_64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_gnu
+        build_arch: [x86_64, aarch64]
         ubuntu_version: [focal, jammy]
         # Test aarch64_gnu on noble as well
         include:
           - toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+            build_arch: x86_64
+            ubuntu_version: noble
+          - toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+            build_arch: aarch64
             ubuntu_version: noble
 
     steps:
@@ -138,7 +149,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.toolchain }}
+          name: ${{ matrix.toolchain }}-${{ matrix.build_arch }}
           path: /tmp/toolchain
 
       - name: Decompress toolchain archive
