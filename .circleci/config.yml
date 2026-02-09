@@ -1,1037 +1,570 @@
-defaults: &defaults
-  working_directory: /home/nerves/build
-  environment:
-    ENV: CI
-  docker:
-    - image: nervesproject/toolchains
-  resource_class: large
+version: 2.1
 
-install_hex_rebar: &install_hex_rebar
-  run:
-    name: Install hex and rebar
-    command: |
-      mix local.hex --force
-      mix local.rebar --force
+parameters:
+  elixir_version:
+    type: string
+    default: "1.18.4"
+  erlang_version:
+    type: string
+    default: "27.3.4"
+  ubuntu_base:
+    type: string
+    default: "jammy-20260109"
 
-install_nerves_bootstrap: &install_nerves_bootstrap
-  run:
-    name: Install nerves_bootstrap
-    command: mix archive.install hex nerves_bootstrap --force
+commands:
+  setup_user:
+    description: "Setup nerves user (crosstool-NG refuses to run as root)"
+    steps:
+      - run:
+          name: Setup nerves user
+          command: |
+            # Create nerves user if it doesn't exist
+            if ! id -u nerves > /dev/null 2>&1; then
+              useradd -ms /bin/bash nerves
+            fi
+            # Ensure /home/nerves exists and has correct ownership
+            mkdir -p /home/nerves/build
+            chown -R nerves:nerves /home/nerves
 
-build: &build
-  steps:
-    - checkout
-    - <<: *install_hex_rebar
-    - <<: *install_nerves_bootstrap
-    - run: echo "$TOOLCHAIN" > .toolchain
-    - run: echo "$BUILD_OS" > .build_os
-    - restore_cache:
-        key: nerves/dl/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Branch }}
-    - run:
-        name: Fetch Deps
-        command: |
-          cd $TOOLCHAIN
-          mix deps.get || (sleep 5; mix deps.get)
-    - run:
-        name: Build
-        command: |
-          cd $TOOLCHAIN
-          mix compile
-    - run:
-        name: "Create artifact dir"
-        command: mkdir -p /home/nerves/deploy/toolchain
-    - run:
-        name: Create artifact
-        command: |
-          cd $TOOLCHAIN
-          mix nerves.artifact $TOOLCHAIN --path /home/nerves/deploy/toolchain
-    - save_cache:
-        key: nerves/dl/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Branch }}
-        paths:
-          - $HOME/.nerves/dl
-    - store_artifacts:
-        path: /home/nerves/deploy/toolchain
-        destination: toolchain
-    - save_cache:
-        key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-        paths:
-          - /home/nerves/deploy/toolchain
+  install_build_deps:
+    description: "Install toolchain build dependencies"
+    steps:
+      - run:
+          name: Install build dependencies
+          command: |
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              git curl build-essential libtool gperf bison flex \
+              texinfo wget gawk libtool-bin libncurses5-dev \
+              help2man ca-certificates unzip lzip python3 rsync \
+              autoconf automake xz-utils sudo
+            rm -rf /var/lib/apt/lists/*
 
-test: &test
-  working_directory: /home/nerves/build
-  steps:
-    - checkout
-    - run:
-        name: Setup Cache Vars
-        command: |
-            echo "$TOOLCHAIN" > .toolchain
-            echo "$BUILD_OS" > .build_os
-    - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-    - run:
-        name: Install xz
-        command: |
-          apt-get update
-          apt-get -y install xz-utils
-    - run:
-        name: Decompress toolchain archive
-        command: |
-          mkdir -p /root/toolchain
-          tar xvf /home/nerves/deploy/toolchain/*.tar.xz --strip-components=1 -C /root/toolchain
-    - run:
-        name: Compile hello world app
-        command: /root/toolchain/bin/*-g++ /home/nerves/build/support/smoketest/main.cpp
+  install_hex_rebar:
+    description: "Install hex and rebar"
+    steps:
+      - run:
+          name: Install hex and rebar
+          command: sudo -u nerves -E HOME=/home/nerves mix local.hex --force && sudo -u nerves -E HOME=/home/nerves mix local.rebar --force
 
-build_workflow: &build_workflow
-  context: org-global
-  filters:
-    tags:
-      only: /.*/
+  install_nerves_bootstrap:
+    description: "Install nerves_bootstrap"
+    steps:
+      - run:
+          name: Install nerves_bootstrap
+          command: sudo -u nerves -E HOME=/home/nerves mix archive.install hex nerves_bootstrap --force
 
-test_workflow: &test_workflow
-  context: org-global
-  filters:
-    tags:
-      only: /.*/
-
-deploy_workflow: &deploy_workflow
-  context: org-global
-  filters:
-    branches:
-      ignore: /.*/
-    tags:
-      only: /v.*/
-
-linux: &linux
-  BUILD_OS: linux
-
-version: 2.0
+executors:
+  elixir_builder:
+    working_directory: /home/nerves/build
+    docker:
+      - image: hexpm/elixir:<< pipeline.parameters.elixir_version >>-erlang-<< pipeline.parameters.erlang_version >>-ubuntu-<< pipeline.parameters.ubuntu_base >>
+    resource_class: large
+    environment:
+      ENV: CI
+      BUILD_OS: linux
 
 jobs:
-  #-------------------------------
-  # Build
-  #-------------------------------
-  # aarch64_nerves_linux_gnu
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
-    <<: *defaults
+  build_toolchain:
+    parameters:
+      toolchain:
+        type: string
+    executor: elixir_builder
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
-    <<: *build
+      TOOLCHAIN: << parameters.toolchain >>
+    steps:
+      - checkout
+      - install_build_deps
+      - setup_user
+      - run:
+          name: Fix checkout ownership
+          command: chown -R nerves:nerves /home/nerves/build
+      - install_hex_rebar
+      - install_nerves_bootstrap
+      - run:
+          name: Setup cache keys
+          command: |
+            echo "<< parameters.toolchain >>" > .toolchain
+            echo "linux" > .build_os
+      - restore_cache:
+          key: nerves/dl/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Branch }}
+      - run:
+          name: Fix cache ownership
+          command: |
+            mkdir -p /home/nerves/.nerves/dl
+            if [ -d /root/.nerves/dl ]; then
+              cp -r /root/.nerves/dl/* /home/nerves/.nerves/dl/ || true
+            fi
+            chown -R nerves:nerves /home/nerves/.nerves
+      - run:
+          name: Fetch dependencies
+          command: |
+            cd << parameters.toolchain >>
+            sudo -u nerves -E HOME=/home/nerves mix deps.get || (sleep 5; sudo -u nerves -E HOME=/home/nerves mix deps.get)
+      - run:
+          name: Build toolchain
+          command: |
+            cd << parameters.toolchain >>
+            sudo -u nerves -E HOME=/home/nerves mix compile
+      - run:
+          name: Create artifact directory
+          command: |
+            mkdir -p /home/nerves/deploy/toolchain
+            chown -R nerves:nerves /home/nerves/deploy
+      - run:
+          name: Create artifact
+          command: |
+            cd << parameters.toolchain >>
+            sudo -u nerves -E HOME=/home/nerves mix nerves.artifact << parameters.toolchain >> --path /home/nerves/deploy/toolchain
+      - run:
+          name: Prepare cache for saving
+          command: |
+            mkdir -p /root/.nerves/dl
+            if [ -d /home/nerves/.nerves/dl ]; then
+              cp -r /home/nerves/.nerves/dl/* /root/.nerves/dl/ || true
+            fi
+      - save_cache:
+          key: nerves/dl/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Branch }}
+          paths:
+            - /root/.nerves/dl
+      - store_artifacts:
+          path: /home/nerves/deploy/toolchain
+          destination: toolchain
+      - save_cache:
+          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - /home/nerves/deploy/toolchain
 
-  #-------------------------------
-  # Build
-  #-------------------------------
-  # aarch64_nerves_linux_musl
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_aarch64_nerves_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
-      <<: *linux
-    <<: *build
-
-
-  #-------------------------------
-  # armv7_nerves_linux_gnueabihf
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # armv7_nerves_linux_musleabihf
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # armv5_nerves_linux_musleabi
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_armv5_nerves_linux_musleabi:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # armv6_nerves_linux_gnueabi
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_armv6_nerves_linux_gnueabihf:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # i586_nerves_linux_gnu
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_i586_nerves_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # mipsel_nerves_linux_musl
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_mipsel_nerves_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # x86_64_nerves_linux_gnu
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_x86_64_nerves_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # x86_64_nerves_linux_musl
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_x86_64_nerves_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # riscv64_nerves_linux_musl
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_riscv64_nerves_linux_musl:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
-      <<: *linux
-    <<: *build
-
-  #-------------------------------
-  # riscv64_nerves_linux_gnu
-  #-------------------------------
-  # build
-  #  linux
-  build_linux_nerves_toolchain_riscv64_nerves_linux_gnu:
-    <<: *defaults
-    environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
-      <<: *linux
-    <<: *build
-
-
-  #-------------------------------
-  # Test Trusty (14.04)
-  #-------------------------------
-  # aarch64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_aarch64_nerves_linux_gnu:
+  test_toolchain:
+    parameters:
+      toolchain:
+        type: string
+      ubuntu_version:
+        type: string
+    working_directory: /home/nerves/build
     docker:
-      - image: ubuntu:trusty
+      - image: ubuntu:<< parameters.ubuntu_version >>
     environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # Test Trusty (14.04)
-  #-------------------------------
-  # aarch64_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_aarch64_nerves_linux_musl:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv7_nerves_linux_gnueabihf
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_armv7_nerves_linux_gnueabihf:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv7_nerves_linux_musleabihf
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_armv7_nerves_linux_musleabihf:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv5_nerves_linux_musleabi
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_armv5_nerves_linux_musleabi:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv6_nerves_linux_gnueabi
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_armv6_nerves_linux_gnueabi:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # i586_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_i586_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # mipsel_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_mipsel_nerves_linux_musl:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # x86_64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_x86_64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # x86_64_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_x86_64_nerves_linux_musl:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # riscv64_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_riscv64_nerves_linux_musl:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # riscv64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_trusty_riscv64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:trusty
-    environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # Test Xenial (16.04)
-  #-------------------------------
-  # aarch64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_aarch64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # Test Xenial (16.04)
-  #-------------------------------
-  # aarch64_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_aarch64_nerves_linux_musl:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv7_nerves_linux_gnueabihf
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_armv7_nerves_linux_gnueabihf:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_gnueabihf
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv7_nerves_linux_musleabihf
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_armv7_nerves_linux_musleabihf:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv7_nerves_linux_musleabihf
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv5_nerves_linux_musleabi
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_armv5_nerves_linux_musleabi:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv5_nerves_linux_musleabi
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # armv6_nerves_linux_gnueabi
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_armv6_nerves_linux_gnueabi:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_armv6_nerves_linux_gnueabihf
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # i586_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_i586_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_i586_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # mipsel_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_mipsel_nerves_linux_musl:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_mipsel_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # x86_64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_x86_64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # x86_64_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_x86_64_nerves_linux_musl:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_x86_64_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # riscv64_nerves_linux_musl
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_riscv64_nerves_linux_musl:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_musl
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # riscv64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_xenial_riscv64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:xenial
-    environment:
-      TOOLCHAIN: nerves_toolchain_riscv64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-
-  # Spot checks on aarch64 across more platforms
-
-  #-------------------------------
-  # Test Bionic (18.04)
-  #-------------------------------
-  # aarch64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_bionic_aarch64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:bionic
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # Test Focal (20.04)
-  #-------------------------------
-  # aarch64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_focal_aarch64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:focal
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  #-------------------------------
-  # Test Jammy (22.04)
-  #-------------------------------
-  # aarch64_nerves_linux_gnu
-  #-------------------------------
-  # test
-  #  linux
-  test_linux_jammy_aarch64_nerves_linux_gnu:
-    docker:
-      - image: ubuntu:jammy
-    environment:
-      TOOLCHAIN: nerves_toolchain_aarch64_nerves_linux_gnu
-      <<: *linux
-    <<: *test
-
-  deploy:
-    <<: *defaults
+      TOOLCHAIN: << parameters.toolchain >>
+      BUILD_OS: linux
     steps:
       - checkout
       - run:
-          name: Create Artifacts Dir
+          name: Setup cache keys
+          command: |
+            echo "<< parameters.toolchain >>" > .toolchain
+            echo "linux" > .build_os
+      - restore_cache:
+          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+      - run:
+          name: Install xz-utils
+          command: |
+            apt-get update
+            apt-get -y install xz-utils
+      - run:
+          name: Decompress toolchain archive
+          command: |
+            mkdir -p /root/toolchain
+            tar xvf /home/nerves/deploy/toolchain/*.tar.xz --strip-components=1 -C /root/toolchain
+      - run:
+          name: Compile hello world app
+          command: /root/toolchain/bin/*-g++ /home/nerves/build/support/smoketest/main.cpp
+
+  deploy:
+    executor: elixir_builder
+    steps:
+      - checkout
+      - install_build_deps
+      - run:
+          name: Create artifacts directory
           command: mkdir -p /home/nerves/deploy/artifacts
       - run:
-          name: nerves_toolchain_aarch64_nerves_linux_gnu
-          command: echo "nerves_toolchain_aarch64_nerves_linux_gnu" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          name: Restore all toolchain artifacts
+          command: |
+            for toolchain in aarch64_nerves_linux_gnu aarch64_nerves_linux_musl \
+                             armv7_nerves_linux_gnueabihf armv7_nerves_linux_musleabihf \
+                             armv5_nerves_linux_musleabi armv6_nerves_linux_gnueabihf \
+                             i586_nerves_linux_gnu mipsel_nerves_linux_musl \
+                             x86_64_nerves_linux_gnu x86_64_nerves_linux_musl \
+                             riscv64_nerves_linux_musl riscv64_nerves_linux_gnu; do
+              echo "nerves_toolchain_${toolchain}" > .toolchain
+              echo "linux" > .build_os
+            done
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_aarch64_nerves_linux_musl
-          command: echo "nerves_toolchain_aarch64_nerves_linux_musl" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_aarch64_nerves_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_armv7_nerves_linux_gnueabihf
-          command: echo "nerves_toolchain_armv7_nerves_linux_gnueabihf" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_aarch64_nerves_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_armv7_nerves_linux_musleabihf
-          command: echo "nerves_toolchain_armv7_nerves_linux_musleabihf" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_armv7_nerves_linux_gnueabihf/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_armv5_nerves_linux_musleabi
-          command: echo "nerves_toolchain_armv5_nerves_linux_musleabi" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_armv7_nerves_linux_musleabihf/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_armv6_nerves_linux_gnueabihf
-          command: echo "nerves_toolchain_armv6_nerves_linux_gnueabihf" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_armv5_nerves_linux_musleabi/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_i586_nerves_linux_gnu
-          command: echo "nerves_toolchain_i586_nerves_linux_gnu" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_armv6_nerves_linux_gnueabihf/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_mipsel_nerves_linux_musl
-          command: echo "nerves_toolchain_mipsel_nerves_linux_musl" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_i586_nerves_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_x86_64_nerves_linux_gnu
-          command: echo "nerves_toolchain_x86_64_nerves_linux_gnu" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_mipsel_nerves_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_x86_64_nerves_linux_musl
-          command: echo "nerves_toolchain_x86_64_nerves_linux_musl" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_x86_64_nerves_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_riscv64_nerves_linux_musl
-          command: echo "nerves_toolchain_riscv64_nerves_linux_musl" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_x86_64_nerves_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - run:
-          name: nerves_toolchain_riscv64_nerves_linux_gnu
-          command: echo "nerves_toolchain_riscv64_nerves_linux_gnu" > .toolchain
-      - run:
-          name: linux
-          command: echo "linux" > .build_os
+          key: nerves/deploy/nerves_toolchain_riscv64_nerves_linux_musl/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
-          key: nerves/deploy/{{ checksum ".toolchain" }}/{{ checksum ".build_os" }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+          key: nerves/deploy/nerves_toolchain_riscv64_nerves_linux_gnu/linux-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: Copy Artifacts
-          command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts
+          name: Copy artifacts
+          command: cp /home/nerves/deploy/toolchain/*.tar.xz /home/nerves/deploy/artifacts || true
       - run:
-          name: Install dependencies
+          name: Install ghr
           command: |
             wget https://github.com/tcnksm/ghr/releases/download/v0.5.4/ghr_v0.5.4_linux_amd64.zip
             unzip ghr_v0.5.4_linux_amd64.zip
       - run:
-          name: "Create Release Notes"
+          name: Create release notes
           command: grep -Pazo "(?s)(?<=## ${CIRCLE_TAG})[^#]+" ./CHANGELOG.md > /home/nerves/deploy/RELEASE_NOTES
       - run:
-          name: Deploy artifacts to Github
+          name: Deploy artifacts to GitHub
           command: ./ghr -draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat /home/nerves/deploy/RELEASE_NOTES)" $CIRCLE_TAG /home/nerves/deploy/artifacts
 
 workflows:
-  version: 2
   build_test_deploy:
     jobs:
-      #-------------------------------
-      # Build Toolchains
-      #-------------------------------
-      # aarch64_nerves_linux_gnu
-      #-------------------------------
-      - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu:
-          <<: *build_workflow
+      # Build all toolchains
+      - build_toolchain:
+          name: build_nerves_toolchain_aarch64_nerves_linux_gnu
+          toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+          context: org-global
+          filters: &version_filters
+            tags:
+              only: /.*/
 
-      #-------------------------------
-      # Build Toolchains
-      #-------------------------------
-      # aarch64_nerves_linux_musl
-      #-------------------------------
-      - build_linux_nerves_toolchain_aarch64_nerves_linux_musl:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_aarch64_nerves_linux_musl
+          toolchain: nerves_toolchain_aarch64_nerves_linux_musl
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # armv7_nerves_linux_gnueabihf
-      #-------------------------------
-      - build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_armv7_nerves_linux_gnueabihf
+          toolchain: nerves_toolchain_armv7_nerves_linux_gnueabihf
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # armv7_nerves_linux_musleabihf
-      #-------------------------------
-      - build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_armv7_nerves_linux_musleabihf
+          toolchain: nerves_toolchain_armv7_nerves_linux_musleabihf
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # armv5_nerves_linux_musleabi
-      #-------------------------------
-      - build_linux_nerves_toolchain_armv5_nerves_linux_musleabi:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_armv5_nerves_linux_musleabi
+          toolchain: nerves_toolchain_armv5_nerves_linux_musleabi
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # armv6_nerves_linux_gnueabi
-      #-------------------------------
-      - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabihf:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_armv6_nerves_linux_gnueabihf
+          toolchain: nerves_toolchain_armv6_nerves_linux_gnueabihf
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # i586_nerves_linux_gnu
-      #-------------------------------
-      - build_linux_nerves_toolchain_i586_nerves_linux_gnu:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_i586_nerves_linux_gnu
+          toolchain: nerves_toolchain_i586_nerves_linux_gnu
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # mipsel_nerves_linux_musl
-      #-------------------------------
-      - build_linux_nerves_toolchain_mipsel_nerves_linux_musl:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_mipsel_nerves_linux_musl
+          toolchain: nerves_toolchain_mipsel_nerves_linux_musl
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # x86_64_nerves_linux_gnu
-      #-------------------------------
-      - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_x86_64_nerves_linux_gnu
+          toolchain: nerves_toolchain_x86_64_nerves_linux_gnu
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # x86_64_nerves_linux_musl
-      #-------------------------------
-      - build_linux_nerves_toolchain_x86_64_nerves_linux_musl:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_x86_64_nerves_linux_musl
+          toolchain: nerves_toolchain_x86_64_nerves_linux_musl
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # riscv64_nerves_linux_musl
-      #-------------------------------
-      - build_linux_nerves_toolchain_riscv64_nerves_linux_musl:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_riscv64_nerves_linux_musl
+          toolchain: nerves_toolchain_riscv64_nerves_linux_musl
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # riscv64_nerves_linux_gnu
-      #-------------------------------
-      - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu:
-          <<: *build_workflow
+      - build_toolchain:
+          name: build_nerves_toolchain_riscv64_nerves_linux_gnu
+          toolchain: nerves_toolchain_riscv64_nerves_linux_gnu
+          context: org-global
+          filters: *version_filters
 
-      #-------------------------------
-      # Test Toolchains
-      #-------------------------------
-      # aarch64_nerves_linux_gnu
-      #-------------------------------
-      - test_linux_trusty_aarch64_nerves_linux_gnu:
-          <<: *test_workflow
+      # Test all toolchains on Focal (20.04), Jammy (22.04), and Noble (24.04)
+      # Spot check all toolchains on Focal and Jammy
+      - test_toolchain:
+          name: test_aarch64_gnu_focal
+          toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
-      - test_linux_xenial_aarch64_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
-      - test_linux_bionic_aarch64_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
-      - test_linux_focal_aarch64_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
-      - test_linux_jammy_aarch64_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_gnu
+            - build_nerves_toolchain_aarch64_nerves_linux_gnu
 
-      #-------------------------------
-      # aarch64_nerves_linux_musl
-      #-------------------------------
-      - test_linux_trusty_aarch64_nerves_linux_musl:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_aarch64_gnu_jammy
+          toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_musl
-      - test_linux_xenial_aarch64_nerves_linux_musl:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_aarch64_nerves_linux_musl
+            - build_nerves_toolchain_aarch64_nerves_linux_gnu
 
-      #-------------------------------
-      # armv7_nerves_linux_gnueabihf
-      #-------------------------------
-      - test_linux_trusty_armv7_nerves_linux_gnueabihf:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_aarch64_gnu_noble
+          toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
+          ubuntu_version: noble
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf
-      - test_linux_xenial_armv7_nerves_linux_gnueabihf:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_armv7_nerves_linux_gnueabihf
+            - build_nerves_toolchain_aarch64_nerves_linux_gnu
 
-      #-------------------------------
-      # armv7_nerves_linux_musleabihf
-      #-------------------------------
-      - test_linux_trusty_armv7_nerves_linux_musleabihf:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_aarch64_musl_focal
+          toolchain: nerves_toolchain_aarch64_nerves_linux_musl
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf
-      - test_linux_xenial_armv7_nerves_linux_musleabihf:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_armv7_nerves_linux_musleabihf
+            - build_nerves_toolchain_aarch64_nerves_linux_musl
 
-      #-------------------------------
-      # armv5_nerves_linux_musleabi
-      #-------------------------------
-      - test_linux_trusty_armv5_nerves_linux_musleabi:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_aarch64_musl_jammy
+          toolchain: nerves_toolchain_aarch64_nerves_linux_musl
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_armv5_nerves_linux_musleabi
-      - test_linux_xenial_armv5_nerves_linux_musleabi:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_armv5_nerves_linux_musleabi
+            - build_nerves_toolchain_aarch64_nerves_linux_musl
 
-      #-------------------------------
-      # armv6_nerves_linux_gnueabi
-      #-------------------------------
-      - test_linux_trusty_armv6_nerves_linux_gnueabi:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv7_hf_focal
+          toolchain: nerves_toolchain_armv7_nerves_linux_gnueabihf
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabihf
-      - test_linux_xenial_armv6_nerves_linux_gnueabi:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_armv6_nerves_linux_gnueabihf
+            - build_nerves_toolchain_armv7_nerves_linux_gnueabihf
 
-      #-------------------------------
-      # i586_nerves_linux_gnu
-      #-------------------------------
-      - test_linux_trusty_i586_nerves_linux_gnu:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv7_hf_jammy
+          toolchain: nerves_toolchain_armv7_nerves_linux_gnueabihf
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_i586_nerves_linux_gnu
-      - test_linux_xenial_i586_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_i586_nerves_linux_gnu
+            - build_nerves_toolchain_armv7_nerves_linux_gnueabihf
 
-      #-------------------------------
-      # mipsel_nerves_linux_musl
-      #-------------------------------
-      - test_linux_trusty_mipsel_nerves_linux_musl:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv7_musl_focal
+          toolchain: nerves_toolchain_armv7_nerves_linux_musleabihf
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_mipsel_nerves_linux_musl
-      - test_linux_xenial_mipsel_nerves_linux_musl:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_mipsel_nerves_linux_musl
+            - build_nerves_toolchain_armv7_nerves_linux_musleabihf
 
-      #-------------------------------
-      # x86_64_nerves_linux_gnu
-      #-------------------------------
-      - test_linux_trusty_x86_64_nerves_linux_gnu:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv7_musl_jammy
+          toolchain: nerves_toolchain_armv7_nerves_linux_musleabihf
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu
-      - test_linux_xenial_x86_64_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_x86_64_nerves_linux_gnu
+            - build_nerves_toolchain_armv7_nerves_linux_musleabihf
 
-      #-------------------------------
-      # x86_64_nerves_linux_musl
-      #-------------------------------
-      - test_linux_trusty_x86_64_nerves_linux_musl:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv5_focal
+          toolchain: nerves_toolchain_armv5_nerves_linux_musleabi
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_x86_64_nerves_linux_musl
-      - test_linux_xenial_x86_64_nerves_linux_musl:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_x86_64_nerves_linux_musl
+            - build_nerves_toolchain_armv5_nerves_linux_musleabi
 
-      #-------------------------------
-      # riscv64_nerves_linux_musl
-      #-------------------------------
-      - test_linux_trusty_riscv64_nerves_linux_musl:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv5_jammy
+          toolchain: nerves_toolchain_armv5_nerves_linux_musleabi
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_riscv64_nerves_linux_musl
-      - test_linux_xenial_riscv64_nerves_linux_musl:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_riscv64_nerves_linux_musl
+            - build_nerves_toolchain_armv5_nerves_linux_musleabi
 
-      #-------------------------------
-      # riscv64_nerves_linux_gnu
-      #-------------------------------
-      - test_linux_trusty_riscv64_nerves_linux_gnu:
-          <<: *test_workflow
+      - test_toolchain:
+          name: test_armv6_focal
+          toolchain: nerves_toolchain_armv6_nerves_linux_gnueabihf
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
           requires:
-            - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
-      - test_linux_xenial_riscv64_nerves_linux_gnu:
-          <<: *test_workflow
-          requires:
-            - build_linux_nerves_toolchain_riscv64_nerves_linux_gnu
+            - build_nerves_toolchain_armv6_nerves_linux_gnueabihf
 
-      #-------------------------------
-      # Deploy Toolchains
-      #-------------------------------
+      - test_toolchain:
+          name: test_armv6_jammy
+          toolchain: nerves_toolchain_armv6_nerves_linux_gnueabihf
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_armv6_nerves_linux_gnueabihf
+
+      - test_toolchain:
+          name: test_i586_focal
+          toolchain: nerves_toolchain_i586_nerves_linux_gnu
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_i586_nerves_linux_gnu
+
+      - test_toolchain:
+          name: test_i586_jammy
+          toolchain: nerves_toolchain_i586_nerves_linux_gnu
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_i586_nerves_linux_gnu
+
+      - test_toolchain:
+          name: test_mipsel_focal
+          toolchain: nerves_toolchain_mipsel_nerves_linux_musl
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_mipsel_nerves_linux_musl
+
+      - test_toolchain:
+          name: test_mipsel_jammy
+          toolchain: nerves_toolchain_mipsel_nerves_linux_musl
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_mipsel_nerves_linux_musl
+
+      - test_toolchain:
+          name: test_x86_64_gnu_focal
+          toolchain: nerves_toolchain_x86_64_nerves_linux_gnu
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_x86_64_nerves_linux_gnu
+
+      - test_toolchain:
+          name: test_x86_64_gnu_jammy
+          toolchain: nerves_toolchain_x86_64_nerves_linux_gnu
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_x86_64_nerves_linux_gnu
+
+      - test_toolchain:
+          name: test_x86_64_musl_focal
+          toolchain: nerves_toolchain_x86_64_nerves_linux_musl
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_x86_64_nerves_linux_musl
+
+      - test_toolchain:
+          name: test_x86_64_musl_jammy
+          toolchain: nerves_toolchain_x86_64_nerves_linux_musl
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_x86_64_nerves_linux_musl
+
+      - test_toolchain:
+          name: test_riscv64_musl_focal
+          toolchain: nerves_toolchain_riscv64_nerves_linux_musl
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_riscv64_nerves_linux_musl
+
+      - test_toolchain:
+          name: test_riscv64_musl_jammy
+          toolchain: nerves_toolchain_riscv64_nerves_linux_musl
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_riscv64_nerves_linux_musl
+
+      - test_toolchain:
+          name: test_riscv64_gnu_focal
+          toolchain: nerves_toolchain_riscv64_nerves_linux_gnu
+          ubuntu_version: focal
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_riscv64_nerves_linux_gnu
+
+      - test_toolchain:
+          name: test_riscv64_gnu_jammy
+          toolchain: nerves_toolchain_riscv64_nerves_linux_gnu
+          ubuntu_version: jammy
+          context: org-global
+          filters: *version_filters
+          requires:
+            - build_nerves_toolchain_riscv64_nerves_linux_gnu
+
+      # Deploy all toolchains
       - deploy:
-          <<: *deploy_workflow
+          context: org-global
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v.*/
           requires:
-            # aarch64 linux gnu
-            - test_linux_trusty_aarch64_nerves_linux_gnu
-            - test_linux_xenial_aarch64_nerves_linux_gnu
-
-            # aarch64 linux musl
-            - test_linux_trusty_aarch64_nerves_linux_gnu
-            - test_linux_xenial_aarch64_nerves_linux_gnu
-
-            # armv7 linux gnueabihf
-            - test_linux_trusty_armv7_nerves_linux_gnueabihf
-            - test_linux_xenial_armv7_nerves_linux_gnueabihf
-
-            # armv7 linux musleabihf
-            - test_linux_trusty_armv7_nerves_linux_musleabihf
-            - test_linux_xenial_armv7_nerves_linux_musleabihf
-
-            # armv5 linux musleabi
-            - test_linux_trusty_armv5_nerves_linux_musleabi
-            - test_linux_xenial_armv5_nerves_linux_musleabi
-
-            # armv6 linux gnueabi
-            - test_linux_trusty_armv6_nerves_linux_gnueabi
-            - test_linux_xenial_armv6_nerves_linux_gnueabi
-
-            # i586 linux gnu
-            - test_linux_trusty_i586_nerves_linux_gnu
-            - test_linux_xenial_i586_nerves_linux_gnu
-
-            # mipsel linux musl
-            - test_linux_trusty_mipsel_nerves_linux_musl
-            - test_linux_xenial_mipsel_nerves_linux_musl
-
-            # x86_64 linux gnu
-            - test_linux_trusty_x86_64_nerves_linux_gnu
-            - test_linux_xenial_x86_64_nerves_linux_gnu
-
-            # x86_64 linux musl
-            - test_linux_trusty_x86_64_nerves_linux_musl
-            - test_linux_xenial_x86_64_nerves_linux_musl
-
-            # riscv linux musl
-            - test_linux_trusty_riscv64_nerves_linux_musl
-            - test_linux_xenial_riscv64_nerves_linux_musl
-
-            # riscv linux glibc
-            - test_linux_trusty_riscv64_nerves_linux_gnu
-            - test_linux_xenial_riscv64_nerves_linux_gnu
+            - test_aarch64_gnu_focal
+            - test_aarch64_gnu_jammy
+            - test_aarch64_gnu_noble
+            - test_aarch64_musl_focal
+            - test_aarch64_musl_jammy
+            - test_armv7_hf_focal
+            - test_armv7_hf_jammy
+            - test_armv7_musl_focal
+            - test_armv7_musl_jammy
+            - test_armv5_focal
+            - test_armv5_jammy
+            - test_armv6_focal
+            - test_armv6_jammy
+            - test_i586_focal
+            - test_i586_jammy
+            - test_mipsel_focal
+            - test_mipsel_jammy
+            - test_x86_64_gnu_focal
+            - test_x86_64_gnu_jammy
+            - test_x86_64_musl_focal
+            - test_x86_64_musl_jammy
+            - test_riscv64_musl_focal
+            - test_riscv64_musl_jammy
+            - test_riscv64_gnu_focal
+            - test_riscv64_gnu_jammy
