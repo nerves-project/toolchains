@@ -52,6 +52,8 @@ jobs:
 
       - name: Install build dependencies (Linux)
         if: matrix.os == 'linux'
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
