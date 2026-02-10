@@ -132,6 +132,15 @@ jobs:
         working-directory: ${{ matrix.toolchain }}
         run: mix deps.get
 
+      - name: Add swap space for RISC-V builds (Linux)
+        if: matrix.os == 'linux' && contains(matrix.toolchain, 'riscv64')
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
+
       - name: Build toolchain (Linux)
         if: matrix.os == 'linux'
         working-directory: ${{ matrix.toolchain }}
