@@ -82,7 +82,9 @@ jobs:
       - name: Install build dependencies (macOS)
         if: matrix.os == 'darwin'
         run: |
-          brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
+          # Full list of packages. Trim down to just what's needed to minimize CI warnings
+          # brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
+          brew install gawk binutils automake help2man bash make ncurses libtool autoconf gnu-sed bison lzip grep coreutils texinfo erlang elixir
 
       - name: Install hex and rebar (Linux)
         if: matrix.os == 'linux'
