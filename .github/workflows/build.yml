@@ -35,12 +35,13 @@ jobs:
           - os: darwin
             arch: x86_64
         include:
+          # Build on the oldest runners for better compatibility
           - os: linux
             arch: x86_64
-            runner: ubuntu-latest
+            runner: ubuntu-22.04
           - os: linux
             arch: aarch64
-            runner: ubuntu-24.04-arm64
+            runner: ubuntu-22.04-arm
           - os: darwin
             arch: aarch64
             runner: macos-14
