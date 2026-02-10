@@ -2,8 +2,19 @@
 
 This is an umbrella project for all of the Nerves toolchains.
 
-See the subdirectories for the actual toolchains and the `nerves_toolchain_ctng`
-directory for the build scripts.
+## Template System
+
+This repository uses a template system to generate toolchain packages. Each toolchain package embeds the `nerves_toolchain_ctng` code directly instead of depending on it as an external package. This eliminates duplication and avoids dependency versioning conflicts.
+
+- **Template**: See the `template/` directory for the template files
+- **Configs**: See the `configs/` directory for per-toolchain configuration files (defconfig, VERSION, LICENSE)
+- **Generator**: `generate_toolchains.exs` contains the configuration and generator code
+- **Generation**: Run `make generate` to create all toolchain packages from the template
+- **Documentation**: See [template/README.md](template/README.md) for details
+
+The toolchain package directories are **generated** and not stored in the repository. Run `make generate` to create them locally with all necessary files (mix.exs, README.md, lib/, scripts/, patches/, defaults/, build.sh).
+
+**Note**: Only the essential per-toolchain files (defconfig, VERSION, LICENSE) are stored in the `configs/` directory. All other files are generated from the template.
 
 ## Installation
 
@@ -66,18 +77,5 @@ Then run a toolchain build as follows:
 export HOST_OS=linux
 export HOST_ARCH=arm
 export PATH=<path to tools>/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
-./nerves_toolchain_ctng/build.sh <toolchain/defconfig> <build_dir>
-```
-
-## Canadian cross builds for Windows
-
-```sh
-sudo apt install g++-mingw-w64-x86-64
-```
-
-Then
-
-```sh
-export HOST_OS=mingw32
 ./nerves_toolchain_ctng/build.sh <toolchain/defconfig> <build_dir>
 ```

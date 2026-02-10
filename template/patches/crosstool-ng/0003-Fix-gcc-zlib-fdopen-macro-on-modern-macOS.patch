@@ -1,0 +1,50 @@
+From 3bfa59eaf037bba7aa18a16eb6922629b849046d Mon Sep 17 00:00:00 2001
+From: Frank Hunleth <fhunleth@troodon-software.com>
+Date: Thu, 12 Feb 2026 12:10:22 -0500
+Subject: [PATCH 3/3] Fix gcc zlib fdopen macro on modern macOS
+
+---
+ ...dopen-macro-conflict-on-modern-macOS.patch | 31 +++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+ create mode 100644 packages/gcc/15.2.0/0011-Fix-zlib-fdopen-macro-conflict-on-modern-macOS.patch
+
+diff --git a/packages/gcc/15.2.0/0011-Fix-zlib-fdopen-macro-conflict-on-modern-macOS.patch b/packages/gcc/15.2.0/0011-Fix-zlib-fdopen-macro-conflict-on-modern-macOS.patch
+new file mode 100644
+index 000000000..80bf0390a
+--- /dev/null
++++ b/packages/gcc/15.2.0/0011-Fix-zlib-fdopen-macro-conflict-on-modern-macOS.patch
+@@ -0,0 +1,31 @@
++From 541ef61178af12f2b17bebbf66a8a6275548dd33 Mon Sep 17 00:00:00 2001
++From: Frank Hunleth <fhunleth@troodon-software.com>
++Date: Thu, 12 Feb 2026 12:08:31 -0500
++Subject: [PATCH] Fix zlib fdopen macro conflict on modern macOS
++
++The embedded zlib 1.1.4 defines fdopen as NULL for old Mac systems
++that lacked fdopen(). Modern macOS (darwin) has fdopen() in stdio.h,
++so when the preprocessor expands the system's fdopen() declaration,
++it replaces fdopen with NULL, creating invalid syntax:
++
++  FILE *fdopen(int, const char *)  ->  FILE *NULL(int, const char *)
++---
++ zlib/zutil.h | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++diff --git a/zlib/zutil.h b/zlib/zutil.h
++index 4b596adf629..02ce4c8083d 100644
++--- a/zlib/zutil.h
+++++ b/zlib/zutil.h
++@@ -136,7 +136,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
++ #    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
++ #      include <unix.h> /* for fdopen */
++ #    else
++-#      ifndef fdopen
+++#      if !defined(fdopen) && !(defined(__APPLE__) && defined(__MACH__))
++ #        define fdopen(fd,mode) NULL /* No fdopen() */
++ #      endif
++ #    endif
++-- 
++2.52.0
++
+-- 
+2.52.0
+

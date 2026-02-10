@@ -39,21 +39,6 @@ Canadian Cross builds
   $ ./nerves_toolchain_ctng/build.sh <toolchain>
   ```
 
-  - [ ] Windows
-
-  Install mingw
-
-  ```
-  $ sudo apt-get install g++-mingw-w64-x86-64
-  ```
-
-  Build the toolchain
-
-  ```
-  $ export HOST_OS=mingw32
-  $ ./nerves_toolchain_ctng/build.sh <toolchain>
-  ```
-
 **Publishing the Release**
 
   - [ ] Push changes
