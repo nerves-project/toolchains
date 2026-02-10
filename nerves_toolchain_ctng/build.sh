@@ -241,8 +241,9 @@ build_gcc()
 	gmake install
     elif [[ $BUILD_OS = "darwin" ]]; then
         # Homebrew's gcc is gcc-15
+        GCC_VERSION=15
         BINUTILS=$(brew --prefix binutils)
-        CC=gcc-15 CXX=g++-15 OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
+        CC=gcc-$GCC_VERSION CXX=g++-$GCC_VERSION AR=gcc-ar-$GCC_VERSION NM=gcc-nm-$GCC_VERSION RANLIB=gcc-ranlib-$GCC_VERSION CPP=cpp-$GCC_VERSION OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
 	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
         SED=$HOMEBREW_PREFIX/bin/gsed
 	gmake
@@ -283,13 +284,6 @@ build_gcc()
     # Check the defconfig didn't change or lose entries
     "$SCRIPT_DIR/scripts/unmerge_defconfig.exs" "$BASE_CONFIG" "$HOST_CONFIG" "$CTNG_CONFIG"
 
-    # Build the toolchain
-    if [[ -z $CTNG_CC ]]; then
-        PREFIX=""
-    else
-        PREFIX="CC=$CTNG_CC CXX=$CTNG_CXX"
-    fi
-
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then
       echo "Modifying logging for CI"
@@ -308,7 +302,7 @@ build_gcc()
 
     # Start building and print dots to keep CI from killing the build due
     # to console inactivity.
-    $PREFIX "$CTNG" $CTNG_BUILD &
+    $CTNG $CTNG_BUILD &
     local build_pid=$!
     {
         while ps -p $build_pid >/dev/null; do
