@@ -6,10 +6,8 @@
 
 set -e
 
-# Set CTNG_USE_GIT=true to use git to download the release (only needed for non-released ct-ng builds)
-
-CTNG_USE_GIT=false
-CTNG_TAG=1.28.0
+# Use hash or version tag (should be crosstool-ng-x.y.z)
+CTNG_TAG=crosstool-ng-1.28.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -218,17 +216,13 @@ build_gcc()
 
     CTNG_TAR_XZ=crosstool-ng-$CTNG_TAG.tar.xz
     if [[ ! -e $DL_DIR/$CTNG_TAR_XZ ]]; then
-        if [[ $CTNG_USE_GIT = "true" ]]; then
-            # Clone repo and cache a tarball
-            git clone https://github.com/crosstool-ng/crosstool-ng.git crosstool-ng-$CTNG_TAG
-            cd crosstool-ng-$CTNG_TAG
-            git checkout $CTNG_TAG
-            cd ..
-            $TAR -c -J --exclude=.git -f "$DL_DIR/$CTNG_TAR_XZ" crosstool-ng-$CTNG_TAG
-            rm -fr crosstool-ng-$CTNG_TAG
-        else
-            curl -L -o "$DL_DIR/$CTNG_TAR_XZ" http://crosstool-ng.org/download/crosstool-ng/$CTNG_TAR_XZ
-        fi
+        # Clone repo and cache a tarball
+        git clone https://github.com/crosstool-ng/crosstool-ng.git crosstool-ng-$CTNG_TAG
+        cd crosstool-ng-$CTNG_TAG
+        git checkout $CTNG_TAG
+        cd ..
+        $TAR -c -J --exclude=.git -f "$DL_DIR/$CTNG_TAR_XZ" crosstool-ng-$CTNG_TAG
+        rm -fr crosstool-ng-$CTNG_TAG
     fi
 
     $TAR xf "$DL_DIR/$CTNG_TAR_XZ"
@@ -238,9 +232,8 @@ build_gcc()
     "$SCRIPT_DIR/scripts/apply-patches.sh" crosstool-ng "$SCRIPT_DIR/patches/crosstool-ng"
 
     cd crosstool-ng
-    if [[ $CTNG_USE_GIT = "true" ]]; then
-        ./bootstrap
-    fi
+    ./bootstrap
+
     if [[  $BUILD_OS = "freebsd" ]]; then
         SED=/usr/local/bin/gsed
 	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
