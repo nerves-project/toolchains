@@ -181,11 +181,9 @@ jobs:
           retention-days: 7
 
   test:
-    name: Test ${{ matrix.toolchain }} (linux-${{ matrix.build_arch }}) on Ubuntu ${{ matrix.ubuntu_version }}
+    name: Test ${{ matrix.toolchain }} (linux-${{ matrix.build_arch }}) on ubuntu-${{ matrix.ubuntu_version }}${{ matrix.build_arch == 'aarch64' && '-arm' || '' }}
     needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:${{ matrix.ubuntu_version }}
+    runs-on: ${{ matrix.build_arch == 'aarch64' && format('ubuntu-{0}-arm', matrix.ubuntu_version) || format('ubuntu-{0}', matrix.ubuntu_version) }}
     strategy:
       fail-fast: false
       matrix:
@@ -203,15 +201,7 @@ jobs:
           - nerves_toolchain_riscv64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_gnu
         build_arch: [x86_64, aarch64]
-        ubuntu_version: [focal, jammy]
-        # Test aarch64_gnu on noble as well
-        include:
-          - toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
-            build_arch: x86_64
-            ubuntu_version: noble
-          - toolchain: nerves_toolchain_aarch64_nerves_linux_gnu
-            build_arch: aarch64
-            ubuntu_version: noble
+        ubuntu_version: ['22.04', '24.04']
 
     steps:
       - name: Checkout code
@@ -219,8 +209,8 @@ jobs:
 
       - name: Install xz-utils
         run: |
-          apt-get update
-          apt-get -y install xz-utils
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xz-utils
 
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -230,16 +220,16 @@ jobs:
 
       - name: Decompress toolchain archive
         run: |
-          mkdir -p /root/toolchain
-          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C /root/toolchain
+          mkdir -p $HOME/toolchain
+          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
 
       - name: Compile hello world app
-        run: /root/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
+        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
 
   test_macos:
-    name: Test ${{ matrix.toolchain }} (darwin-aarch64) on macOS
+    name: Test ${{ matrix.toolchain }} (darwin-aarch64) on ${{ matrix.runner }}
     needs: build
-    runs-on: macos-14
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
@@ -256,6 +246,7 @@ jobs:
           - nerves_toolchain_x86_64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_musl
           - nerves_toolchain_riscv64_nerves_linux_gnu
+        runner: [macos-14, macos-15, macos-26]
 
     steps:
       - name: Checkout code
