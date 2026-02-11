@@ -29,10 +29,6 @@ jobs:
         toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
         os: [linux, darwin]
         arch: [x86_64, aarch64]
-        exclude:
-          # Only build macOS on Apple Silicon
-          - os: darwin
-            arch: x86_64
         include:
           # Build on the oldest runners for better compatibility
           - os: linux
@@ -41,6 +37,9 @@ jobs:
           - os: linux
             arch: aarch64
             runner: ubuntu-22.04-arm
+          - os: darwin
+            arch: x86_64
+            runner: macos-14-large
           - os: darwin
             arch: aarch64
             runner: macos-14
@@ -215,7 +214,7 @@ jobs:
         run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
 
   test_macos:
-    name: Test ${{ matrix.toolchain }} (darwin-aarch64) on ${{ matrix.runner }}
+    name: Test ${{ matrix.toolchain }} (darwin-${{ matrix.arch }}) on ${{ matrix.runner }}
     needs: build
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -223,7 +222,19 @@ jobs:
       matrix:
         # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
         toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
-        runner: [macos-14, macos-15, macos-26]
+        include:
+          # Apple Silicon runners
+          - runner: macos-14
+            arch: aarch64
+          - runner: macos-15
+            arch: aarch64
+          - runner: macos-26
+            arch: aarch64
+          # Intel runners
+          - runner: macos-14-large
+            arch: x86_64
+          - runner: macos-15-intel
+            arch: x86_64
 
     steps:
       - name: Checkout code
@@ -232,7 +243,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.toolchain }}-darwin-aarch64
+          name: ${{ matrix.toolchain }}-darwin-${{ matrix.arch }}
           path: /tmp/toolchain
 
       - name: Decompress toolchain archive
