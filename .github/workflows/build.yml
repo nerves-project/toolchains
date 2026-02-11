@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
-        toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
+        toolchain: ${{ false && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
         os: [linux, darwin]
         arch: [x86_64, aarch64]
         include:
@@ -186,7 +186,7 @@ jobs:
       fail-fast: false
       matrix:
         # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
-        toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
+        toolchain: ${{ false && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
         build_arch: [x86_64, aarch64]
         ubuntu_version: ['22.04', '24.04']
 
@@ -221,7 +221,7 @@ jobs:
       fail-fast: false
       matrix:
         # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
-        toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
+        toolchain: ${{ false && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
         include:
           # Apple Silicon runners
           - runner: macos-14
