@@ -53,17 +53,16 @@ defmodule Unmerger do
       IO.puts("Please fix. I'm going to update the original for you to check.")
 
       save(original_defconfig, desired)
-      1
+      System.halt(1)
     else
-      0
+      System.halt(0)
     end
   end
 
   def main(_) do
     IO.puts("unmerge_defconfig.exs <original defconfig> <fragment defconfig> <resulting defconfig>")
-    1
+    System.halt(1)
   end
 end
 
 Unmerger.main(System.argv())
-|> :init.stop()

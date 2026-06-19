@@ -41,7 +41,7 @@ defmodule <%= @module_name %>.MixProject do
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
       ],
-      checksum: package_files()
+      checksum: checksum_files()
     ]
   end
 
@@ -70,9 +70,14 @@ defmodule <%= @module_name %>.MixProject do
   defp package_files do
     [
       "lib",
-      "patches",
       "scripts",
+    ] ++ checksum_files()
+  end
+
+  defp checksum_files do
+    [
       "build.sh",
+      "patches",
       "defaults",
       <%= @package_files_list %>
     ]

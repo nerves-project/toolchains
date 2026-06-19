@@ -12,9 +12,7 @@ This repository uses a template system to generate toolchain packages. Each tool
 - **Generation**: Run `make generate` to create all toolchain packages from the template
 - **Documentation**: See [template/README.md](template/README.md) for details
 
-The toolchain package directories are **generated** and not stored in the repository. Run `make generate` to create them locally with all necessary files (mix.exs, README.md, lib/, scripts/, patches/, defaults/, build.sh).
-
-**Note**: Only the essential per-toolchain files (defconfig, VERSION, LICENSE) are stored in the `configs/` directory. All other files are generated from the template.
+The toolchain package directories are **generated** and not stored in the repository. Run `make generate` to create them locally with all necessary files.
 
 ## Installation
 

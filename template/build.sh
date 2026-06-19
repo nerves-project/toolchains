@@ -2,7 +2,7 @@
 
 # Example
 #
-# build.sh /path/to/defconfig /path/to/build/dir
+# build.sh <work directory> [output directory]
 
 set -e
 
@@ -10,16 +10,20 @@ set -e
 CTNG_TAG=crosstool-ng-1.28.0
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ARTIFACT_NAME=$(basename "$SCRIPT_DIR")
 
-BASE_CONFIG=$1
-WORK_DIR=$2
+BASE_CONFIG="$SCRIPT_DIR/defconfig"
+WORK_DIR=$1
+OUTPUT_DIR=$2
 
-if [[ -z $BASE_CONFIG ]] || [[ -z $WORK_DIR ]]; then
-    echo "build.sh <defconfig> <work directory>"
+if [[ -z $WORK_DIR ]]; then
+    echo "build.sh <work directory>"
     exit 1
 fi
 
-ARTIFACT_NAME=$(basename "$WORK_DIR")
+if [[ -z $OUTPUT_DIR ]]; then
+    OUTPUT_DIR=.
+fi
 
 READLINK=readlink
 BUILD_ARCH=$(uname -m)
@@ -42,10 +46,6 @@ if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
 
-echo "Using HOST_ARCH: $HOST_ARCH"
-echo "Using HOST_OS: $HOST_OS"
-echo "Using BUILD_OS: $BUILD_OS"
-
 if [[ ! -e $BASE_CONFIG ]]; then
     echo "Can't find $BASE_CONFIG. Check that it exists."
     echo
@@ -57,6 +57,8 @@ if [[ ! -e $BASE_CONFIG ]]; then
     done
     exit 1
 fi
+
+OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 
 # Ensure that the config and work paths are absolute
 BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
@@ -82,6 +84,32 @@ if [[ ! -e $CTNG_CONFIG_DIR/VERSION ]]; then
 fi
 
 NERVES_TOOLCHAIN_VERSION=$(cat "$CTNG_CONFIG_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+MIX_FILE="$CTNG_CONFIG_DIR/mix.exs"
+if [[ ! -e $MIX_FILE ]]; then
+    echo "Can't find $MIX_FILE. Check that it exists."
+    exit 1
+fi
+
+CHECKSUM_SCRIPT="$SCRIPT_DIR/scripts/mix_checksum.exs"
+if [[ ! -e $CHECKSUM_SCRIPT ]]; then
+    echo "Can't find $CHECKSUM_SCRIPT. Check that it exists."
+    exit 1
+fi
+
+PACKAGE_CHECKSUM=$(elixir "$CHECKSUM_SCRIPT" "$MIX_FILE")
+TOOLCHAIN_NAME=$(basename "$CTNG_CONFIG_DIR")
+ARTIFACT_BASENAME="$TOOLCHAIN_NAME-${HOST_OS}_${HOST_ARCH}-$NERVES_TOOLCHAIN_VERSION-$PACKAGE_CHECKSUM.tar.xz"
+ARTIFACT_PATH="$OUTPUT_DIR/$ARTIFACT_BASENAME"
+
+echo "Using HOST_ARCH: $HOST_ARCH"
+echo "Using HOST_OS: $HOST_OS"
+echo "Using BUILD_OS: $BUILD_OS"
+echo
+echo "Artifact tarball: $ARTIFACT_BASENAME"
+echo "Output directory: $OUTPUT_DIR"
+echo "Work directory: $WORK_DIR"
+echo
 
 # Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
 LOCAL_INSTALL_DIR="$WORK_DIR/usr"
@@ -340,12 +368,6 @@ build_gcc()
     fi
 }
 
-toolchain_base_name()
-{
-    # Compute the base filename part of the build product
-    echo "nerves_toolchain_$(gcc_tuple_underscores)-$NERVES_TOOLCHAIN_VERSION.$HOST_OS-$HOST_ARCH"
-}
-
 save_build_info()
 {
     # Save useful information if we ever need to reproduce the toolchain
@@ -394,7 +416,24 @@ finalize_products()
     fi
 }
 
+build_artifact()
+{
+    # Create a tarball of the built toolchain with checksum in filename.
+    TARGET_TUPLE=$(gcc_tuple)
+
+    echo "Creating artifact $ARTIFACT_PATH..."
+    rm -f "$ARTIFACT_PATH"
+    mv "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$GCC_INSTALL_DIR/$TOOLCHAIN_NAME"
+    $TAR -c -J -C "$GCC_INSTALL_DIR" -f "$ARTIFACT_PATH" "$TOOLCHAIN_NAME"
+    mv "$GCC_INSTALL_DIR/$TOOLCHAIN_NAME" "$GCC_INSTALL_DIR/$TARGET_TUPLE"
+}
+
 init
 build_gcc
 finalize_products
-echo "Done making toolchain in $GCC_INSTALL_DIR."
+build_artifact
+
+echo "Success!"
+echo
+echo "Generated toolchain: $GCC_INSTALL_DIR."
+echo "Artifact: $ARTIFACT_PATH"
