@@ -30,6 +30,7 @@ defmodule Unmerger do
   defp delta_ok({:eq, _}), do: true
   defp delta_ok({:del, "CT_LIBC_GLIBC=y"}), do: true
   defp delta_ok({:del, "CT_CONFIG_VERSION=\"3\""}), do: true
+  defp delta_ok({:del, ""}), do: true
   defp delta_ok(delta) do
     IO.puts("ERROR: defconfig delta not ok -> #{inspect delta}")
     false
