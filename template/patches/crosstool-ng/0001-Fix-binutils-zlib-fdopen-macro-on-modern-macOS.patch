@@ -1,7 +1,7 @@
-From d05bc74d3ff0d42363fc4b61f5de933a9ef7ed5a Mon Sep 17 00:00:00 2001
+From cf57b22d2d45427916601aefdbd1669ecf8c3e3b Mon Sep 17 00:00:00 2001
 From: Frank Hunleth <fhunleth@troodon-software.com>
 Date: Tue, 10 Feb 2026 12:00:00 -0500
-Subject: [PATCH] Fix binutils zlib fdopen macro on modern macOS
+Subject: [PATCH 1/4] Fix binutils zlib fdopen macro on modern macOS
 
 Binutils 2.45 includes zlib 1.1.4 which defines fdopen as NULL for old
 Mac systems that lack fdopen(). Modern macOS has fdopen(), so this
@@ -51,5 +51,5 @@ index 000000000..c0974317a
 +2.52.0
 +
 -- 
-2.52.0
+2.50.1 (Apple Git-155)
 

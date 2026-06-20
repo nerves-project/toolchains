@@ -1,7 +1,7 @@
-From cf7fae2691f0b51ac1cc83d2a7a6ffecaeb5e05f Mon Sep 17 00:00:00 2001
+From d9c89bb4417fa133ba84cea43c21b1335d9ed0ba Mon Sep 17 00:00:00 2001
 From: Frank Hunleth <fhunleth@troodon-software.com>
 Date: Tue, 10 Feb 2026 14:54:22 -0500
-Subject: [PATCH 2/2] Disable elf-entry build on MIPS
+Subject: [PATCH 2/4] Disable elf-entry build on MIPS
 
 ---
  scripts/build/kernel/linux.sh | 1 +
@@ -20,5 +20,5 @@ index ad3c2ca3f..c8b28ad4d 100644
  
  # Extract kernel
 -- 
-2.52.0
+2.50.1 (Apple Git-155)
 

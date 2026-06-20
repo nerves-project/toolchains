@@ -1,14 +1,14 @@
-From 214bbe37b58403f8ce1502f9b8de3e7c8f366e66 Mon Sep 17 00:00:00 2001
+From 8f1e8e22b5c7fcd20f7b7abc36a25e8c8c94ee6b Mon Sep 17 00:00:00 2001
 From: Frank Hunleth <fhunleth@troodon-software.com>
 Date: Sat, 20 Jun 2026 16:41:27 -0400
-Subject: [PATCH 5/5] Fix incomplete generation of Makefiles on macOS
+Subject: [PATCH 4/4] Fix incomplete generation of Makefiles on macOS
 
 ---
  scripts/build/companion_libs/220-ncurses.sh | 42 +++++++++++++++++++++
  1 file changed, 42 insertions(+)
 
 diff --git a/scripts/build/companion_libs/220-ncurses.sh b/scripts/build/companion_libs/220-ncurses.sh
-index 36aadae65..e59e85217 100644
+index 46b1ec724..ceb83b476 100644
 --- a/scripts/build/companion_libs/220-ncurses.sh
 +++ b/scripts/build/companion_libs/220-ncurses.sh
 @@ -112,6 +112,46 @@ fi
@@ -58,7 +58,7 @@ index 36aadae65..e59e85217 100644
  do_ncurses_backend() {
      local -a ncurses_opts
      local host
-@@ -168,6 +208,8 @@ do_ncurses_backend() {
+@@ -166,6 +206,8 @@ do_ncurses_backend() {
          --enable-termcap                                                \
          "${ncurses_opts[@]}"
  
