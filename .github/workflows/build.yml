@@ -40,7 +40,7 @@ jobs:
             runner: ubuntu-22.04
           - os: linux
             arch: aarch64
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-22.04
           - os: darwin
             arch: aarch64
             runner: macos-14
@@ -57,7 +57,7 @@ jobs:
           df -h
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install build dependencies (Linux)
         if: matrix.os == 'linux'
@@ -85,29 +85,12 @@ jobs:
           # brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
           brew install gawk binutils automake help2man bash make ncurses libtool autoconf gnu-sed bison lzip grep coreutils texinfo erlang elixir
 
-      - name: Install hex and rebar (Linux)
-        if: matrix.os == 'linux'
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-
-      - name: Install hex and rebar (macOS)
-        if: matrix.os == 'darwin'
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-
-      - name: Install nerves_bootstrap (Linux)
-        if: matrix.os == 'linux'
-        run: mix archive.install hex nerves_bootstrap --force
-
-      - name: Install nerves_bootstrap (macOS)
-        if: matrix.os == 'darwin'
-        run: mix archive.install hex nerves_bootstrap --force
+      - name: Generate toolchain projects
+        run: make
 
       - name: Cache crosstool-NG downloads (Linux)
         if: matrix.os == 'linux'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
           key: nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
@@ -117,7 +100,7 @@ jobs:
 
       - name: Cache crosstool-NG downloads (macOS)
         if: matrix.os == 'darwin'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
           key: nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
@@ -125,58 +108,28 @@ jobs:
             nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-
             nerves-dl-${{ matrix.toolchain }}-
 
-      - name: Fetch dependencies (Linux)
-        if: matrix.os == 'linux'
-        working-directory: ${{ matrix.toolchain }}
-        run: mix deps.get
-
-      - name: Fetch dependencies (macOS)
-        if: matrix.os == 'darwin'
-        working-directory: ${{ matrix.toolchain }}
-        run: mix deps.get
-
       - name: Build toolchain (Linux)
         if: matrix.os == 'linux'
-        working-directory: ${{ matrix.toolchain }}
-        run: mix compile
+        run: bash ${{ matrix.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ matrix.toolchain }}"
 
       - name: Build toolchain (macOS)
         if: matrix.os == 'darwin'
-        working-directory: ${{ matrix.toolchain }}
-        run: mix compile
-
-      - name: Create artifact directory (Linux)
-        if: matrix.os == 'linux'
-        run: mkdir -p $HOME/deploy/toolchain
-
-      - name: Create artifact directory (macOS)
-        if: matrix.os == 'darwin'
-        run: mkdir -p $HOME/deploy/toolchain
-
-      - name: Create artifact (Linux)
-        if: matrix.os == 'linux'
-        working-directory: ${{ matrix.toolchain }}
-        run: mix nerves.artifact ${{ matrix.toolchain }} --path $HOME/deploy/toolchain
-
-      - name: Create artifact (macOS)
-        if: matrix.os == 'darwin'
-        working-directory: ${{ matrix.toolchain }}
-        run: mix nerves.artifact ${{ matrix.toolchain }} --path $HOME/deploy/toolchain
+        run: bash ${{ matrix.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ matrix.toolchain }}"
 
       - name: Upload artifact (Linux)
         if: matrix.os == 'linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
-          path: ~/deploy/toolchain/*.tar.xz
+          path: ${{ matrix.toolchain }}/*.tar.xz
           retention-days: 7
 
       - name: Upload artifact (macOS)
         if: matrix.os == 'darwin'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
-          path: ~/deploy/toolchain/*.tar.xz
+          path: ${{ matrix.toolchain }}/*.tar.xz
           retention-days: 7
 
   test:
@@ -193,7 +146,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install xz-utils
         run: |
@@ -201,7 +154,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends xz-utils
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ matrix.toolchain }}-linux-${{ matrix.build_arch }}
           path: /tmp/toolchain
@@ -227,10 +180,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ matrix.toolchain }}-darwin-aarch64
           path: /tmp/toolchain
@@ -253,10 +206,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 

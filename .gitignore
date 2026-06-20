@@ -2,3 +2,6 @@
 /work-*
 *.xz
 *.dmg
+
+# Generated toolchain directories (run 'make generate' to create)
+/nerves_toolchain_*
