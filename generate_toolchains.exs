@@ -98,18 +98,24 @@ defmodule ToolchainGenerator do
   end
 
   defp process_files({from_path, to_path}, bindings) do
+    expanded_to_path = expand_output_path(to_path, bindings)
+
     cond do
       String.ends_with?(from_path, ".eex") ->
-        output_path = String.replace_suffix(to_path, ".eex", "")
+        output_path = String.replace_suffix(expanded_to_path, ".eex", "")
         content = EEx.eval_file(from_path, assigns: bindings)
         File.write!(output_path, content)
 
       File.dir?(from_path) ->
-        File.mkdir_p!(to_path)
+        File.mkdir_p!(expanded_to_path)
 
       true ->
-        File.cp!(from_path, to_path)
+        File.cp!(from_path, expanded_to_path)
     end
+  end
+
+  defp expand_output_path(path, bindings) do
+    String.replace(path, "package_name", Keyword.fetch!(bindings, :app_name))
   end
 
   defp format_package_files(files) do

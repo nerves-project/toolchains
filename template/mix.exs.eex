@@ -5,38 +5,43 @@ defmodule <%= @module_name %>.MixProject do
   @version Path.join(__DIR__, "VERSION")
            |> File.read!()
            |> String.trim()
+  @description "Nerves Toolchain - <%= @target_display %>"
+  @source_url "https://github.com/nerves-project/toolchains"
 
   def project do
     [
       app: @app,
       version: @version,
       elixir: "~> 1.18",
-      compilers: [:nerves_package | Mix.compilers()],
-      nerves_package: nerves_package(),
-      description: description(),
+      description: @description,
       package: package(),
+      source_url: @source_url,
+      compilers: compilers(Mix.env()),
+      nerves_package: nerves_package(),
       deps: deps(),
-      aliases: [loadconfig: [&bootstrap/1]]
+      docs: docs()
     ]
   end
+
+  # Removing Nerves.Toolchain.CTNG had the side effect of introducing a
+  # circular dependency between Nerves bootstram and compiling the platform.
+  # Since we no longer support compiling the toolchain via the Nerves tooling,
+  # use the environment to see whether this is the root project or not.
+  defp compilers(:prod), do: [:nerves_package | Mix.compilers()]
+  defp compilers(_), do: Mix.compilers()
 
   def application do
     []
   end
 
-  defp bootstrap(args) do
-    Mix.target(:target)
-    Application.start(:nerves_bootstrap)
-    Mix.Task.run("loadconfig", args)
+  def cli do
+    [preferred_envs: %{docs: :docs, "hex.publish": :docs, "hex.build": :docs}]
   end
 
   defp nerves_package do
     [
       type: :toolchain,
-      platform: Nerves.Toolchain.CTNG,
-      platform_config: [
-        defconfig: "defconfig"
-      ],
+      platform: <%= @module_name %>,
       target_tuple: :<%= @target_tuple %>,
       artifact_sites: [
         {:github_releases, "nerves-project/toolchains"}
@@ -47,14 +52,9 @@ defmodule <%= @module_name %>.MixProject do
 
   defp deps do
     [
+      {:ex_doc, "~> 0.22", only: :docs, runtime: false},
       {:nerves, "~> 1.13", runtime: false}
     ]
-  end
-
-  defp description do
-    """
-    Nerves Toolchain - <%= @target_display %>
-    """
   end
 
   defp package do
@@ -64,6 +64,13 @@ defmodule <%= @module_name %>.MixProject do
       links: %{
         "Github" => "https://github.com/nerves-project/toolchains/tree/main/#{@app}"
       }
+    ]
+  end
+
+  defp docs do
+    [
+      extras: ["README.md"],
+      main: "readme"
     ]
   end
 
