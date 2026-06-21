@@ -176,12 +176,6 @@ if [[ $BUILD_OS = "darwin" ]]; then
 elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
     TAR=tar
-
-    # Long path lengths cause gcc builds to fail. This is due to argument
-    # length exceeded errors from long Make commandlines. To work around this
-    # issue, we tell crosstool-ng to do its work under /tmp/ctng-work. This
-    # forces one build at a time.
-    CT_WORK_DIR="/tmp/ctng-work"
 elif [[ $BUILD_OS = "freebsd" ]]; then
     # BSD-specific updates
     TAR=tar
