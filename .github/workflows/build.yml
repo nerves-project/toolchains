@@ -3,10 +3,10 @@ name: Build and Test Toolchains
 # ============================================================================
 # BUILD CONFIGURATION - Toggle this value to control which toolchains to build
 # ============================================================================
-# false = build only armv7_gnueabihf (fast, for development - CURRENTLY ACTIVE)
-# true  = build all 12 toolchains (slow, for releases)
+# false = build only armv7_gnueabihf (fast, for development)
+# true  = build all 12 toolchains (slow, for releases - CURRENTLY ACTIVE)
 #
-# Search for "BUILD_ALL_TOOLCHAINS" below and change false to true (3 places)
+# Search for "BUILD_ALL_TOOLCHAINS" below and change true to false
 # ============================================================================
 
 on:
@@ -19,186 +19,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build ${{ matrix.toolchain }} on ${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
+  build_and_test:
+    name: Build and test ${{ matrix.toolchain }}
     strategy:
       fail-fast: false
       matrix:
-        # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
+        # BUILD_ALL_TOOLCHAINS: Change 'true' to 'false' to build only armv7
         toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
-        os: [linux, darwin]
-        arch: [x86_64, aarch64]
-        exclude:
-          # Only build macOS on Apple Silicon
-          - os: darwin
-            arch: x86_64
-        include:
-          # Build on the oldest runners for better compatibility
-          - os: linux
-            arch: x86_64
-            runner: ubuntu-22.04
-          - os: linux
-            arch: aarch64
-            runner: ubuntu-22.04
-          - os: darwin
-            arch: aarch64
-            runner: macos-14
-
-    steps:
-      - name: Free up disk space (Linux)
-        if: matrix.os == 'linux'
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-          df -h
-
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Install build dependencies (Linux)
-        if: matrix.os == 'linux'
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            git curl build-essential libtool gperf bison flex \
-            texinfo wget gawk libtool-bin libncurses5-dev \
-            help2man ca-certificates unzip lzip python3 rsync \
-            autoconf automake xz-utils
-
-      - name: Install Erlang and Elixir (Linux)
-        if: matrix.os == 'linux'
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: '1.17.3'
-          otp-version: '26.2'
-
-      - name: Install build dependencies (macOS)
-        if: matrix.os == 'darwin'
-        run: |
-          # Full list of packages. Trim down to just what's needed to minimize CI warnings
-          # brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
-          brew install gawk binutils automake help2man bash make ncurses libtool autoconf gnu-sed bison lzip grep coreutils texinfo erlang elixir
-
-      - name: Generate toolchain projects
-        run: make
-
-      - name: Cache crosstool-NG downloads (Linux)
-        if: matrix.os == 'linux'
-        uses: actions/cache@v5
-        with:
-          path: ~/.nerves/dl
-          key: nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
-          restore-keys: |
-            nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-
-            nerves-dl-${{ matrix.toolchain }}-
-
-      - name: Cache crosstool-NG downloads (macOS)
-        if: matrix.os == 'darwin'
-        uses: actions/cache@v5
-        with:
-          path: ~/.nerves/dl
-          key: nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
-          restore-keys: |
-            nerves-dl-${{ matrix.toolchain }}-${{ matrix.os }}-
-            nerves-dl-${{ matrix.toolchain }}-
-
-      - name: Build toolchain (Linux)
-        if: matrix.os == 'linux'
-        run: bash ${{ matrix.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ matrix.toolchain }}"
-
-      - name: Build toolchain (macOS)
-        if: matrix.os == 'darwin'
-        run: bash ${{ matrix.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ matrix.toolchain }}"
-
-      - name: Upload artifact (Linux)
-        if: matrix.os == 'linux'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
-          path: ${{ matrix.toolchain }}/*.tar.xz
-          retention-days: 7
-
-      - name: Upload artifact (macOS)
-        if: matrix.os == 'darwin'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.toolchain }}-${{ matrix.os }}-${{ matrix.arch }}
-          path: ${{ matrix.toolchain }}/*.tar.xz
-          retention-days: 7
-
-  test:
-    name: Test ${{ matrix.toolchain }} (linux-${{ matrix.build_arch }}) on ubuntu-${{ matrix.ubuntu_version }}${{ matrix.build_arch == 'aarch64' && '-arm' || '' }}
-    needs: build
-    runs-on: ${{ matrix.build_arch == 'aarch64' && format('ubuntu-{0}-arm', matrix.ubuntu_version) || format('ubuntu-{0}', matrix.ubuntu_version) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
-        toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
-        build_arch: [x86_64, aarch64]
-        ubuntu_version: ['22.04', '24.04']
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Install xz-utils
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xz-utils
-
-      - name: Download artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ matrix.toolchain }}-linux-${{ matrix.build_arch }}
-          path: /tmp/toolchain
-
-      - name: Decompress toolchain archive
-        run: |
-          mkdir -p $HOME/toolchain
-          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
-
-      - name: Compile hello world app
-        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
-
-  test_macos:
-    name: Test ${{ matrix.toolchain }} (darwin-aarch64) on ${{ matrix.runner }}
-    needs: build
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        # BUILD_ALL_TOOLCHAINS: Change 'false' to 'true' to build all toolchains
-        toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
-        runner: [macos-14, macos-15, macos-26]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Download artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ matrix.toolchain }}-darwin-aarch64
-          path: /tmp/toolchain
-
-      - name: Decompress toolchain archive
-        run: |
-          mkdir -p $HOME/toolchain
-          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
-
-      - name: Compile hello world app
-        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
+    uses: ./.github/workflows/build-test-toolchain.yml
+    with:
+      toolchain: ${{ matrix.toolchain }}
 
   deploy:
     name: Deploy to GitHub Release
-    needs: [test, test_macos]
+    needs: build_and_test
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:

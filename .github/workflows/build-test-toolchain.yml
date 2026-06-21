@@ -1,0 +1,245 @@
+name: Build and Test Toolchain
+
+on:
+  workflow_call:
+    inputs:
+      toolchain:
+        required: true
+        type: string
+
+jobs:
+  build_linux_x86_64:
+    name: Build ${{ inputs.toolchain }} on linux-x86_64
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl build-essential libtool gperf bison flex \
+            texinfo wget gawk libtool-bin libncurses5-dev \
+            help2man ca-certificates unzip lzip python3 rsync \
+            autoconf automake xz-utils
+
+      - name: Install Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.17.3'
+          otp-version: '26.2'
+
+      - name: Generate toolchain projects
+        run: make
+
+      - name: Cache crosstool-NG downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.nerves/dl
+          key: nerves-dl-${{ inputs.toolchain }}-linux-x86_64
+          restore-keys: |
+            nerves-dl-${{ inputs.toolchain }}-linux-
+            nerves-dl-${{ inputs.toolchain }}-
+
+      - name: Build toolchain
+        run: bash ${{ inputs.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ inputs.toolchain }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.toolchain }}-linux-x86_64
+          path: ${{ inputs.toolchain }}/*.tar.xz
+          retention-days: 7
+
+  test_linux_x86_64:
+    name: Test ${{ inputs.toolchain }} (linux-x86_64) on ubuntu-${{ matrix.ubuntu_version }}
+    needs: build_linux_x86_64
+    runs-on: ${{ format('ubuntu-{0}', matrix.ubuntu_version) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu_version: ['22.04', '24.04']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install xz-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xz-utils
+
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.toolchain }}-linux-x86_64
+          path: /tmp/toolchain
+
+      - name: Decompress toolchain archive
+        run: |
+          mkdir -p $HOME/toolchain
+          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+
+      - name: Compile hello world app
+        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
+
+  build_linux_aarch64:
+    name: Build ${{ inputs.toolchain }} on linux-aarch64
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl build-essential libtool gperf bison flex \
+            texinfo wget gawk libtool-bin libncurses5-dev \
+            help2man ca-certificates unzip lzip python3 rsync \
+            autoconf automake xz-utils
+
+      - name: Install Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.17.3'
+          otp-version: '26.2'
+
+      - name: Generate toolchain projects
+        run: make
+
+      - name: Cache crosstool-NG downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.nerves/dl
+          key: nerves-dl-${{ inputs.toolchain }}-linux-aarch64
+          restore-keys: |
+            nerves-dl-${{ inputs.toolchain }}-linux-
+            nerves-dl-${{ inputs.toolchain }}-
+
+      - name: Build toolchain
+        run: bash ${{ inputs.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ inputs.toolchain }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.toolchain }}-linux-aarch64
+          path: ${{ inputs.toolchain }}/*.tar.xz
+          retention-days: 7
+
+  test_linux_aarch64:
+    name: Test ${{ inputs.toolchain }} (linux-aarch64) on ubuntu-${{ matrix.ubuntu_version }}-arm
+    needs: build_linux_aarch64
+    runs-on: ${{ format('ubuntu-{0}', matrix.ubuntu_version) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu_version: ['22.04', '24.04']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install xz-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xz-utils
+
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.toolchain }}-linux-aarch64
+          path: /tmp/toolchain
+
+      - name: Decompress toolchain archive
+        run: |
+          mkdir -p $HOME/toolchain
+          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+
+      - name: Compile hello world app
+        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
+
+  build_darwin_aarch64:
+    name: Build ${{ inputs.toolchain }} on darwin-aarch64
+    runs-on: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          # Full list of packages. Trim down to just what's needed to minimize CI warnings
+          # brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
+          brew install gawk binutils automake help2man bash make ncurses libtool autoconf gnu-sed bison lzip grep coreutils texinfo erlang elixir
+
+      - name: Generate toolchain projects
+        run: make
+
+      - name: Cache crosstool-NG downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.nerves/dl
+          key: nerves-dl-${{ inputs.toolchain }}-darwin-aarch64
+          restore-keys: |
+            nerves-dl-${{ inputs.toolchain }}-darwin-
+            nerves-dl-${{ inputs.toolchain }}-
+
+      - name: Build toolchain
+        run: bash ${{ inputs.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ inputs.toolchain }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.toolchain }}-darwin-aarch64
+          path: ${{ inputs.toolchain }}/*.tar.xz
+          retention-days: 7
+
+  test_macos:
+    name: Test ${{ inputs.toolchain }} (darwin-aarch64) on ${{ matrix.runner }}
+    needs: build_darwin_aarch64
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-14, macos-15, macos-26]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.toolchain }}-darwin-aarch64
+          path: /tmp/toolchain
+
+      - name: Decompress toolchain archive
+        run: |
+          mkdir -p $HOME/toolchain
+          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+
+      - name: Compile hello world app
+        run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
