@@ -7,7 +7,7 @@
 set -e
 
 # Use hash or version tag (should be crosstool-ng-x.y.z)
-CTNG_TAG=crosstool-ng-1.28.0
+CTNG_TAG=<%= inspect(@ctng_tag) %>
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ARTIFACT_NAME=$(basename "$SCRIPT_DIR")

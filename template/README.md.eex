@@ -12,3 +12,15 @@ This project's purpose is to contain the information for hex.pm so that Nerves
 cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
+
+<%= if @included_versions != [] do %>
+## Included tool versions
+
+These versions come from the resolved crosstool-NG configuration for this
+toolchain.
+
+| Component | Version |
+| --- | --- |
+<%= for {component, version} <- @included_versions do %>| <%= component %> | <%= version %> |
+<% end %>
+<% end %>

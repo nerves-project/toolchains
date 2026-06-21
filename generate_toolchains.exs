@@ -8,6 +8,9 @@ defmodule ToolchainGenerator do
   Generates toolchain packages from template using EEx
   """
 
+  @toolchain_config_path Path.expand("toolchain_config.exs")
+  @version_metadata_path Path.expand("configs/toolchain_versions.exs")
+
   # Toolchain configuration
   @toolchains [
     :aarch64_nerves_linux_gnu,
@@ -27,12 +30,15 @@ defmodule ToolchainGenerator do
   def run do
     IO.puts("Generating toolchain packages from template...")
 
-    Enum.each(@toolchains, &generate_toolchain/1)
+    toolchain_config = load_toolchain_config!()
+    version_metadata = load_version_metadata()
+
+    Enum.each(@toolchains, &generate_toolchain(&1, toolchain_config, version_metadata))
 
     IO.puts("\nGenerated #{length(@toolchains)} toolchain packages")
   end
 
-  defp generate_toolchain(target_tuple) when is_atom(target_tuple) do
+  defp generate_toolchain(target_tuple, toolchain_config, version_metadata) when is_atom(target_tuple) do
     app_name = "nerves_toolchain_#{target_tuple}"
     target_dir = Path.expand(app_name)
     config_dir = "configs/#{app_name}"
@@ -56,7 +62,9 @@ defmodule ToolchainGenerator do
       app_name: app_name,
       target_tuple: target_tuple,
       target_display: target_display,
-      package_files_list: package_files_list
+      package_files_list: package_files_list,
+      ctng_tag: Map.fetch!(toolchain_config, :ctng_tag),
+      included_versions: Map.get(version_metadata, app_name, [])
     ]
 
     template_dir = Path.expand("template")
@@ -109,6 +117,30 @@ defmodule ToolchainGenerator do
     files
     |> Enum.map(&inspect/1)
     |> Enum.join(",\n      ")
+  end
+
+  defp load_version_metadata do
+    if File.exists?(@version_metadata_path) do
+      {metadata, _bindings} = Code.eval_file(@version_metadata_path)
+
+      if is_map(metadata) do
+        metadata
+      else
+        %{}
+      end
+    else
+      %{}
+    end
+  end
+
+  defp load_toolchain_config! do
+    {config, _bindings} = Code.eval_file(@toolchain_config_path)
+
+    if is_map(config) and is_binary(Map.get(config, :ctng_tag)) do
+      config
+    else
+      raise "toolchain_config.exs must return a map with a :ctng_tag string"
+    end
   end
 end
 

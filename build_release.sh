@@ -22,7 +22,7 @@ CONFIGS=$(find . -name "nerves_toolchain*")
 
 for CONFIG in $CONFIGS; do
     echo "Building $CONFIG..."
-    $CONFIG/build.sh o/$CONFIG ..
+    bash $CONFIG/build.sh o/$CONFIG ..
 done
 
 echo "All done!!!!!!"

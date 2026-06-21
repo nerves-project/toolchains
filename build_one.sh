@@ -7,5 +7,5 @@ if [ -z $TOOLCHAIN ]; then
 	exit 1
 fi
 
-$TOOLCHAIN/build.sh $PWD/o/$TOOLCHAIN
+bash $TOOLCHAIN/build.sh $PWD/o/$TOOLCHAIN
 

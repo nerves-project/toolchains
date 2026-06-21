@@ -1,7 +1,7 @@
 # Top-level Makefile for Nerves Toolchains
 # This Makefile instantiates all toolchain packages from the template
 
-.PHONY: all generate clean push-hex help
+.PHONY: all refresh_version_info generate clean push-hex help
 
 # List of all toolchains
 TOOLCHAINS = \
@@ -18,7 +18,10 @@ TOOLCHAINS = \
 	nerves_toolchain_x86_64_nerves_linux_gnu \
 	nerves_toolchain_x86_64_nerves_linux_musl
 
-all: generate
+all: refresh_version_info generate
+
+refresh_version_info:
+	@elixir update_toolchain_versions.exs
 
 # Generate all toolchain packages from template
 generate:
