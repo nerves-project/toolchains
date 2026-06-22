@@ -1,6 +1,26 @@
 # Toolchain Releases
 
+## v15.3.0-rc.0
+
+This release bumps GCC from 14.2 to 15.3. While the toolchain is produced in a
+similar manner to past releases, the code in thie project has been completely
+changed to use a template toolchain project to create the corresponding Elixir
+projects.
+
+* Changes
+  * Create package documentation that lists component package versions
+  * Pass through component licenses to hex.pm metadata. You will see GPLv3
+    licenses show up now due to GCC being a GPLv3 project.
+  * Remove the `:nerves_toolchain_ctng` project completely
+  * Remove code to build toolchain artifacts using Nerves tooling. This actually
+    doesn't remove a feature since Nerves didn't build toolchains automatically.
+    This feature was removed many years ago, but the code was left around.
+
+See generated toolchains for version information.
+
 ## v14.2.0
+
+WARNING: This release does not create valid code on some Allwinner ARMv7 CPUs.
 
 This release bumps GCC from 13.2 to 14.2.
 
