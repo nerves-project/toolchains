@@ -73,8 +73,6 @@ defmodule ToolchainGenerator do
     # Prepare bindings for EEx templates
     module_name = target_tuple_to_module_name(target_tuple)
     target_display = target_tuple |> to_string() |> String.replace("_", "-")
-    package_files = ["defconfig", "README.md", "LICENSE", "mix.exs", "VERSION"]
-    package_files_list = format_package_files(package_files)
     included_components = build_included_components(Map.get(version_metadata, app_name, []))
     package_licenses_list = format_string_list(build_package_licenses(included_components))
 
@@ -83,7 +81,6 @@ defmodule ToolchainGenerator do
       app_name: app_name,
       target_tuple: target_tuple,
       target_display: target_display,
-      package_files_list: package_files_list,
       ctng_tag: Map.fetch!(toolchain_config, :ctng_tag),
       included_components: included_components,
       package_licenses_list: package_licenses_list
@@ -160,8 +157,6 @@ defmodule ToolchainGenerator do
   defp component_license!(component) do
     Map.fetch!(@component_licenses, component)
   end
-
-  defp format_package_files(files), do: format_string_list(files)
 
   defp format_string_list(values) do
     values

@@ -60,7 +60,9 @@ defmodule <%= @module_name %>.MixProject do
   defp package do
     [
       files: package_files(),
-      licenses: package_licenses(),
+      licenses: [
+        <%= @package_licenses_list %>
+      ],
       links: %{
         "Github" => "https://github.com/nerves-project/toolchains/tree/main/#{@app}"
       }
@@ -76,23 +78,25 @@ defmodule <%= @module_name %>.MixProject do
 
   defp package_files do
     [
+      "README.md",
+      "LICENSE",
       "lib",
+      "mix.exs",
       "scripts",
+      "VERSION"
     ] ++ checksum_files()
   end
 
-  defp package_licenses do
-    [
-      <%= @package_licenses_list %>
-    ]
-  end
-
+  # These files contribute to the short checksum that gets included in the
+  # artifact name to reduce mix ups caused by configs changing without
+  # rebuilding. Include anything that meaningfully contributes to the toolchain.
+  # Docs and Elixir don't normally contributed to the crosstool-ng builds.
   defp checksum_files do
     [
+      "defconfig",
       "build.sh",
       "patches",
-      "defaults",
-      <%= @package_files_list %>
+      "defaults"
     ]
   end
 end
