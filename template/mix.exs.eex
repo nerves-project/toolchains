@@ -60,7 +60,7 @@ defmodule <%= @module_name %>.MixProject do
   defp package do
     [
       files: package_files(),
-      licenses: ["Apache-2.0"],
+      licenses: package_licenses(),
       links: %{
         "Github" => "https://github.com/nerves-project/toolchains/tree/main/#{@app}"
       }
@@ -79,6 +79,12 @@ defmodule <%= @module_name %>.MixProject do
       "lib",
       "scripts",
     ] ++ checksum_files()
+  end
+
+  defp package_licenses do
+    [
+      <%= @package_licenses_list %>
+    ]
   end
 
   defp checksum_files do

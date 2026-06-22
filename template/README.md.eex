@@ -13,14 +13,15 @@ cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
 
-<%= if @included_versions != [] do %>
-## Included tool versions
+<%= if @included_components != [] do %>
+## Included tool versions and licenses
 
 These versions come from the resolved crosstool-NG configuration for this
-toolchain.
+toolchain. License values are upstream SPDX license identifiers for the
+included components.
 
-| Component | Version |
-| --- | --- |
-<%= for {component, version} <- @included_versions do %>| <%= component %> | <%= version %> |
+| Component | Version | License |
+| --- | --- | --- |
+<%= for {component, version, license} <- @included_components do %>| <%= component %> | <%= version %> | `<%= license %>` |
 <% end %>
 <% end %>

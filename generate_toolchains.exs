@@ -10,6 +10,25 @@ defmodule ToolchainGenerator do
 
   @toolchain_config_path Path.expand("toolchain_config.exs")
   @version_metadata_path Path.expand("configs/toolchain_versions.exs")
+  @component_licenses %{
+    "GCC" => "GPL-3.0-or-later",
+    "binutils" => "GPL-3.0-or-later",
+    "Linux headers" => "GPL-2.0-only WITH Linux-syscall-note",
+    "glibc" => "LGPL-2.1-or-later",
+    "musl" => "MIT",
+    "GDB" => "GPL-3.0-or-later",
+    "expat" => "MIT",
+    "gettext" => "GPL-3.0-or-later",
+    "GMP" => "LGPL-3.0-or-later OR GPL-2.0-or-later",
+    "ISL" => "MIT",
+    "libiconv" => "LGPL-2.1-or-later",
+    "MPC" => "LGPL-3.0-or-later",
+    "MPFR" => "LGPL-3.0-or-later",
+    "ncurses" => "MIT",
+    "zlib" => "Zlib",
+    "bison" => "GPL-3.0-or-later",
+    "m4" => "GPL-3.0-or-later"
+  }
 
   # Toolchain configuration
   @toolchains [
@@ -56,6 +75,8 @@ defmodule ToolchainGenerator do
     target_display = target_tuple |> to_string() |> String.replace("_", "-")
     package_files = ["defconfig", "README.md", "LICENSE", "mix.exs", "VERSION"]
     package_files_list = format_package_files(package_files)
+    included_components = build_included_components(Map.get(version_metadata, app_name, []))
+    package_licenses_list = format_string_list(build_package_licenses(included_components))
 
     bindings = [
       module_name: module_name,
@@ -64,7 +85,8 @@ defmodule ToolchainGenerator do
       target_display: target_display,
       package_files_list: package_files_list,
       ctng_tag: Map.fetch!(toolchain_config, :ctng_tag),
-      included_versions: Map.get(version_metadata, app_name, [])
+      included_components: included_components,
+      package_licenses_list: package_licenses_list
     ]
 
     template_dir = Path.expand("template")
@@ -118,9 +140,31 @@ defmodule ToolchainGenerator do
     String.replace(path, "package_name", Keyword.fetch!(bindings, :app_name))
   end
 
-  defp format_package_files(files) do
-    # Format as Elixir list items (without wrapping brackets)
-    files
+  defp build_included_components(versions) do
+    Enum.map(versions, fn {component, version} ->
+      {component, version, component_license!(component)}
+    end)
+  end
+
+  defp build_package_licenses(included_components) do
+    included_components
+    |> Enum.map(&elem(&1, 2))
+    |> Enum.map(&package_license/1)
+    |> Enum.uniq()
+  end
+
+  defp package_license("GPL-2.0-only WITH Linux-syscall-note"), do: "GPL-2.0-only"
+  defp package_license("LGPL-3.0-or-later OR GPL-2.0-or-later"), do: "LGPL-3.0-or-later"
+  defp package_license(license), do: license
+
+  defp component_license!(component) do
+    Map.fetch!(@component_licenses, component)
+  end
+
+  defp format_package_files(files), do: format_string_list(files)
+
+  defp format_string_list(values) do
+    values
     |> Enum.map(&inspect/1)
     |> Enum.join(",\n      ")
   end
