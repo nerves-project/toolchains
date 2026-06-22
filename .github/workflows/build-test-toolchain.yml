@@ -122,11 +122,24 @@ jobs:
             help2man ca-certificates unzip lzip python3 rsync \
             autoconf automake xz-utils
 
+      # TODO: remove once erlef/setup-beam handles ARM ImageOS values directly.
+      - name: Normalize ImageOS
+        shell: bash
+        run: |
+          echo "ORIGINAL_IMAGE_OS=$ImageOS" >> "$GITHUB_ENV"
+          echo "ImageOS=${ImageOS%-arm64}" >> "$GITHUB_ENV"
+
       - name: Install Erlang and Elixir
         uses: erlef/setup-beam@v1
         with:
           elixir-version: '1.17.3'
           otp-version: '26.2'
+
+      - name: Restore ImageOS
+        if: always()
+        shell: bash
+        run: |
+          echo "ImageOS=${{ env.ORIGINAL_IMAGE_OS }}" >> "$GITHUB_ENV"
 
       - name: Generate toolchain projects
         run: make

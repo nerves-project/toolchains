@@ -84,7 +84,28 @@ jobs:
       - name: Prepare artifacts for upload
         run: |
           mkdir -p release-artifacts
-          find artifacts -name "*.tar.xz" -exec cp {} release-artifacts/ \;
+
+          mapfile -t archives < <(find artifacts -type f -name "*.tar.xz" | sort)
+
+          if [ "${#archives[@]}" -eq 0 ]; then
+            echo "No .tar.xz artifacts found"
+            exit 1
+          fi
+
+          duplicate_filenames="$(
+            printf '%s\n' "${archives[@]}" \
+              | xargs -n1 basename \
+              | sort \
+              | uniq -d
+          )"
+
+          if [ -n "${duplicate_filenames}" ]; then
+            echo "Duplicate release artifact filenames detected:"
+            printf '%s\n' "${duplicate_filenames}"
+            exit 1
+          fi
+
+          cp "${archives[@]}" release-artifacts/
           ls -lh release-artifacts/
 
       - name: Extract release notes
