@@ -61,6 +61,7 @@ defmodule ToolchainGenerator do
     app_name = "nerves_toolchain_#{target_tuple}"
     target_dir = Path.expand(app_name)
     config_dir = "configs/#{app_name}"
+    versions = Map.get(version_metadata, app_name, [])
 
     IO.puts("Generating #{target_dir}...")
 
@@ -73,8 +74,9 @@ defmodule ToolchainGenerator do
     # Prepare bindings for EEx templates
     module_name = target_tuple_to_module_name(target_tuple)
     target_display = target_tuple |> to_string() |> String.replace("_", "-")
-    included_components = build_included_components(Map.get(version_metadata, app_name, []))
+    included_components = build_included_components(versions)
     package_licenses_list = format_string_list(build_package_licenses(included_components))
+    external_toolchain_settings = build_external_toolchain_settings!(versions)
 
     bindings = [
       module_name: module_name,
@@ -83,7 +85,9 @@ defmodule ToolchainGenerator do
       target_display: target_display,
       ctng_tag: Map.fetch!(toolchain_config, :ctng_tag),
       included_components: included_components,
-      package_licenses_list: package_licenses_list
+      package_licenses_list: package_licenses_list,
+      linux_headers_series: external_toolchain_settings.linux_headers_series,
+      libc_type: external_toolchain_settings.libc_type
     ]
 
     template_dir = Path.expand("template")
@@ -141,6 +145,34 @@ defmodule ToolchainGenerator do
     Enum.map(versions, fn {component, version} ->
       {component, version, component_license!(component)}
     end)
+  end
+
+  defp build_external_toolchain_settings!(versions) do
+    versions_by_component = Map.new(versions)
+
+    %{
+      linux_headers_series: linux_headers_series!(versions_by_component),
+      libc_type: libc_type!(versions_by_component)
+    }
+  end
+
+  defp linux_headers_series!(versions_by_component) do
+    versions_by_component
+    |> Map.fetch!("Linux headers")
+    |> String.split(".")
+    |> Enum.take(2)
+    |> case do
+      [major, minor] -> "#{major}_#{minor}"
+      _ -> raise "expected Linux headers version to include major and minor numbers"
+    end
+  end
+
+  defp libc_type!(versions_by_component) do
+    cond do
+      Map.has_key?(versions_by_component, "glibc") -> "GLIBC"
+      Map.has_key?(versions_by_component, "musl") -> "MUSL"
+      true -> raise "expected glibc or musl in toolchain version metadata"
+    end
   end
 
   defp build_package_licenses(included_components) do

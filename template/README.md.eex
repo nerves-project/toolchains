@@ -13,6 +13,34 @@ cross-compilers can be referenced in `mix`. See
 [nerves-toolchain](https://github.com/nerves-project/nerves-toolchain) for
 the scripts used to generate the actual cross-compiler.
 
+## Using this toolchain in a Nerves system
+
+Add this toolchain to your Nerves system project's `deps` in `mix.exs`:
+
+```elixir
+{:<%= @app_name %>, "~> <toolchain version>", runtime: false}
+```
+
+Then update `nerves_defconfig` to use the release artifact for this toolchain.
+The easiest way is to copy the external toolchain settings from this package's
+`defconfig`. In addition to pointing `BR2_TOOLCHAIN_EXTERNAL_URL` at the
+release archive for your host and setting the custom prefix, make sure the
+kernel headers, libc, and language/runtime options match:
+
+```make
+BR2_TOOLCHAIN_EXTERNAL=y
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
+BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD=y
+BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/nerves-project/toolchains/releases/download/<tag>/<artifact>"
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="<%= @target_display %>"
+BR2_TOOLCHAIN_EXTERNAL_HEADERS_<%= @linux_headers_series %>=y
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM_<%= @libc_type %>=y
+# BR2_TOOLCHAIN_EXTERNAL_INET_RPC is not set
+BR2_TOOLCHAIN_EXTERNAL_CXX=y
+BR2_TOOLCHAIN_EXTERNAL_FORTRAN=y
+BR2_TOOLCHAIN_EXTERNAL_OPENMP=y
+```
+
 <%= if @included_components != [] do %>
 ## Included tool versions and licenses
 
