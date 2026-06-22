@@ -19,6 +19,41 @@ on:
   workflow_dispatch:
 
 jobs:
+  check:
+    name: Check generated toolchains
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.19'
+          otp-version: '28'
+
+      - name: Install build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl build-essential libtool gperf bison flex \
+            texinfo wget gawk libtool-bin libncurses5-dev \
+            help2man ca-certificates unzip lzip python3 rsync \
+            autoconf automake xz-utils
+
+      - name: Install Hex and Rebar
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Check generated toolchains
+        run: |
+          make
+          make check
+
   build_and_test:
     name: Build and test ${{ matrix.toolchain }}
     strategy:
