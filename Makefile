@@ -1,7 +1,7 @@
 # Top-level Makefile for Nerves Toolchains
 # This Makefile instantiates all toolchain packages from the template
 
-.PHONY: all refresh_version_info generate clean push-hex help
+.PHONY: all refresh_version_info generate clean check push-hex help
 
 # List of all toolchains
 TOOLCHAINS = \
@@ -36,6 +36,13 @@ clean:
 		rm -rf $$tc/; \
 	done
 
+# Run package checks on all toolchain packages
+check:
+	@for tc in $(TOOLCHAINS); do \
+		echo "Checking $$tc..."; \
+		cd $$tc && mix deps.get && mix compile && mix docs && mix hex.build && cd ..; \
+	done
+
 # Push all toolchain packages to hex.pm
 push-hex:
 	@for tc in $(TOOLCHAINS); do \
@@ -51,6 +58,7 @@ help:
 	@echo "  all (default) - Generate all toolchain packages from template"
 	@echo "  generate      - Generate all toolchain packages from template"
 	@echo "  clean         - Remove generated files from all toolchains (use with caution)"
+	@echo "  check         - Run mix checks on all generated toolchain packages"
 	@echo "  push-hex      - Push all toolchain packages to hex.pm"
 	@echo "  help          - Show this help message"
 	@echo ""

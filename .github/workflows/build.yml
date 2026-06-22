@@ -19,6 +19,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  check:
+    name: Check generated toolchains
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.17.3'
+          otp-version: '26.2'
+
+      - name: Install Hex and Rebar
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Check generated toolchains
+        run: make check
+
   build_and_test:
     name: Build and test ${{ matrix.toolchain }}
     strategy:
