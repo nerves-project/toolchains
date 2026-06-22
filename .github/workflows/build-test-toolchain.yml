@@ -97,7 +97,7 @@ jobs:
 
   build_linux_aarch64:
     name: Build ${{ inputs.toolchain }} on linux-aarch64
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-arm
     steps:
       - name: Free up disk space
         run: |
@@ -153,7 +153,7 @@ jobs:
   test_linux_aarch64:
     name: Test ${{ inputs.toolchain }} (linux-aarch64) on ubuntu-${{ matrix.ubuntu_version }}-arm
     needs: build_linux_aarch64
-    runs-on: ${{ format('ubuntu-{0}', matrix.ubuntu_version) }}
+    runs-on: ${{ format('ubuntu-{0}-arm', matrix.ubuntu_version) }}
     strategy:
       fail-fast: false
       matrix:
