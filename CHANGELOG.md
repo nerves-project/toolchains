@@ -1,6 +1,6 @@
 # Toolchain Releases
 
-## v15.3.0-rc.0
+## v15.3.0
 
 This release bumps GCC from 14.2 to 15.3. While the toolchain is produced in a
 similar manner to past releases, the code in thie project has been completely
