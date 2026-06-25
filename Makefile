@@ -46,9 +46,23 @@ check:
 # Push all toolchain packages to hex.pm
 push-hex:
 	@for tc in $(TOOLCHAINS); do \
+		echo "Generating docs for $$tc..."; \
+		cd $$tc && mix deps.get && mix docs && cd ..; \
+	done; \
+	for tc in $(TOOLCHAINS); do \
 		echo "Pushing $$tc to hex..."; \
-		cd $$tc && mix deps.get && mix hex.publish package --yes && cd ..; \
+		cd $$tc && mix hex.publish --yes && cd ..; \
 	done
+
+push-hex-docs:
+	@for tc in $(TOOLCHAINS); do \
+		echo "Generating docs for $$tc..."; \
+		cd $$tc && mix deps.get && mix docs && cd ..; \
+	done; \
+	for tc in $(TOOLCHAINS); do \
+		echo "Publishing hex docs for $$tc..."; \
+		cd $$tc && mix hex.publish docs --yes && cd ..; \
+	done \
 
 # Help target
 help:
@@ -60,6 +74,7 @@ help:
 	@echo "  clean         - Remove generated files from all toolchains (use with caution)"
 	@echo "  check         - Run mix checks on all generated toolchain packages"
 	@echo "  push-hex      - Push all toolchain packages to hex.pm"
+	@echo "  push-hex-docs - Update toolchain docs on hex.pm"
 	@echo "  help          - Show this help message"
 	@echo ""
 	@echo "Toolchains:"
