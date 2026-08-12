@@ -16,19 +16,11 @@ defmodule <%= @module_name %>.MixProject do
       description: @description,
       package: package(),
       source_url: @source_url,
-      compilers: compilers(Mix.env()),
       nerves_package: nerves_package(),
       deps: deps(),
       docs: docs()
     ]
   end
-
-  # Removing Nerves.Toolchain.CTNG had the side effect of introducing a
-  # circular dependency between Nerves bootstram and compiling the platform.
-  # Since we no longer support compiling the toolchain via the Nerves tooling,
-  # use the environment to see whether this is the root project or not.
-  defp compilers(:prod), do: [:nerves_package | Mix.compilers()]
-  defp compilers(_), do: Mix.compilers()
 
   def application do
     []
