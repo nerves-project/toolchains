@@ -1,11 +1,9 @@
 #!/bin/sh
 
-TOOLCHAIN=$1
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: Apache-2.0
 
-if [ -z $TOOLCHAIN ]; then
-	echo "Pass a toolchain directory name (e.g., nerves_toolchain_armv7_nerves_linux_gnueabihf)"
-	exit 1
-fi
-
-bash $TOOLCHAIN/build.sh $PWD/o/$TOOLCHAIN
+set -e
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec bash "$ROOT/toolchain_builder/build.sh" "$@"
 

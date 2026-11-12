@@ -1,20 +1,28 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: Apache-2.0
 
 # Example
 #
-# build.sh <work directory> [output directory]
+# build.sh <package name> [work directory] [output directory]
 
 set -e
 
 # Use hash or version tag (should be crosstool-ng-x.y.z)
-CTNG_TAG=<%= inspect(@ctng_tag) %>
-
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ARTIFACT_NAME=$(basename "$SCRIPT_DIR")
+ARTIFACT_NAME=$1
+TOOLCHAIN_NAME=$ARTIFACT_NAME
 
-BASE_CONFIG="$SCRIPT_DIR/defconfig"
-WORK_DIR=$1
-OUTPUT_DIR=$2
+if [[ ! -f "$SCRIPT_DIR/configs/$TOOLCHAIN_NAME/defconfig" ]]; then
+    echo "Pass a toolchain package name (e.g., nerves_toolchain_armv7_nerves_linux_gnueabihf)" >&2
+    exit 1
+fi
+
+CTNG_TAG=$(elixir -e '{config, _} = Code.eval_file(hd(System.argv())); IO.puts(config.ctng_tag)' "$SCRIPT_DIR/config.exs")
+
+BASE_CONFIG="$SCRIPT_DIR/configs/$TOOLCHAIN_NAME/defconfig"
+WORK_DIR=${2:-"$SCRIPT_DIR/../o/$TOOLCHAIN_NAME"}
+OUTPUT_DIR=${3:-"$SCRIPT_DIR/../o/artifacts"}
 
 if [[ -z $WORK_DIR ]]; then
     echo "build.sh <work directory>"
@@ -63,6 +71,7 @@ if [[ ! -e $BASE_CONFIG ]]; then
     exit 1
 fi
 
+mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 
 # Ensure that the config and work paths are absolute
@@ -83,28 +92,14 @@ fi
 
 DL_DIR=$HOME/.nerves/dl
 
-if [[ ! -e $CTNG_CONFIG_DIR/VERSION ]]; then
-    echo "Can't find $CTNG_CONFIG_DIR/VERSION. Check that it exists."
+if [[ ! -e $SCRIPT_DIR/VERSION ]]; then
+    echo "Can't find $SCRIPT_DIR/VERSION. Check that it exists."
     exit 1
 fi
 
-NERVES_TOOLCHAIN_VERSION=$(cat "$CTNG_CONFIG_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-MIX_FILE="$CTNG_CONFIG_DIR/mix.exs"
-if [[ ! -e $MIX_FILE ]]; then
-    echo "Can't find $MIX_FILE. Check that it exists."
-    exit 1
-fi
-
-CHECKSUM_SCRIPT="$SCRIPT_DIR/scripts/mix_checksum.exs"
-if [[ ! -e $CHECKSUM_SCRIPT ]]; then
-    echo "Can't find $CHECKSUM_SCRIPT. Check that it exists."
-    exit 1
-fi
-
-PACKAGE_CHECKSUM=$(elixir "$CHECKSUM_SCRIPT" "$MIX_FILE")
-TOOLCHAIN_NAME=$(basename "$CTNG_CONFIG_DIR")
-ARTIFACT_BASENAME="$TOOLCHAIN_NAME-${HOST_OS}_${ARTIFACT_HOST_ARCH}-$NERVES_TOOLCHAIN_VERSION-$PACKAGE_CHECKSUM.tar.xz"
+NERVES_TOOLCHAIN_VERSION=$(cat "$SCRIPT_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+ARTIFACT_NAMES=$(elixir "$SCRIPT_DIR/artifact_names.exs" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}")
+read -r ARTIFACT_BASENAME COMPAT_ARTIFACT_BASENAME <<< "$ARTIFACT_NAMES"
 ARTIFACT_PATH="$OUTPUT_DIR/$ARTIFACT_BASENAME"
 
 echo "Using HOST_ARCH: $HOST_ARCH"
@@ -415,14 +410,8 @@ finalize_products()
 
 build_artifact()
 {
-    # Create a tarball of the built toolchain with checksum in filename.
     TARGET_TUPLE=$(gcc_tuple)
-
-    echo "Creating artifact $ARTIFACT_PATH..."
-    rm -f "$ARTIFACT_PATH"
-    mv "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$GCC_INSTALL_DIR/$TOOLCHAIN_NAME"
-    $TAR -c -J -C "$GCC_INSTALL_DIR" -f "$ARTIFACT_PATH" "$TOOLCHAIN_NAME"
-    mv "$GCC_INSTALL_DIR/$TOOLCHAIN_NAME" "$GCC_INSTALL_DIR/$TARGET_TUPLE"
+    bash "$SCRIPT_DIR/scripts/package.sh" "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$OUTPUT_DIR" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}"
 }
 
 init

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
 name: Build and Test Toolchain
 
 on:
@@ -48,19 +51,19 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
-          key: nerves-dl-${{ hashFiles('toolchain_config.exs', 'configs/**/defconfig', 'template/defaults/*_defconfig') }}-${{ inputs.toolchain }}
+          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
           restore-keys: |
-            nerves-dl-${{ hashFiles('toolchain_config.exs', 'configs/**/defconfig', 'template/defaults/*_defconfig') }}-
+            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
             nerves-dl-
 
       - name: Build toolchain
-        run: bash ${{ inputs.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ inputs.toolchain }}"
+        run: ./build_one.sh "${{ inputs.toolchain }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.toolchain }}-linux-x86_64
-          path: ${{ inputs.toolchain }}/*.tar.xz
+          path: o/artifacts/*.tar.xz
           retention-days: 7
 
   test_linux_x86_64:
@@ -90,7 +93,8 @@ jobs:
       - name: Decompress toolchain archive
         run: |
           mkdir -p $HOME/toolchain
-          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+          archive="$(find /tmp/toolchain -name '*.tar.xz' ! -name 'nerves_toolchain_*' -print -quit)"
+          tar xvf "$archive" --strip-components=1 -C $HOME/toolchain
 
       - name: Compile hello world app
         run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
@@ -148,19 +152,19 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
-          key: nerves-dl-${{ hashFiles('toolchain_config.exs', 'configs/**/defconfig', 'template/defaults/*_defconfig') }}-${{ inputs.toolchain }}
+          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
           restore-keys: |
-            nerves-dl-${{ hashFiles('toolchain_config.exs', 'configs/**/defconfig', 'template/defaults/*_defconfig') }}-
+            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
             nerves-dl-
 
       - name: Build toolchain
-        run: bash ${{ inputs.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ inputs.toolchain }}"
+        run: ./build_one.sh "${{ inputs.toolchain }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.toolchain }}-linux-aarch64
-          path: ${{ inputs.toolchain }}/*.tar.xz
+          path: o/artifacts/*.tar.xz
           retention-days: 7
 
   test_linux_aarch64:
@@ -190,7 +194,8 @@ jobs:
       - name: Decompress toolchain archive
         run: |
           mkdir -p $HOME/toolchain
-          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+          archive="$(find /tmp/toolchain -name '*.tar.xz' ! -name 'nerves_toolchain_*' -print -quit)"
+          tar xvf "$archive" --strip-components=1 -C $HOME/toolchain
 
       - name: Compile hello world app
         run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp
@@ -215,19 +220,19 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
-          key: nerves-dl-${{ hashFiles('toolchain_config.exs', 'configs/**/defconfig', 'template/defaults/*_defconfig') }}-${{ inputs.toolchain }}
+          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
           restore-keys: |
-            nerves-dl-${{ hashFiles('toolchain_config.exs', 'configs/**/defconfig', 'template/defaults/*_defconfig') }}-
+            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
             nerves-dl-
 
       - name: Build toolchain
-        run: bash ${{ inputs.toolchain }}/build.sh "$GITHUB_WORKSPACE/o/${{ inputs.toolchain }}"
+        run: ./build_one.sh "${{ inputs.toolchain }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.toolchain }}-darwin-aarch64
-          path: ${{ inputs.toolchain }}/*.tar.xz
+          path: o/artifacts/*.tar.xz
           retention-days: 7
 
   test_macos:
@@ -252,7 +257,8 @@ jobs:
       - name: Decompress toolchain archive
         run: |
           mkdir -p $HOME/toolchain
-          tar xvf /tmp/toolchain/*.tar.xz --strip-components=1 -C $HOME/toolchain
+          archive="$(find /tmp/toolchain -name '*.tar.xz' ! -name 'nerves_toolchain_*' -print -quit)"
+          tar xvf "$archive" --strip-components=1 -C $HOME/toolchain
 
       - name: Compile hello world app
         run: $HOME/toolchain/bin/*-g++ $GITHUB_WORKSPACE/support/smoketest/main.cpp

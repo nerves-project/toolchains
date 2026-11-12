@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
 /dl
 /work-*
 *.xz
@@ -5,4 +8,6 @@
 
 # Generated toolchain directories (run 'make generate' to create)
 /nerves_toolchain_*
+!/nerves_toolchain_gcc/
 /o
+/tmp

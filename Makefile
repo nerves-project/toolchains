@@ -1,7 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: Apache-2.0
+#
 # Top-level Makefile for Nerves Toolchains
 # This Makefile instantiates all toolchain packages from the template
 
-.PHONY: all refresh_version_info generate clean check push-hex help
+.PHONY: all refresh_version_info generate clean check test push-hex help
 
 # List of all toolchains
 TOOLCHAINS = \
@@ -21,17 +24,17 @@ TOOLCHAINS = \
 all: refresh_version_info generate
 
 refresh_version_info:
-	@elixir update_toolchain_versions.exs
+	@elixir toolchain_builder/update_versions.exs
 
 # Generate all toolchain packages from template
 generate:
 	@elixir generate_toolchains.exs
 
 build-armv7-gnu: generate
-	bash nerves_toolchain_armv7_nerves_linux_gnueabihf/build.sh $(PWD)/o/nerves_toolchain_armv7_nerves_linux_gnueabihf $(PWD)
+	./build_one.sh nerves_toolchain_armv7_nerves_linux_gnueabihf
 
 build-riscv64-musl: generate
-	bash nerves_toolchain_riscv64_nerves_linux_musl/build.sh $(PWD)/o/nerves_toolchain_riscv64_nerves_linux_musl $(PWD)
+	./build_one.sh nerves_toolchain_riscv64_nerves_linux_musl
 
 clean:
 	@for tc in $(TOOLCHAINS); do \
@@ -41,10 +44,14 @@ clean:
 
 # Run package checks on all toolchain packages
 check:
-	@for tc in $(TOOLCHAINS); do \
+	@set -e; for tc in $(TOOLCHAINS) nerves_toolchain_gcc; do \
 		echo "Checking $$tc..."; \
-		cd $$tc && mix deps.get && mix compile && mix docs && mix hex.build && cd ..; \
+		(cd "$$tc"; mix deps.get; mix compile; mix docs; mix hex.build); \
 	done
+
+test:
+	@elixir toolchain_builder/test/metadata_test.exs
+	@cd nerves_toolchain_gcc && mix deps.get && mix test
 
 # Push all toolchain packages to hex.pm
 push-hex:
@@ -77,7 +84,8 @@ help:
 	@echo "  build-riscv64-musl - Manually build a riscv64 toolchain one by directly calling its build.sh script"
 	@echo "  generate           - Generate all toolchain packages from template"
 	@echo "  clean              - Remove generated files from all toolchains (use with caution)"
-	@echo "  check              - Run mix checks on all generated toolchain packages"
+	@echo "  check              - Run mix checks on all compatibility packages and the generic GCC package"
+	@echo "  test               - Test archive packaging and generic GCC integration (no compiler build)"
 	@echo "  push-hex           - Push all toolchain packages to hex.pm"
 	@echo "  push-hex-docs      - Update toolchain docs on hex.pm"
 	@echo "  help               - Show this help message"

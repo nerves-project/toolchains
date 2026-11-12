@@ -1,15 +1,16 @@
 #!/usr/bin/env elixir
 
-# Generator script to create toolchain packages from template
-# This embeds the nerves_toolchain_ctng code directly into each package
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: Apache-2.0
+
+Code.require_file("toolchain_builder/metadata.exs", __DIR__)
 
 defmodule ToolchainGenerator do
   @moduledoc """
   Generates toolchain packages from template using EEx
   """
 
-  @toolchain_config_path Path.expand("toolchain_config.exs")
-  @version_metadata_path Path.expand("configs/toolchain_versions.exs")
+  @version_metadata_path Path.join(__DIR__, "toolchain_builder/configs/toolchain_versions.exs")
   @component_licenses %{
     "GCC" => "GPL-3.0-or-later",
     "binutils" => "GPL-3.0-or-later",
@@ -49,18 +50,16 @@ defmodule ToolchainGenerator do
   def run do
     IO.puts("Generating toolchain packages from template...")
 
-    toolchain_config = load_toolchain_config!()
     version_metadata = load_version_metadata()
 
-    Enum.each(@toolchains, &generate_toolchain(&1, toolchain_config, version_metadata))
+    Enum.each(@toolchains, &generate_toolchain(&1, version_metadata))
 
     IO.puts("\nGenerated #{length(@toolchains)} toolchain packages")
   end
 
-  defp generate_toolchain(target_tuple, toolchain_config, version_metadata) when is_atom(target_tuple) do
+  defp generate_toolchain(target_tuple, version_metadata) when is_atom(target_tuple) do
     app_name = "nerves_toolchain_#{target_tuple}"
     target_dir = Path.expand(app_name)
-    config_dir = "configs/#{app_name}"
     versions = Map.get(version_metadata, app_name, [])
 
     IO.puts("Generating #{target_dir}...")
@@ -68,8 +67,20 @@ defmodule ToolchainGenerator do
     # Create directory if it doesn't exist
     File.mkdir_p!(target_dir)
 
-    # Copy essential files from configs directory
-    copy_config_files(config_dir, target_dir)
+    for obsolete <- [
+          "build.sh",
+          "defconfig",
+          "defaults",
+          "scripts",
+          "patches",
+          "Dockerfile",
+          "nerves-artifact"
+        ] do
+      File.rm_rf!(Path.join(target_dir, obsolete))
+    end
+
+    File.cp!("toolchain_builder/VERSION", Path.join(target_dir, "VERSION"))
+    File.write!(Path.join(target_dir, "toolchain.exs"), ToolchainMetadata.contents(app_name))
 
     # Prepare bindings for EEx templates
     module_name = target_tuple_to_module_name(target_tuple)
@@ -83,7 +94,7 @@ defmodule ToolchainGenerator do
       app_name: app_name,
       target_tuple: target_tuple,
       target_display: target_display,
-      ctng_tag: Map.fetch!(toolchain_config, :ctng_tag),
+      toolchain_metadata: ToolchainMetadata.metadata(app_name),
       included_components: included_components,
       package_licenses_list: package_licenses_list,
       linux_headers_series: external_toolchain_settings.linux_headers_series,
@@ -102,15 +113,6 @@ defmodule ToolchainGenerator do
     Enum.each(pairs, &process_files(&1, bindings))
   end
 
-  defp copy_config_files(config_dir, target_dir) do
-    if File.dir?(config_dir) do
-      File.ls!(config_dir)
-      |> Enum.each(fn file ->
-        File.cp!(Path.join(config_dir, file), Path.join(target_dir, file))
-      end)
-    end
-  end
-
   defp target_tuple_to_module_name(target_tuple) do
     target_tuple
     |> to_string()
@@ -127,6 +129,14 @@ defmodule ToolchainGenerator do
       String.ends_with?(from_path, ".eex") ->
         output_path = String.replace_suffix(expanded_to_path, ".eex", "")
         content = EEx.eval_file(from_path, assigns: bindings)
+
+        content =
+          if Path.extname(output_path) in [".ex", ".exs"] do
+            IO.iodata_to_binary(Code.format_string!(content)) <> "\n"
+          else
+            content
+          end
+
         File.write!(output_path, content)
 
       File.dir?(from_path) ->
@@ -207,16 +217,6 @@ defmodule ToolchainGenerator do
       end
     else
       %{}
-    end
-  end
-
-  defp load_toolchain_config! do
-    {config, _bindings} = Code.eval_file(@toolchain_config_path)
-
-    if is_map(config) and is_binary(Map.get(config, :ctng_tag)) do
-      config
-    else
-      raise "toolchain_config.exs must return a map with a :ctng_tag string"
     end
   end
 end

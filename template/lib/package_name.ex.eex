@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule <%= @module_name %> do
   @moduledoc false
   # This module's only purpose is get rid of error messages when used with Nerves 1.x
@@ -10,20 +13,19 @@ defmodule <%= @module_name %> do
     :ok
   end
 
-  def build_path_link(_pkg) do
-    # Unused since never built via Nerves tooling
-    "Run build.sh directly"
-  end
+  @build_message "Build natively with toolchain_builder/build.sh in nerves-project/toolchains"
+
+  def build_path_link(_pkg), do: @build_message
 
   def build(_pkg, _toolchain, _opts) do
-    {:error, "Run build.sh directly"}
+    {:error, @build_message}
   end
 
   def archive(_pkg, _toolchain, _opts) do
-    {:error, "Run build.sh directly"}
+    {:error, @build_message}
   end
 
   def clean(_pkg) do
-    {:error, "Run build.sh directly"}
+    {:error, @build_message}
   end
 end

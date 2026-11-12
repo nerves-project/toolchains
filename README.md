@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Frank Hunleth
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Nerves Toolchains
 
 This is an umbrella project for all of the Nerves toolchains. Toolchains include
@@ -5,14 +10,26 @@ a compiler, C library and some tools for building native code on Nerves devices.
 Nerves manages its own cross-compilers so that the exact same versions of GCC
 are used on macOS, Linux and all of their variations.
 
-Each toolchain is built using Crosstool-NG and packaged up as an Elixir package.
-Since the toolchain packages are so similar, the Elixir packages are generated
-from a template rather than maintained elsewhere.
+Toolchains are built natively using crosstool-NG, outside of Nerves:
+
+* `toolchain_builder/` contains the build implementation, configurations,
+  patches, pinned crosstool-NG revision, and component version metadata.
+* `template/` and `generate_toolchains.exs` produce the twelve compatibility
+  Mix packages for existing Nerves 1 systems.
+* `nerves_toolchain_gcc/` is the generic integration package for Nerves 2.
+  Systems select compiler archives in their own configuration instead of
+  depending on compiler-version-specific Mix packages. See its
+  [README](nerves_toolchain_gcc/README.md).
 
 See the GitHub `Releases` tab to download the toolchain. The naming for
 toolchains is:
 
-    nerves-toolchain-<gcc tuple>-<host OS>-<host architecture>-<version>.tar.xz
+    <gcc tuple>--<version>-<source fingerprint>--<host tuple>.tar.xz
+
+The builder also publishes byte-identical copies with the legacy
+`nerves_toolchain_<target>-<legacy host>-<version>-<package fingerprint>.tar.xz`
+names. Nerves 1 derives those names from package metadata, so these aliases
+preserve compatibility without requiring another compiler build.
 
 The `gcc tuple` is a standard way of describing a target. The most important parts
 are the architecture (e.g., `arm`) and the C Library and ABI (e.g.,
@@ -22,8 +39,8 @@ easy way to decide which toolchain you need is the following:
   * Raspberry Pi Model A+, B, or B+ - `armv6-nerves-linux-gnueabihf`
   * Raspberry Pi 2, BBB, and most other ARM boards - `armv7-nerves-linux-gnueabihf`
 
-The `host OS` and `host architecture` describe your system. If you're running on
-a Mac, this is `Darwin-x86_64` or `Darwin-arm64`.
+The host tuple identifies the computer running the compiler: `x86_64-linux-gnu`,
+`aarch64-linux-gnu`, `x86_64-apple-darwin`, or `aarch64-apple-darwin`.
 
 When in doubt, use the glibc library toolchains. Almost all code works with the
 glibc C library. If you desire the smallest possible target binaries, the musl
@@ -48,24 +65,34 @@ brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses l
 
 Builds can take a very long time especially when building all toolchains.
 
-First generate the toolchain projects:
+Resolve component versions and generate the compatibility packages:
 
 ```sh
-make clean
 make
 ```
 
-The code that generates the projects doesn't delete old files since that's
-sometimes convenient. It's safest to run `make clean` first if you're unsure.
-
-Then build one:
+Build one toolchain on its intended host, without Docker or Nerves:
 
 ```sh
-./build_one.sh nerves_toolchain_arm_nerves_linux_gnueabihf
+./build_one.sh nerves_toolchain_armv7_nerves_linux_gnueabihf
 ```
 
-This will build the toolchain in the `o/<package>` directory. If you want to
-modify the configuration, you can do it via Crosstool-ng's menuconfig:
+Build state goes in `o/<package>` and native archives plus compatibility aliases
+go in `o/artifacts`. The builder needs Elixir for metadata and configuration
+checks, but does not depend on Mix packages or Nerves.
+
+Use `make generate` to regenerate compatibility packages without resolving
+component versions. Each package includes `toolchain.exs`, the native archive
+selection that can also be copied into a Nerves 2 system. Publish the native
+archives and compatibility aliases before publishing the corresponding Hex
+packages. SHA256 manifests remain a future step; source fingerprints are not
+cryptographic verification of downloaded artifacts.
+
+Run `make test` for packaging and integration tests and `make check` for package
+compilation, documentation, and Hex packaging. Neither command builds a compiler.
+
+If you want to modify the configuration, you can do it via Crosstool-ng's
+menuconfig:
 
 ```sh
 <CTRL-C> out of a running build or "killall make", etc.
@@ -78,9 +105,9 @@ $ ../usr/bin/ct-ng menuconfig
 $ ../usr/bin/ct-ng savedefconfig
 
 # merge defconfig changes over to
-# nerves_toolchain_arm_nerves_linux_gnueabihf/defconfig or whatever you're
+# toolchain_builder/configs/nerves_toolchain_armv7_nerves_linux_gnueabihf/defconfig
 # building. Some configuration options are platform-specific and should be put
-# in nerves_toolchain_ctng/defaults/<platform>
+# in toolchain_builder/defaults/<platform>
 ```
 
 ## Toolchain configuration notes
@@ -100,7 +127,7 @@ this, we create a case-sensitive filesystem and build the cross-compilers in it.
 The build products also require a case-sensitive filesystem IF the user wants to
 use the Linux netfilter module. This is currently not a common use case for
 Nerves so the header file conflicts are removed in the OSX tarball version. See
-`build.sh` for details.
+`toolchain_builder/build.sh` for details.
 
 ### 64-bit ARM Builds
 

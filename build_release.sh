@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: Apache-2.0
 
 set -e
 
@@ -18,11 +20,11 @@ make clean
 make
 
 
-CONFIGS=$(find . -name "nerves_toolchain*")
+CONFIGS=$(find toolchain_builder/configs -mindepth 1 -maxdepth 1 -type d -name 'nerves_toolchain_*')
 
 for CONFIG in $CONFIGS; do
     echo "Building $CONFIG..."
-    bash $CONFIG/build.sh o/$CONFIG ..
+    ./build_one.sh "$(basename "$CONFIG")"
 done
 
 echo "All done!!!!!!"
