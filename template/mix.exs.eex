@@ -84,7 +84,7 @@ defmodule <%= @module_name %>.MixProject do
     ] ++ checksum_files()
   end
 
-  # The native builder publishes a compatibility archive with this fingerprint.
+  # Reserved for legacy compatibility archive aliases.
   defp checksum_files do
     [
       "toolchain.exs"

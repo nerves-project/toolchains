@@ -82,7 +82,6 @@ defmodule ToolchainGenerator do
       File.rm_rf!(Path.join(target_dir, obsolete))
     end
 
-    File.cp!("toolchain_builder/VERSION", Path.join(target_dir, "VERSION"))
     File.write!(Path.join(target_dir, "toolchain.exs"), ToolchainMetadata.contents(config_name))
 
     # Prepare bindings for EEx templates

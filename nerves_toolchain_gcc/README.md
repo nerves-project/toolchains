@@ -40,7 +40,8 @@ For Nerves-built toolchains, print the native builder's release metadata:
 elixir toolchain_builder/artifact_names.exs armv7-nerves-linux-gnueabihf--gcc15
 ```
 
-Copy its `:archives` map into the system's source. No compatibility package needs
+Copy the JSON `archives` mapping into an Elixir map in the system's source.
+URLs default to `https://dl.nerves-project.org/toolchains/`. No compatibility package needs
 to be generated or added as a dependency. CI provides Linux x86_64/aarch64 and
 macOS arm64 assets first; manually built hosts may become available later at
 their already-defined URLs. Other GCC toolchains,
@@ -68,5 +69,8 @@ Set `NERVES_TOOLCHAIN` to an extracted directory for local development. No archi
 is downloaded in that case. Native macOS archives are selected on macOS; no
 Linux container is used to build or activate them.
 
-Archives are checked for corruption. SHA256 manifests and release verification
-are deferred; use trusted, immutable URLs in the meantime.
+Archives are currently checked for corruption. The native builder publishes
+`<archive>.sha256` sidecars, but this integration does not yet consume those
+files; checksum integration requires a follow-up to the Nerves download
+validation API. Until then, verify sidecars separately for local overrides and
+use trusted, immutable URLs. The sidecars are not signatures.

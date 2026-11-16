@@ -20,20 +20,25 @@ defmodule ToolchainMetadataTest do
 
     script = Path.expand("../scripts/package.sh", __DIR__)
     assert {_, 0} = System.cmd("bash", [script, install, output, toolchain, "linux_x86_64"])
-    [native] = File.ls!(output)
+    native = ToolchainMetadata.archive_name(toolchain, "linux_x86_64")
+    assert Enum.sort(File.ls!(output)) == Enum.sort([native, native <> ".sha256"])
 
     assert native =~
-             ~r/^armv7-nerves-linux-gnueabihf--gcc-15\.3\.0-glibc-2\.43-linux-5\.10\.\d+--[\d.]+--x86_64-linux-gnu\.tar\.xz$/
+             ~r/^armv7-nerves-linux-gnueabihf--gcc-15\.3\.0-glibc-2\.43-linux-5\.10\.\d+--\d{4}\.\d{1,2}\.\d+--x86_64-linux-gnu\.tar\.zst$/
 
     archive = File.read!(Path.join(output, native))
+    digest = :crypto.hash(:sha256, archive) |> Base.encode16(case: :lower)
+    assert File.read!(Path.join(output, native <> ".sha256")) == "#{digest}  #{native}\n"
     assert File.read!(Path.join(install, "bin/arm-gcc")) == "compiler"
     assert File.read_link!(Path.join(install, "bin/arm-cc")) == "arm-gcc"
 
     extracted = Path.join(tmp_dir, "extracted")
     File.mkdir_p!(extracted)
 
+    tar = if match?({:unix, :darwin}, :os.type()), do: "gtar", else: "tar"
+
     assert {_, 0} =
-             System.cmd("tar", [
+             System.cmd(tar, [
                "xf",
                Path.join(output, native),
                "--strip-components=1",
@@ -59,7 +64,9 @@ defmodule ToolchainMetadataTest do
     later_host = ToolchainMetadata.archive_name(toolchain, "darwin_arm")
     assert later_host == String.replace(native, "--x86_64-linux-gnu", "--aarch64-apple-darwin")
     assert File.read!(Path.join(output, native)) == archive
-    assert Enum.sort(File.ls!(output)) == Enum.sort([native, later_host])
+
+    assert Enum.sort(File.ls!(output)) ==
+             Enum.sort([native, native <> ".sha256", later_host, later_host <> ".sha256"])
   end
 
   @tag :tmp_dir
@@ -91,5 +98,25 @@ defmodule ToolchainMetadataTest do
     end
 
     assert File.read!(base) =~ "CT_GCC_VERSION=\"15.3.0\""
+  end
+
+  test "download locations are configurable without changing archive identities" do
+    previous = System.get_env("TOOLCHAIN_BASE_URL")
+
+    on_exit(fn ->
+      if previous,
+        do: System.put_env("TOOLCHAIN_BASE_URL", previous),
+        else: System.delete_env("TOOLCHAIN_BASE_URL")
+    end)
+
+    toolchain = "armv7-nerves-linux-gnueabihf--gcc15"
+    original = ToolchainMetadata.archive_name(toolchain, "linux_x86_64")
+    System.put_env("TOOLCHAIN_BASE_URL", "https://toolchains.example.org/downloads/")
+    metadata = ToolchainMetadata.metadata(toolchain)
+
+    assert metadata.archives["x86_64-linux-gnu"] ==
+             "https://toolchains.example.org/downloads/#{original}"
+
+    assert ToolchainMetadata.archive_name(toolchain, "linux_x86_64") == original
   end
 end

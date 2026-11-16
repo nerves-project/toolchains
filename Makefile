@@ -24,7 +24,7 @@ TOOLCHAINS = \
 all: refresh_version_info generate
 
 refresh_version_info:
-	@elixir toolchain_builder/update_versions.exs
+	@$(MAKE) -C toolchain_builder versions
 
 # Generate all toolchain packages from template
 generate:
@@ -50,7 +50,7 @@ check:
 	done
 
 test:
-	@elixir toolchain_builder/test/metadata_test.exs
+	@$(MAKE) -C toolchain_builder test
 	@cd nerves_toolchain_gcc && mix deps.get && mix test
 
 # Push all toolchain packages to hex.pm

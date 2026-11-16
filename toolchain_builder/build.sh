@@ -74,8 +74,8 @@ fi
 CTNG_TAG=$(elixir -e '{config, _} = Code.eval_file(hd(System.argv())); IO.puts(config.ctng_tag)' "$SCRIPT_DIR/config.exs")
 
 BASE_CONFIG="$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig"
-WORK_DIR=${2:-"$SCRIPT_DIR/../o/$TOOLCHAIN_NAME"}
-OUTPUT_DIR=${3:-"$SCRIPT_DIR/../o/artifacts"}
+WORK_DIR=${2:-"$SCRIPT_DIR/o/$TOOLCHAIN_NAME"}
+OUTPUT_DIR=${3:-"$SCRIPT_DIR/o/artifacts"}
 
 if [[ -z $WORK_DIR ]]; then
     echo "build.sh <work directory>"
@@ -93,9 +93,6 @@ if [[ $BUILD_OS = "cygwin_nt-6.1" ]]; then
     # A simple cygwin looks better.
     BUILD_OS="cygwin"
 elif [[ $BUILD_OS = "darwin" ]]; then
-    # Homebrew has a different prefix depending on x86_64 or arm64
-    HOMEBREW_PREFIX="$(brew --prefix)"
-
     # Make sure that we use GNU readlink on OSX
     READLINK=greadlink
 fi
@@ -134,11 +131,11 @@ if [[ ! -e $SCRIPT_DIR/VERSION ]]; then
     exit 1
 fi
 
-NERVES_TOOLCHAIN_VERSION=$(cat "$SCRIPT_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+BUILDER_VERSION=$(cat "$SCRIPT_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 ARTIFACT_BASENAME=$(elixir "$SCRIPT_DIR/artifact_names.exs" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}")
 ARTIFACT_PATH="$OUTPUT_DIR/$ARTIFACT_BASENAME"
 
-if [[ -e "$ARTIFACT_PATH" ]]; then
+if [[ -e "$ARTIFACT_PATH" || -e "$ARTIFACT_PATH.sha256" ]]; then
     echo "Archive already exists: $ARTIFACT_PATH. Use a new release version or output directory." >&2
     exit 1
 fi
@@ -151,9 +148,6 @@ echo "Artifact tarball: $ARTIFACT_BASENAME"
 echo "Output directory: $OUTPUT_DIR"
 echo "Work directory: $WORK_DIR"
 echo
-
-# Programs used for building the toolchain, but not for distributing (e.g. ct-ng)
-LOCAL_INSTALL_DIR="$WORK_DIR/usr"
 
 # Install directories for the tools we make
 GCC_INSTALL_DIR="$WORK_DIR/x-tools"  # make sure that this is the same as in the config file
@@ -176,17 +170,11 @@ fi
 if [[ $BUILD_OS = "darwin" ]]; then
     # Mac-specific updates
 
-    # Use GNU tar from Homebrew (brew install gnu-tar)
-    TAR=gtar
-
     WORK_DMG="$WORK_DIR.dmg"
     WORK_DMG_VOLNAME=$ARTIFACT_NAME
 
     # Used by crosstool-ng's configure script
     export CURSES_LIBS="-L$(brew --prefix ncurses)/lib -lncursesw"
-
-    CROSSTOOL_LDFLAGS="-L$HOMEBREW_PREFIX/lib -lintl"
-    CROSSTOOL_CFLAGS="-I$HOMEBREW_PREFIX/include -I$(brew --prefix ncurses)/include"
 
     # Apple provides an old version of Bison that will fail about 20 minutes into the build.
     export PATH="$(brew --prefix bison)/bin:$PATH"
@@ -216,11 +204,9 @@ if [[ $BUILD_OS = "darwin" ]]; then
 
 elif [[ $BUILD_OS = "linux" ]]; then
     # Linux-specific updates
-    TAR=tar
+    :
 elif [[ $BUILD_OS = "freebsd" ]]; then
     # BSD-specific updates
-    TAR=tar
-
     # For crosstool-ng
     export AWK=gawk
 else
@@ -272,55 +258,13 @@ gcc_tuple_underscores()
 
 build_gcc()
 {
-    # Build and install ct-ng to the work directory
-    cd "$WORK_DIR"
-    rm -fr crosstool-ng crosstool-ng-*
-
-    CTNG_TAR_XZ=crosstool-ng-$CTNG_TAG.tar.xz
-    if [[ ! -e $DL_DIR/$CTNG_TAR_XZ ]]; then
-        # Clone repo and cache a tarball
-        git clone https://github.com/crosstool-ng/crosstool-ng.git crosstool-ng-$CTNG_TAG
-        cd crosstool-ng-$CTNG_TAG
-        git checkout $CTNG_TAG
-        cd ..
-        $TAR -c -J --exclude=.git -f "$DL_DIR/$CTNG_TAR_XZ" crosstool-ng-$CTNG_TAG
-        rm -fr crosstool-ng-$CTNG_TAG
-    fi
-
-    $TAR xf "$DL_DIR/$CTNG_TAR_XZ"
-    ln -sf crosstool-ng-$CTNG_TAG crosstool-ng
-
-    # Apply patches
-    "$SCRIPT_DIR/scripts/apply-patches.sh" crosstool-ng "$SCRIPT_DIR/patches/crosstool-ng"
-
-    cd crosstool-ng
-    ./bootstrap
-
-    if [[  $BUILD_OS = "freebsd" ]]; then
+    CTNG=$(elixir "$SCRIPT_DIR/scripts/ctng.exs")
+    if [[ $BUILD_OS = darwin ]]; then
+        SED=gsed
+    elif [[ $BUILD_OS = freebsd ]]; then
         SED=/usr/local/bin/gsed
-	SED=/usr/local/bin/gsed MAKE=/usr/local/bin/gmake PATCH=/usr/local/bin/gpatch ./configure --prefix="$LOCAL_INSTALL_DIR"
-	gmake
-	gmake install
-    elif [[ $BUILD_OS = "darwin" ]]; then
-        # Homebrew's gcc is gcc-15
-        GCC_VERSION=15
-        BINUTILS=$(brew --prefix binutils)
-        CC=gcc-$GCC_VERSION CXX=g++-$GCC_VERSION AR=gcc-ar-$GCC_VERSION NM=gcc-nm-$GCC_VERSION RANLIB=gcc-ranlib-$GCC_VERSION CPP=cpp-$GCC_VERSION OBJDUMP=$BINUTILS/bin/gobjdump OBJCOPY=$BINUTILS/bin/gobjcopy READELF=$BINUTILS/bin/greadelf \
-	    CFLAGS="$CROSSTOOL_CFLAGS" LDFLAGS="$CROSSTOOL_LDFLAGS" SED=$HOMEBREW_PREFIX/bin/gsed MAKE=$HOMEBREW_PREFIX/bin/gmake ./configure --prefix="$LOCAL_INSTALL_DIR"
-        SED=$HOMEBREW_PREFIX/bin/gsed
-	gmake
-	gmake install
     else
-        SED=sed
-	./configure --prefix="$LOCAL_INSTALL_DIR"
-	make
-	make install
-    fi
-
-    # Check for ct-ng
-    if [[ ! -e $LOCAL_INSTALL_DIR/bin/ct-ng ]]; then
-        echo "ct-ng build failed."
-        exit 1
+        SED="sed"
     fi
 
     # Setup the toolchain build directory
@@ -328,8 +272,6 @@ build_gcc()
     cd "$WORK_DIR/build"
     CTNG_CONFIG=$PWD/defconfig
     { cat "$BASE_CONFIG"; printf '\n'; cat "$HOST_CONFIG"; } > "$CTNG_CONFIG"
-
-    CTNG=$LOCAL_INSTALL_DIR/bin/ct-ng
 
     # Process the configuration
     $CTNG defconfig
@@ -405,9 +347,12 @@ save_build_info()
 {
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
-    echo "$NERVES_TOOLCHAIN_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/nerves-toolchain.tag"
+    echo "$BUILDER_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/toolchain-builder.version"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
+    python3 "$SCRIPT_DIR/scripts/build_info.py" "$SCRIPT_DIR" \
+        "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$TOOLCHAIN_NAME" \
+        "${HOST_OS}_${ARTIFACT_HOST_ARCH}" "$CTNG_TAG"
 }
 
 fix_kernel_case_conflicts()

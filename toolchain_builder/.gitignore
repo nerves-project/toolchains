@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+/o/
+/tmp/
+__pycache__/
+*.dmg
+*.tar.zst
+*.tar.zst.sha256

@@ -25,6 +25,10 @@ defmodule ToolchainMetadata do
   def metadata(toolchain) do
     unless toolchain in targets(), do: raise("Unknown toolchain: #{toolchain}")
     version = File.read!(Path.join(@root, "VERSION")) |> String.trim()
+
+    unless Regex.match?(~r/^\d{4}\.(?:0[1-9]|1[0-2])\.[1-9]\d*$/, version),
+      do: raise("VERSION must be a calendar release YYYY.MM.N")
+
     target = toolchain |> String.split("--", parts: 2) |> hd()
     config = ToolchainDefconfig.read!(config_path(toolchain))
     gcc = component_version!(config, "GCC")
@@ -35,13 +39,21 @@ defmodule ToolchainMetadata do
     name =
       "#{target}--gcc-#{gcc}-#{String.downcase(libc)}-#{libc_version}-linux-#{linux}--#{version}"
 
-    site = "https://github.com/nerves-project/toolchains/releases/download/v#{version}"
+    site =
+      System.get_env("TOOLCHAIN_BASE_URL", "https://dl.nerves-project.org/toolchains/")
+      |> String.trim_trailing("/")
+
+    uri = URI.new!(site)
+
+    unless uri.scheme in ["https", "http"] and uri.host not in [nil, ""] and
+             is_nil(uri.query) and is_nil(uri.fragment),
+           do: raise("TOOLCHAIN_BASE_URL must be an HTTP(S) URL")
 
     %{
       name: name,
       version: version,
       archives:
-        Map.new(@hosts, fn {_legacy, host} -> {host, "#{site}/#{name}--#{host}.tar.xz"} end)
+        Map.new(@hosts, fn {_legacy, host} -> {host, "#{site}/#{name}--#{host}.tar.zst"} end)
     }
   end
 
@@ -68,7 +80,7 @@ defmodule ToolchainMetadata do
   def archive_name(toolchain, host) do
     metadata = metadata(toolchain)
     canonical_host = Map.fetch!(@hosts, host)
-    "#{metadata.name}--#{canonical_host}.tar.xz"
+    "#{metadata.name}--#{canonical_host}.tar.zst"
   end
 
   defp component_version!(config, component) do

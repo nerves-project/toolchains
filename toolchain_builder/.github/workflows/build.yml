@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: CC0-1.0
+
+name: Build and Test Toolchains
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  BUILDER_DIRECTORY: .
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    outputs:
+      toolchains: ${{ steps.configs.outputs.toolchains }}
+      directory: ${{ steps.configs.outputs.directory }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: configs
+        env:
+          BUILD_ALL_TOOLCHAINS: 'true'
+        run: |
+          echo "directory=$BUILDER_DIRECTORY" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "v$(cat "$BUILDER_DIRECTORY/VERSION")"
+          fi
+          if [[ "$BUILD_ALL_TOOLCHAINS" == true ]]; then
+            toolchains="$(
+              for config in "$BUILDER_DIRECTORY"/configs/*.defconfig; do
+                basename "$config" .defconfig
+              done | jq -Rsc 'split("\n")[:-1]'
+            )"
+          else
+            toolchains='["armv7-nerves-linux-gnueabihf--gcc15"]'
+          fi
+          echo "toolchains=$toolchains" >> "$GITHUB_OUTPUT"
+
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.17.3'
+          otp-version: '26.2'
+      - run: sudo apt-get update && sudo apt-get install -y zstd
+      - name: Check standalone builder
+        run: make -C "$BUILDER_DIRECTORY" check
+
+  build_and_test:
+    needs: configure
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: ${{ fromJSON(needs.configure.outputs.toolchains) }}
+    uses: ./.github/workflows/build-test-toolchain.yml
+    with:
+      toolchain: ${{ matrix.toolchain }}
+      builder_directory: ${{ needs.configure.outputs.directory }}
+
+  publish:
+    needs: [check, build_and_test]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && vars.TOOLCHAIN_S3_DESTINATION != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+      - name: Collect archive/checksum pairs
+        run: |
+          mkdir release-artifacts
+          while IFS= read -r artifact; do
+            destination="release-artifacts/$(basename "$artifact")"
+            test ! -e "$destination"
+            cp "$artifact" "$destination"
+          done < <(find artifacts -type f \( -name '*.tar.zst' -o -name '*.tar.zst.sha256' \))
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.TOOLCHAIN_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.TOOLCHAIN_AWS_REGION }}
+      - name: Publish without replacing existing objects
+        env:
+          S3_DESTINATION: ${{ vars.TOOLCHAIN_S3_DESTINATION }}
+        run: bash "$BUILDER_DIRECTORY/scripts/publish.sh" "$S3_DESTINATION" release-artifacts

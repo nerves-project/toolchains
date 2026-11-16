@@ -3,15 +3,6 @@
 
 name: Build and Test Toolchains
 
-# ============================================================================
-# BUILD CONFIGURATION - Toggle this value to control which toolchains to build
-# ============================================================================
-# false = build only armv7_gnueabihf (fast, for development)
-# true  = build all flat configs (slow, for releases - CURRENTLY ACTIVE)
-#
-# Set "BUILD_ALL_TOOLCHAINS" below to false for a single toolchain
-# ============================================================================
-
 on:
   push:
     branches: [main]
@@ -20,21 +11,28 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  BUILDER_DIRECTORY: toolchain_builder
+
 jobs:
   configure:
-    name: Select toolchain configurations
     runs-on: ubuntu-latest
     outputs:
       toolchains: ${{ steps.configs.outputs.toolchains }}
+      directory: ${{ steps.configs.outputs.directory }}
     steps:
       - uses: actions/checkout@v7
       - id: configs
         env:
           BUILD_ALL_TOOLCHAINS: 'true'
         run: |
+          echo "directory=$BUILDER_DIRECTORY" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "v$(cat "$BUILDER_DIRECTORY/VERSION")"
+          fi
           if [[ "$BUILD_ALL_TOOLCHAINS" == true ]]; then
             toolchains="$(
-              for config in toolchain_builder/configs/*.defconfig; do
+              for config in "$BUILDER_DIRECTORY"/configs/*.defconfig; do
                 basename "$config" .defconfig
               done | jq -Rsc 'split("\n")[:-1]'
             )"
@@ -44,44 +42,18 @@ jobs:
           echo "toolchains=$toolchains" >> "$GITHUB_OUTPUT"
 
   check:
-    name: Check generated toolchains
     runs-on: ubuntu-22.04
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Install Erlang and Elixir
-        uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v7
+      - uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.19'
-          otp-version: '28'
-
-      - name: Install build dependencies
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            git curl build-essential libtool gperf bison flex \
-            texinfo wget gawk libtool-bin libncurses5-dev \
-            help2man ca-certificates unzip lzip python3 rsync \
-            autoconf automake xz-utils
-
-      - name: Install Hex and Rebar
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-
-      - name: Check generated toolchains
-        run: |
-          make
-          make check
-          make test
-          mix format --check-formatted
+          elixir-version: '1.17.3'
+          otp-version: '26.2'
+      - run: sudo apt-get update && sudo apt-get install -y zstd
+      - name: Check standalone builder
+        run: make -C "$BUILDER_DIRECTORY" check
 
   build_and_test:
-    name: Build and test ${{ matrix.toolchain }}
     needs: configure
     strategy:
       fail-fast: false
@@ -90,94 +62,33 @@ jobs:
     uses: ./.github/workflows/build-test-toolchain.yml
     with:
       toolchain: ${{ matrix.toolchain }}
+      builder_directory: ${{ needs.configure.outputs.directory }}
 
-  deploy:
-    name: Deploy to GitHub Release
+  publish:
     needs: [check, build_and_test]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && vars.TOOLCHAIN_S3_DESTINATION != ''
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-
+      contents: read
+      id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v8
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
-
-      - name: Prepare artifacts for upload
+      - name: Collect archive/checksum pairs
         run: |
-          mkdir -p release-artifacts
-
-          mapfile -t archives < <(find artifacts -type f -name "*.tar.xz" | sort)
-
-          if [ "${#archives[@]}" -eq 0 ]; then
-            echo "No .tar.xz artifacts found"
-            exit 1
-          fi
-
-          duplicate_filenames="$(
-            printf '%s\n' "${archives[@]}" \
-              | xargs -n1 basename \
-              | sort \
-              | uniq -d
-          )"
-
-          if [ -n "${duplicate_filenames}" ]; then
-            echo "Duplicate release artifact filenames detected:"
-            printf '%s\n' "${duplicate_filenames}"
-            exit 1
-          fi
-
-          cp "${archives[@]}" release-artifacts/
-          ls -lh release-artifacts/
-
-      - name: Extract release notes
-        run: |
-          awk -v version="${GITHUB_REF_NAME}" '
-            $0 == "## " version {
-              found = 1
-              next
-            }
-            found && /^## / {
-              exit
-            }
-            found {
-              print
-            }
-          ' ./CHANGELOG.md > RELEASE_NOTES.md
-
-          if [ ! -s RELEASE_NOTES.md ]; then
-            echo "No release notes found for ${GITHUB_REF_NAME}" > RELEASE_NOTES.md
-          fi
-
-      - name: Create or update release
+          mkdir release-artifacts
+          while IFS= read -r artifact; do
+            destination="release-artifacts/$(basename "$artifact")"
+            test ! -e "$destination"
+            cp "$artifact" "$destination"
+          done < <(find artifacts -type f \( -name '*.tar.zst' -o -name '*.tar.zst.sha256' \))
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.TOOLCHAIN_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.TOOLCHAIN_AWS_REGION }}
+      - name: Publish without replacing existing objects
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          release_args=(
-            "${GITHUB_REF_NAME}"
-            --title "${GITHUB_REF_NAME}"
-            --notes-file RELEASE_NOTES.md
-          )
-
-          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
-            release_args+=(--prerelease)
-          fi
-
-          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
-            gh release edit "${GITHUB_REF_NAME}" \
-              --title "${GITHUB_REF_NAME}" \
-              --notes-file RELEASE_NOTES.md
-          else
-            gh release create "${release_args[@]}"
-          fi
-
-      - name: Upload artifacts to release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload "${GITHUB_REF_NAME}" release-artifacts/*.tar.xz
+          S3_DESTINATION: ${{ vars.TOOLCHAIN_S3_DESTINATION }}
+        run: bash "$BUILDER_DIRECTORY/scripts/publish.sh" "$S3_DESTINATION" release-artifacts

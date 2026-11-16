@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: CC0-1.0
+
+name: Check Elixir integration packages
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.19'
+          otp-version: '28'
+      - name: Install configuration dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libtool gperf bison flex texinfo \
+            wget gawk libtool-bin libncurses5-dev help2man unzip lzip autoconf automake zstd
+      - run: mix local.hex --force && mix local.rebar --force
+      - uses: actions/cache@v5
+        with:
+          path: ~/.nerves/ct-ng
+          key: ctng-packages-${{ hashFiles('toolchain_builder/crosstool_ng.exs', 'toolchain_builder/config.exs', 'toolchain_builder/patches/**') }}
+      - run: |
+          make
+          make check
+          (cd nerves_toolchain_gcc && mix test)
+          mix format --check-formatted

@@ -2,15 +2,20 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-set -e
+set -euo pipefail
 
 BUILDER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ $# != 4 ]]; then
+    echo "package.sh <installed toolchain directory> <output directory> <config name> <host>" >&2
+    exit 1
+fi
+
 INSTALL_DIR=$1
 OUTPUT_DIR=$2
 TOOLCHAIN=$3
 HOST=$4
 
-if [[ $# != 4 || ! -d "$INSTALL_DIR/bin" ]]; then
+if [[ ! -d "$INSTALL_DIR/bin" ]]; then
     echo "package.sh <installed toolchain directory> <output directory> <config name> <host>" >&2
     exit 1
 fi
@@ -33,15 +38,23 @@ if [[ -e "$STAGING_DIR" ]]; then
     exit 1
 fi
 
-if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" ]]; then
+if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
     echo "Archive already exists: $OUTPUT_DIR/$NATIVE_ARCHIVE. Use a new release version or output directory." >&2
     exit 1
 fi
 
+TMP_DIR=$(mktemp -d "$OUTPUT_DIR/.toolchain.XXXXXX")
+cleanup()
+{
+    mv "$STAGING_DIR" "$INSTALL_DIR"
+    rm -f "$TMP_DIR/$NATIVE_ARCHIVE" "$TMP_DIR/$NATIVE_ARCHIVE.sha256"
+    rmdir "$TMP_DIR"
+}
 mv "$INSTALL_DIR" "$STAGING_DIR"
-TMP_ARCHIVE=""
-trap 'mv "$STAGING_DIR" "$INSTALL_DIR"; if [[ -n "$TMP_ARCHIVE" ]]; then rm -f "$TMP_ARCHIVE"; fi' EXIT
-TMP_ARCHIVE=$(mktemp "$OUTPUT_DIR/.toolchain.XXXXXX")
-"$TAR" -c -J -C "$PARENT_DIR" -f "$TMP_ARCHIVE" "$RELEASE_NAME"
-ln "$TMP_ARCHIVE" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
+trap cleanup EXIT
+"$TAR" -c -C "$PARENT_DIR" -f - "$RELEASE_NAME" | zstd -T0 -q -o "$TMP_DIR/$NATIVE_ARCHIVE"
+python3 "$BUILDER_DIR/scripts/artifact.py" checksum "$TMP_DIR/$NATIVE_ARCHIVE" > "$TMP_DIR/$NATIVE_ARCHIVE.sha256"
+ln "$TMP_DIR/$NATIVE_ARCHIVE" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
+ln "$TMP_DIR/$NATIVE_ARCHIVE.sha256" "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"
 echo "Native archive: $OUTPUT_DIR/$NATIVE_ARCHIVE"
+echo "SHA256: $OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"

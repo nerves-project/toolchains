@@ -1,0 +1,157 @@
+# SPDX-FileCopyrightText: 2026 Frank Hunleth
+# SPDX-License-Identifier: CC0-1.0
+
+name: Build and Test Toolchain
+
+on:
+  workflow_call:
+    inputs:
+      toolchain:
+        required: true
+        type: string
+      builder_directory:
+        type: string
+        default: .
+
+jobs:
+  build:
+    name: Build ${{ inputs.toolchain }} on ${{ matrix.host }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            host: linux-x86_64
+          - runner: ubuntu-22.04-arm
+            host: linux-aarch64
+          - runner: macos-14
+            host: darwin-aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Free up Linux disk space
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl build-essential libtool gperf bison flex texinfo wget gawk \
+            libtool-bin libncurses5-dev help2man ca-certificates unzip lzip \
+            python3 rsync autoconf automake xz-utils zstd
+      - name: Normalize ImageOS for setup-beam
+        if: runner.os == 'Linux'
+        run: echo "ImageOS=${ImageOS%-arm64}" >> "$GITHUB_ENV"
+      - uses: erlef/setup-beam@v1
+        if: runner.os == 'Linux'
+        with:
+          elixir-version: '1.17.3'
+          otp-version: '26.2'
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install gawk binutils automake help2man bash make ncurses libtool \
+            autoconf gnu-sed bison m4 lzip grep coreutils texinfo erlang elixir \
+            gnu-tar zstd xz wget gcc@15
+          echo "$(brew --prefix gcc@15)/bin" >> "$GITHUB_PATH"
+      - name: Cache sources and patched crosstool-NG
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.nerves/dl
+            ~/.nerves/ct-ng
+          key: toolchains-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(format('{0}/crosstool_ng.exs', inputs.builder_directory), format('{0}/config.exs', inputs.builder_directory), format('{0}/patches/**', inputs.builder_directory), format('{0}/configs/*.defconfig', inputs.builder_directory)) }}
+          restore-keys: |
+            toolchains-${{ runner.os }}-${{ runner.arch }}-
+      - name: Resolve component versions
+        working-directory: ${{ inputs.builder_directory }}
+        run: make versions
+      - name: Build and smoke-test toolchain
+        working-directory: ${{ inputs.builder_directory }}
+        env:
+          TOOLCHAIN: ${{ inputs.toolchain }}
+        run: |
+          bash build.sh "$TOOLCHAIN"
+          archive="$(find o/artifacts -name '*.tar.zst' -print -quit)"
+          bash test/smoketest.sh "$archive" "$PWD/o/smoketest.elf"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.toolchain }}-${{ matrix.host }}
+          path: |
+            ${{ inputs.builder_directory }}/o/artifacts/*.tar.zst
+            ${{ inputs.builder_directory }}/o/artifacts/*.tar.zst.sha256
+            ${{ inputs.builder_directory }}/o/smoketest.elf
+          retention-days: 7
+
+  compare:
+    name: Compare target output across hosts
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: ${{ inputs.toolchain }}-*
+          path: artifacts
+      - run: |
+          mapfile -t outputs < <(find artifacts -name smoketest.elf | sort)
+          test "${#outputs[@]}" -eq 3
+          for output in "${outputs[@]}"; do
+            cmp "${outputs[0]}" "$output"
+          done
+
+  test_linux:
+    name: Test ${{ inputs.toolchain }} on ${{ matrix.runner }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            host: linux-x86_64
+          - runner: ubuntu-24.04
+            host: linux-x86_64
+          - runner: ubuntu-22.04-arm
+            host: linux-aarch64
+          - runner: ubuntu-24.04-arm
+            host: linux-aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y zstd
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.toolchain }}-${{ matrix.host }}
+          path: artifacts
+      - name: Verify, relocate, compile and compare
+        env:
+          BUILDER_DIRECTORY: ${{ inputs.builder_directory }}
+        run: |
+          archive="$(find artifacts -name '*.tar.zst' -print -quit)"
+          bash "$BUILDER_DIRECTORY/test/smoketest.sh" "$archive" "$PWD/smoketest.elf"
+          cmp smoketest.elf "$(find artifacts -name smoketest.elf -print -quit)"
+
+  test_macos:
+    name: Test ${{ inputs.toolchain }} on ${{ matrix.runner }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-14, macos-15, macos-26]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: brew install gnu-tar zstd
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.toolchain }}-darwin-aarch64
+          path: artifacts
+      - name: Verify, relocate, compile and compare
+        env:
+          BUILDER_DIRECTORY: ${{ inputs.builder_directory }}
+        run: |
+          archive="$(find artifacts -name '*.tar.zst' -print -quit)"
+          bash "$BUILDER_DIRECTORY/test/smoketest.sh" "$archive" "$PWD/smoketest.elf"
+          cmp smoketest.elf "$(find artifacts -name smoketest.elf -print -quit)"
