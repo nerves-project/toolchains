@@ -116,7 +116,7 @@ If you want to modify the configuration, you can do it via Crosstool-ng's
 menuconfig:
 
 ```sh
-<CTRL-C> out of a running build or "killall make", etc.
+# Press Ctrl+C to stop the build and its child processes.
 
 $ cd o/armv7-nerves-linux-gnueabihf--gcc15/build
 $ ../usr/bin/ct-ng menuconfig

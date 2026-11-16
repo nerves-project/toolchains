@@ -8,6 +8,59 @@
 
 set -e
 
+terminate_descendants()
+{
+    local parent=$1 index
+
+    for ((index = 0; index < ${#process_ids[@]}; index++)); do
+        if [[ ${parent_ids[index]} = "$parent" ]]; then
+            terminate_descendants "${process_ids[index]}"
+            kill -TERM "${process_ids[index]}" 2>/dev/null || true
+            stopped_ids+=("${process_ids[index]}")
+        fi
+    done
+}
+
+cleanup()
+{
+    local status=$? pid ppid
+    local -a process_ids=() parent_ids=() stopped_ids=()
+    trap '' INT TERM
+    trap - EXIT
+
+    # Snapshot before signaling so exiting parents cannot hide their children.
+    while read -r pid ppid; do
+        process_ids+=("$pid")
+        parent_ids+=("$ppid")
+    done < <(ps -axo pid=,ppid=)
+
+    terminate_descendants "$$"
+
+    if [[ ${#stopped_ids[@]} -gt 0 ]]; then
+        sleep 1
+        for pid in "${stopped_ids[@]}"; do
+            kill -KILL "$pid" 2>/dev/null || true
+        done
+    fi
+
+    wait 2>/dev/null || true
+    exit "$status"
+}
+
+if [[ ${1:-} != --build-worker ]]; then
+    # Background jobs ignore terminal SIGINT. Keep a supervising shell in wait
+    # so Ctrl+C can terminate nested make and compiler jobs as well.
+    trap cleanup EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    bash "$0" --build-worker "$@" &
+    wait "$!"
+    exit "$?"
+fi
+
+shift
+trap cleanup EXIT
+
 # Use hash or version tag (should be crosstool-ng-x.y.z)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ARTIFACT_NAME=${1:-}
