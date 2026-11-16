@@ -54,6 +54,62 @@ def running(pid):
     return result.returncode == 0 and not result.stdout.lstrip().startswith("Z")
 
 
+class BuildDiskImageTest(unittest.TestCase):
+    def run_init(self, modern):
+        source = BUILD.read_text()
+        init = source[source.index("\ninit()\n"):source.index("\ngcc_tuple()\n")]
+        with tempfile.TemporaryDirectory(prefix="toolchain-image-") as directory:
+            root = Path(directory)
+            script = """
+set -e
+diskutil() {
+    printf 'diskutil %s\\n' "$*" >> "$COMMAND_LOG"
+    if [[ $* = "image create blank --help" ]]; then
+        [[ $MODERN = yes ]]
+    elif [[ $* = "image attach --noMount "* ]]; then
+        echo /dev/disk99
+    fi
+}
+hdiutil() { printf 'hdiutil %s\\n' "$*" >> "$COMMAND_LOG"; }
+ln() { printf 'ln %s\\n' "$*" >> "$COMMAND_LOG"; }
+""" + init + "\ninit\n"
+            env = dict(
+                os.environ,
+                BUILD_OS="darwin",
+                WORK_DIR=str(root / "work"),
+                WORK_DMG=str(root / "work.dmg"),
+                WORK_DMG_VOLNAME="test-volume",
+                GCC_INSTALL_DIR=str(root / "work" / "x-tools"),
+                DL_DIR=str(root / "downloads"),
+                COMMAND_LOG=str(root / "commands"),
+                MODERN="yes" if modern else "no",
+            )
+            result = subprocess.run(
+                ["bash", "-c", script], env=env, capture_output=True, text=True
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            commands = (root / "commands").read_text().splitlines()
+            self.assertIn("diskutil eject /Volumes/test-volume", commands)
+            self.assertEqual(commands[-1], f"ln -s /Volumes/test-volume {root / 'work'}")
+            return commands, root / "work.dmg"
+
+    def test_modern_macos_creates_case_sensitive_image_without_hdiutil(self):
+        commands, image = self.run_init(modern=True)
+        self.assertIn(f"diskutil image create blank --size 32g --fs None {image}", commands)
+        self.assertIn(f"diskutil image attach --noMount {image}", commands)
+        self.assertIn("diskutil eraseDisk HFSX test-volume /dev/disk99", commands)
+        self.assertFalse(any(command.startswith("hdiutil ") for command in commands))
+
+    def test_older_macos_uses_hdiutil_for_image_creation_and_attachment(self):
+        commands, image = self.run_init(modern=False)
+        self.assertIn(
+            f"hdiutil create -size 32g -fs Case-sensitive HFS+ -volname test-volume {image}",
+            commands,
+        )
+        self.assertIn(f"hdiutil attach {image}", commands)
+        self.assertFalse(any("eraseDisk" in command for command in commands))
+
+
 class BuildProcessTest(unittest.TestCase):
     def run_build(self, mode, interrupt=None):
         with tempfile.TemporaryDirectory(prefix="toolchain-interrupt-") as directory:
