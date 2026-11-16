@@ -114,6 +114,7 @@ OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 
 # Ensure that the config and work paths are absolute
 BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
+rm -f "$WORK_DIR"
 mkdir -p "$WORK_DIR"
 WORK_DIR=$($READLINK -f "$WORK_DIR")
 
@@ -203,10 +204,18 @@ init()
 {
     # Clean up an old build and create the work directory
     if [[ $BUILD_OS = "darwin" ]]; then
-        hdiutil detach "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
+        diskutil eject "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
         rm -fr "$WORK_DIR" "$WORK_DMG"
-        hdiutil create -size 32g -fs "Case-sensitive HFS+" -volname "$WORK_DMG_VOLNAME" "$WORK_DMG"
-        hdiutil attach "$WORK_DMG"
+        if diskutil image create blank --help >/dev/null 2>&1; then
+            # The image API cannot create case-sensitive filesystems directly.
+            local device
+            diskutil image create blank --size 32g --fs None "$WORK_DMG"
+            device=$(diskutil image attach --noMount "$WORK_DMG")
+            diskutil eraseDisk HFSX "$WORK_DMG_VOLNAME" "$device"
+        else
+            hdiutil create -size 32g -fs "Case-sensitive HFS+" -volname "$WORK_DMG_VOLNAME" "$WORK_DMG"
+            hdiutil attach "$WORK_DMG"
+        fi
         ln -s "/Volumes/$WORK_DMG_VOLNAME" "$WORK_DIR"
     elif [[ $BUILD_OS = "linux" || $BUILD_OS = "cygwin" || $BUILD_OS = "freebsd" ]]; then
         if [[ -e "$WORK_DIR" ]]; then
