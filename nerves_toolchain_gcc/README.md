@@ -34,9 +34,16 @@ nerves: [
 ]
 ```
 
-For Nerves-built toolchains, copy the `:archives` map from a generated compatibility
-package's `toolchain.exs`. Keep that map in the system's source; do not add a
-dependency on the compatibility package to obtain it. Other GCC toolchains,
+For Nerves-built toolchains, print the native builder's release metadata:
+
+```sh
+elixir toolchain_builder/artifact_names.exs armv7-nerves-linux-gnueabihf--gcc15
+```
+
+Copy its `:archives` map into the system's source. No compatibility package needs
+to be generated or added as a dependency. CI provides Linux x86_64/aarch64 and
+macOS arm64 assets first; manually built hosts may become available later at
+their already-defined URLs. Other GCC toolchains,
 including Bootlin's Linux-hosted toolchains, can be selected using the same API.
 There is no global application configuration or compiler-version constraint.
 

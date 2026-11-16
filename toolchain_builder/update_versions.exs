@@ -2,11 +2,17 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
+Code.require_file("metadata.exs", __DIR__)
+
 defmodule ToolchainVersionUpdater do
   @toolchain_config_path Path.join(__DIR__, "config.exs")
-  @output_path Path.join(__DIR__, "configs/toolchain_versions.exs")
+  @output_path Path.join(__DIR__, "toolchain_versions.exs")
   @host_fragment Path.join(__DIR__, "defaults/linux_x86_64_defconfig")
-  @excluded_version_keys MapSet.new(["CT_CONFIG_VERSION", "CT_TOOLCHAIN_PKGVERSION"])
+  @excluded_version_keys MapSet.new([
+                           "CT_CONFIG_VERSION",
+                           "CT_TOOLCHAIN_PKGVERSION",
+                           "CT_GLIBC_MIN_KERNEL_VERSION"
+                         ])
   @preferred_order [
     "CT_GCC_VERSION",
     "CT_BINUTILS_VERSION",
@@ -49,22 +55,20 @@ defmodule ToolchainVersionUpdater do
     ctng = ensure_ctng!(Map.fetch!(toolchain_config, :ctng_tag))
 
     version_metadata =
-      Path.join(__DIR__, "configs/nerves_toolchain_*")
-      |> Path.wildcard()
-      |> Enum.sort()
+      ToolchainMetadata.targets()
       |> Enum.map(&resolve_toolchain_versions(&1, ctng))
       |> Enum.into(%{})
 
     File.write!(@output_path, render(version_metadata))
   end
 
-  defp resolve_toolchain_versions(config_dir, ctng) do
-    app_name = Path.basename(config_dir)
-    merged_defconfig = merge_defconfigs(config_dir)
+  defp resolve_toolchain_versions(toolchain, ctng) do
+    config_path = ToolchainMetadata.config_path(toolchain)
+    merged_defconfig = merge_defconfigs(config_path)
 
     tmp_dir =
       System.tmp_dir!()
-      |> Path.join("toolchain-version-#{app_name}-#{System.unique_integer([:positive])}")
+      |> Path.join("toolchain-version-#{toolchain}-#{System.unique_integer([:positive])}")
 
     try do
       File.mkdir_p!(tmp_dir)
@@ -74,16 +78,17 @@ defmodule ToolchainVersionUpdater do
       _ = output
 
       config = File.read!(Path.join(tmp_dir, ".config"))
-      {app_name, extract_versions(config)}
+      ToolchainDefconfig.validate!(config_path, Path.join(tmp_dir, ".config"))
+      {toolchain, extract_versions(config)}
     after
       File.rm_rf!(tmp_dir)
     end
   end
 
-  defp merge_defconfigs(config_dir) do
-    [Path.join(config_dir, "defconfig"), @host_fragment]
+  defp merge_defconfigs(config_path) do
+    [config_path, @host_fragment]
     |> Enum.map(&File.read!/1)
-    |> Enum.join()
+    |> Enum.join("\n")
   end
 
   defp extract_versions(config) do

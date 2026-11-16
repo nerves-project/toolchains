@@ -5,7 +5,6 @@ CT_USE_MIRROR=y
 CT_MIRROR_BASE_URL="https://dl.nerves-project.org/"
 CT_STATIC_TOOLCHAIN=y
 CT_TARGET_VENDOR="nerves"
-CT_GCC_V_15=y
 # CT_CC_GCC_LTO_ZSTD is not set
 CT_CANADIAN=y
 CT_HOST="arm-linux-gnueabihf"

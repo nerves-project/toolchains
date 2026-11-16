@@ -4,23 +4,23 @@
 
 # Example
 #
-# build.sh <package name> [work directory] [output directory]
+# build.sh <config name> [work directory] [output directory]
 
 set -e
 
 # Use hash or version tag (should be crosstool-ng-x.y.z)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ARTIFACT_NAME=$1
+ARTIFACT_NAME=${1:-}
 TOOLCHAIN_NAME=$ARTIFACT_NAME
 
-if [[ ! -f "$SCRIPT_DIR/configs/$TOOLCHAIN_NAME/defconfig" ]]; then
-    echo "Pass a toolchain package name (e.g., nerves_toolchain_armv7_nerves_linux_gnueabihf)" >&2
+if [[ ! -f "$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig" ]]; then
+    echo "Pass a config name (e.g., armv7-nerves-linux-gnueabihf--gcc15)" >&2
     exit 1
 fi
 
 CTNG_TAG=$(elixir -e '{config, _} = Code.eval_file(hd(System.argv())); IO.puts(config.ctng_tag)' "$SCRIPT_DIR/config.exs")
 
-BASE_CONFIG="$SCRIPT_DIR/configs/$TOOLCHAIN_NAME/defconfig"
+BASE_CONFIG="$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig"
 WORK_DIR=${2:-"$SCRIPT_DIR/../o/$TOOLCHAIN_NAME"}
 OUTPUT_DIR=${3:-"$SCRIPT_DIR/../o/artifacts"}
 
@@ -59,18 +59,6 @@ if [[ $HOST_OS = "darwin" && ( $HOST_ARCH = "arm64" || $HOST_ARCH = "aarch64" ) 
     ARTIFACT_HOST_ARCH="arm"
 fi
 
-if [[ ! -e $BASE_CONFIG ]]; then
-    echo "Can't find $BASE_CONFIG. Check that it exists."
-    echo
-    echo "Here are some options:"
-    for dir in $(ls $BASE_DIR); do
-        if [[ -f $dir/defconfig ]]; then
-            echo $dir
-        fi
-    done
-    exit 1
-fi
-
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 
@@ -79,15 +67,11 @@ BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
 mkdir -p "$WORK_DIR"
 WORK_DIR=$($READLINK -f "$WORK_DIR")
 
-CTNG_CONFIG_DIR=$(dirname "$BASE_CONFIG")
 # Append host-specific modifications to the base defconfig
-HOST_CONFIG=$CTNG_CONFIG_DIR/${HOST_OS}_${HOST_ARCH}_defconfig
+HOST_CONFIG=$SCRIPT_DIR/defaults/${HOST_OS}_${HOST_ARCH}_defconfig
 if [[ ! -e $HOST_CONFIG ]]; then
-    HOST_CONFIG=$SCRIPT_DIR/defaults/${HOST_OS}_${HOST_ARCH}_defconfig
-    if [[ ! -e $HOST_CONFIG ]]; then
-        echo "Can't find a ${HOST_OS}_${HOST_ARCH}_defconfig fragment. Check that one exists."
-        exit 1
-    fi
+    echo "Can't find a ${HOST_OS}_${HOST_ARCH}_defconfig fragment. Check that one exists."
+    exit 1
 fi
 
 DL_DIR=$HOME/.nerves/dl
@@ -98,9 +82,13 @@ if [[ ! -e $SCRIPT_DIR/VERSION ]]; then
 fi
 
 NERVES_TOOLCHAIN_VERSION=$(cat "$SCRIPT_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-ARTIFACT_NAMES=$(elixir "$SCRIPT_DIR/artifact_names.exs" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}")
-read -r ARTIFACT_BASENAME COMPAT_ARTIFACT_BASENAME <<< "$ARTIFACT_NAMES"
+ARTIFACT_BASENAME=$(elixir "$SCRIPT_DIR/artifact_names.exs" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}")
 ARTIFACT_PATH="$OUTPUT_DIR/$ARTIFACT_BASENAME"
+
+if [[ -e "$ARTIFACT_PATH" ]]; then
+    echo "Archive already exists: $ARTIFACT_PATH. Use a new release version or output directory." >&2
+    exit 1
+fi
 
 echo "Using HOST_ARCH: $HOST_ARCH"
 echo "Using HOST_OS: $HOST_OS"
@@ -286,7 +274,7 @@ build_gcc()
     mkdir -p "$WORK_DIR/build"
     cd "$WORK_DIR/build"
     CTNG_CONFIG=$PWD/defconfig
-    cat "$BASE_CONFIG" "$HOST_CONFIG" > "$CTNG_CONFIG"
+    { cat "$BASE_CONFIG"; printf '\n'; cat "$HOST_CONFIG"; } > "$CTNG_CONFIG"
 
     CTNG=$LOCAL_INSTALL_DIR/bin/ct-ng
 
@@ -302,8 +290,8 @@ build_gcc()
     echo "Resaved defconfig"
     cat "$CTNG_CONFIG"
 
-    # Check the defconfig didn't change or lose entries
-    "$SCRIPT_DIR/scripts/unmerge_defconfig.exs" "$BASE_CONFIG" "$HOST_CONFIG" "$CTNG_CONFIG"
+    # savedefconfig omits explicit defaults; validate against the full configuration.
+    elixir "$SCRIPT_DIR/scripts/check_config.exs" "$BASE_CONFIG" "$WORK_DIR/build/.config"
 
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then

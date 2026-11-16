@@ -7,9 +7,9 @@ name: Build and Test Toolchains
 # BUILD CONFIGURATION - Toggle this value to control which toolchains to build
 # ============================================================================
 # false = build only armv7_gnueabihf (fast, for development)
-# true  = build all 12 toolchains (slow, for releases - CURRENTLY ACTIVE)
+# true  = build all flat configs (slow, for releases - CURRENTLY ACTIVE)
 #
-# Search for "BUILD_ALL_TOOLCHAINS" below and change true to false
+# Set "BUILD_ALL_TOOLCHAINS" below to false for a single toolchain
 # ============================================================================
 
 on:
@@ -21,6 +21,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  configure:
+    name: Select toolchain configurations
+    runs-on: ubuntu-latest
+    outputs:
+      toolchains: ${{ steps.configs.outputs.toolchains }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: configs
+        env:
+          BUILD_ALL_TOOLCHAINS: 'true'
+        run: |
+          if [[ "$BUILD_ALL_TOOLCHAINS" == true ]]; then
+            toolchains="$(
+              for config in toolchain_builder/configs/*.defconfig; do
+                basename "$config" .defconfig
+              done | jq -Rsc 'split("\n")[:-1]'
+            )"
+          else
+            toolchains='["armv7-nerves-linux-gnueabihf--gcc15"]'
+          fi
+          echo "toolchains=$toolchains" >> "$GITHUB_OUTPUT"
+
   check:
     name: Check generated toolchains
     runs-on: ubuntu-22.04
@@ -60,18 +82,18 @@ jobs:
 
   build_and_test:
     name: Build and test ${{ matrix.toolchain }}
+    needs: configure
     strategy:
       fail-fast: false
       matrix:
-        # BUILD_ALL_TOOLCHAINS: Change 'true' to 'false' to build only armv7
-        toolchain: ${{ true && fromJSON('["nerves_toolchain_aarch64_nerves_linux_gnu", "nerves_toolchain_aarch64_nerves_linux_musl", "nerves_toolchain_armv7_nerves_linux_gnueabihf", "nerves_toolchain_armv7_nerves_linux_musleabihf", "nerves_toolchain_armv5_nerves_linux_musleabi", "nerves_toolchain_armv6_nerves_linux_gnueabihf", "nerves_toolchain_i586_nerves_linux_gnu", "nerves_toolchain_mipsel_nerves_linux_musl", "nerves_toolchain_x86_64_nerves_linux_gnu", "nerves_toolchain_x86_64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_musl", "nerves_toolchain_riscv64_nerves_linux_gnu"]') || fromJSON('["nerves_toolchain_armv7_nerves_linux_gnueabihf"]') }}
+        toolchain: ${{ fromJSON(needs.configure.outputs.toolchains) }}
     uses: ./.github/workflows/build-test-toolchain.yml
     with:
       toolchain: ${{ matrix.toolchain }}
 
   deploy:
     name: Deploy to GitHub Release
-    needs: build_and_test
+    needs: [check, build_and_test]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
@@ -158,4 +180,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "${GITHUB_REF_NAME}" release-artifacts/*.tar.xz --clobber
+          gh release upload "${GITHUB_REF_NAME}" release-artifacts/*.tar.xz

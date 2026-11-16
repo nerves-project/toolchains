@@ -30,11 +30,11 @@ refresh_version_info:
 generate:
 	@elixir generate_toolchains.exs
 
-build-armv7-gnu: generate
-	./build_one.sh nerves_toolchain_armv7_nerves_linux_gnueabihf
+build-armv7-gnu:
+	./build_one.sh armv7-nerves-linux-gnueabihf--gcc15
 
-build-riscv64-musl: generate
-	./build_one.sh nerves_toolchain_riscv64_nerves_linux_musl
+build-riscv64-musl:
+	./build_one.sh riscv64-nerves-linux-musl--gcc15
 
 clean:
 	@for tc in $(TOOLCHAINS); do \

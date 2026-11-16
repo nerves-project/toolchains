@@ -12,7 +12,7 @@ are used on macOS, Linux and all of their variations.
 
 Toolchains are built natively using crosstool-NG, outside of Nerves:
 
-* `toolchain_builder/` contains the build implementation, configurations,
+* `toolchain_builder/` contains the build implementation, flat configurations,
   patches, pinned crosstool-NG revision, and component version metadata.
 * `template/` and `generate_toolchains.exs` produce the twelve compatibility
   Mix packages for existing Nerves 1 systems.
@@ -24,12 +24,21 @@ Toolchains are built natively using crosstool-NG, outside of Nerves:
 See the GitHub `Releases` tab to download the toolchain. The naming for
 toolchains is:
 
-    <gcc tuple>--<version>-<source fingerprint>--<host tuple>.tar.xz
+    <gcc tuple>--gcc-<version>-<libc>-<version>-linux-<headers>--<release>--<host tuple>.tar.xz
 
-The builder also publishes byte-identical copies with the legacy
-`nerves_toolchain_<target>-<legacy host>-<version>-<package fingerprint>.tar.xz`
-names. Nerves 1 derives those names from package metadata, so these aliases
-preserve compatibility without requiring another compiler build.
+For example:
+
+    armv7-nerves-linux-gnueabihf--gcc-15.3.0-glibc-2.43-linux-5.10.258--15.3.1--x86_64-linux-gnu.tar.xz
+
+The release is set in `toolchain_builder/VERSION`. There is no source fingerprint
+in the name: bump the release for changes to build inputs, patches, or settings,
+even when the component versions stay the same. Published URLs must be immutable.
+The builder refuses to replace an existing archive.
+
+The twelve Nerves 1 package templates remain, but compatibility archive aliases
+and their release integration are deferred while the native builder is revised.
+Those aliases can eventually be copies of the native archives; they do not
+require another compiler build.
 
 The `gcc tuple` is a standard way of describing a target. The most important parts
 are the architecture (e.g., `arm`) and the C Library and ABI (e.g.,
@@ -65,28 +74,40 @@ brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses l
 
 Builds can take a very long time especially when building all toolchains.
 
-Resolve component versions and generate the compatibility packages:
+Resolve and validate the explicitly selected component versions:
 
 ```sh
-make
+make refresh_version_info
 ```
 
 Build one toolchain on its intended host, without Docker or Nerves:
 
 ```sh
-./build_one.sh nerves_toolchain_armv7_nerves_linux_gnueabihf
+./build_one.sh armv7-nerves-linux-gnueabihf--gcc15
 ```
 
-Build state goes in `o/<package>` and native archives plus compatibility aliases
-go in `o/artifacts`. The builder needs Elixir for metadata and configuration
-checks, but does not depend on Mix packages or Nerves.
+The argument is a filename from `toolchain_builder/configs/`, without
+`.defconfig`. Build state goes in `o/<config name>` and native archives go in
+`o/artifacts`. The builder needs Elixir for metadata and configuration checks,
+but does not depend on Mix packages or Nerves.
 
-Use `make generate` to regenerate compatibility packages without resolving
-component versions. Each package includes `toolchain.exs`, the native archive
-selection that can also be copied into a Nerves 2 system. Publish the native
-archives and compatibility aliases before publishing the corresponding Hex
-packages. SHA256 manifests remain a future step; source fingerprints are not
-cryptographic verification of downloaded artifacts.
+Print the native release metadata, including the archive URL map for a Nerves 2
+system, without generating any compatibility packages:
+
+```sh
+elixir toolchain_builder/artifact_names.exs armv7-nerves-linux-gnueabihf--gcc15
+```
+
+CI builds Linux x86_64, Linux aarch64, and macOS arm64. Release when those builds
+and tests finish; other hosts can be built manually from the **same release tag**
+and uploaded to that release later. Neither the release identity nor its URLs
+depend on which hosts have finished. The URL map describes expected filenames,
+not current availability; check the GitHub release assets for available hosts.
+Do not overwrite existing release assets. SHA256 manifests remain a future step.
+
+`make generate` still generates the twelve compatibility packages, and `make`
+resolves versions and generates them. Publishing their legacy aliases is not
+part of the current native release workflow.
 
 Run `make test` for packaging and integration tests and `make check` for package
 compilation, documentation, and Hex packaging. Neither command builds a compiler.
@@ -97,7 +118,7 @@ menuconfig:
 ```sh
 <CTRL-C> out of a running build or "killall make", etc.
 
-$ cd o/<package>/build
+$ cd o/armv7-nerves-linux-gnueabihf--gcc15/build
 $ ../usr/bin/ct-ng menuconfig
 
 # make modifications
@@ -105,12 +126,38 @@ $ ../usr/bin/ct-ng menuconfig
 $ ../usr/bin/ct-ng savedefconfig
 
 # merge defconfig changes over to
-# toolchain_builder/configs/nerves_toolchain_armv7_nerves_linux_gnueabihf/defconfig
-# building. Some configuration options are platform-specific and should be put
-# in toolchain_builder/defaults/<platform>
+# toolchain_builder/configs/armv7-nerves-linux-gnueabihf--gcc15.defconfig.
+# Keep explicit version selections even if savedefconfig omits them.
+# Host settings belong in toolchain_builder/defaults/<platform>_defconfig.
 ```
 
 ## Toolchain configuration notes
+
+### Compiler tracks and explicit versions
+
+Flat configs are named `<target tuple>--<track>.defconfig`. The initial `gcc15`
+track selects GCC 15.3.0 and Linux 5.10.258 headers. A newer GCC 16.2 track is
+planned, but is not configured until the pinned crosstool-NG supports it.
+Additional tracks can coexist as separate files and CI discovers them
+automatically.
+
+Keep GCC, binutils, Linux headers, and libc version selections in each config,
+including defaults. Both the Kconfig choice (for example `CT_GCC_V_15=y`) and
+the resolved version (`CT_GCC_VERSION="15.3.0"`) are explicit. Kconfig can ignore
+a non-editable version string, so the updater and builder check the full
+resolved `.config` and fail on mismatches instead of silently changing versions.
+`savedefconfig` output alone is insufficient because it drops defaults.
+The crosstool-NG revision stays pinned separately in `toolchain_builder/config.exs`.
+
+Older compiler/header tracks should still receive current stable glibc and musl
+releases for security fixes. These are currently pinned to glibc 2.43 and musl
+1.2.6. Update their selections and validate compatibility on both tracks rather
+than freezing libc along with GCC.
+
+glibc's minimum runtime kernel is pinned independently to 5.10.0, not to the
+headers' patch level. Newer headers do not automatically mean newer syscalls are
+available on the running device. Actual runtime support also depends on libc,
+the architecture, and application code; config validation is not a device test.
 
 ### Hard float vs. soft float
 

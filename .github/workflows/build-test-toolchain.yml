@@ -44,16 +44,16 @@ jobs:
           elixir-version: '1.17.3'
           otp-version: '26.2'
 
-      - name: Generate toolchain projects
-        run: make
+      - name: Validate component versions
+        run: make refresh_version_info
 
       - name: Cache crosstool-NG downloads
         uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
-          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
+          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/*.defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
           restore-keys: |
-            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
+            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/*.defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
             nerves-dl-
 
       - name: Build toolchain
@@ -145,16 +145,16 @@ jobs:
         run: |
           echo "ImageOS=${{ env.ORIGINAL_IMAGE_OS }}" >> "$GITHUB_ENV"
 
-      - name: Generate toolchain projects
-        run: make
+      - name: Validate component versions
+        run: make refresh_version_info
 
       - name: Cache crosstool-NG downloads
         uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
-          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
+          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/*.defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
           restore-keys: |
-            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
+            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/*.defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
             nerves-dl-
 
       - name: Build toolchain
@@ -213,16 +213,16 @@ jobs:
           # brew install gawk binutils xz wget automake gnu-tar help2man bash make ncurses libtool autoconf gnu-sed mpfr gmp gcc bison lzip python3 grep coreutils texinfo erlang elixir
           brew install gawk binutils automake help2man bash make ncurses libtool autoconf gnu-sed bison lzip grep coreutils texinfo erlang elixir
 
-      - name: Generate toolchain projects
-        run: make
+      - name: Validate component versions
+        run: make refresh_version_info
 
       - name: Cache crosstool-NG downloads
         uses: actions/cache@v5
         with:
           path: ~/.nerves/dl
-          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
+          key: nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/*.defconfig', 'toolchain_builder/defaults/*_defconfig') }}-${{ inputs.toolchain }}
           restore-keys: |
-            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/**/defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
+            nerves-dl-${{ hashFiles('toolchain_builder/config.exs', 'toolchain_builder/configs/*.defconfig', 'toolchain_builder/defaults/*_defconfig') }}-
             nerves-dl-
 
       - name: Build toolchain

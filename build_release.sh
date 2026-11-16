@@ -13,18 +13,12 @@ echo "Hit CTRL-C to stop..."
 sleep 2
 
 
-# Do some basic cleanup to avoid easy mistakes from stale files
-make clean
+# Validate pinned component versions without generating Mix packages.
+make refresh_version_info
 
-# Regenerate packages
-make
-
-
-CONFIGS=$(find toolchain_builder/configs -mindepth 1 -maxdepth 1 -type d -name 'nerves_toolchain_*')
-
-for CONFIG in $CONFIGS; do
+for CONFIG in toolchain_builder/configs/*.defconfig; do
     echo "Building $CONFIG..."
-    ./build_one.sh "$(basename "$CONFIG")"
+    ./build_one.sh "$(basename "$CONFIG" .defconfig)"
 done
 
 echo "All done!!!!!!"

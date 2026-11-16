@@ -10,7 +10,7 @@ defmodule ToolchainGenerator do
   Generates toolchain packages from template using EEx
   """
 
-  @version_metadata_path Path.join(__DIR__, "toolchain_builder/configs/toolchain_versions.exs")
+  @version_metadata_path Path.join(__DIR__, "toolchain_builder/toolchain_versions.exs")
   @component_licenses %{
     "GCC" => "GPL-3.0-or-later",
     "binutils" => "GPL-3.0-or-later",
@@ -59,8 +59,11 @@ defmodule ToolchainGenerator do
 
   defp generate_toolchain(target_tuple, version_metadata) when is_atom(target_tuple) do
     app_name = "nerves_toolchain_#{target_tuple}"
+    target_display = target_tuple |> to_string() |> String.replace("_", "-")
+    target_display = String.replace_prefix(target_display, "x86-64-", "x86_64-")
+    config_name = "#{target_display}--gcc15"
     target_dir = Path.expand(app_name)
-    versions = Map.get(version_metadata, app_name, [])
+    versions = Map.get(version_metadata, config_name, [])
 
     IO.puts("Generating #{target_dir}...")
 
@@ -80,11 +83,10 @@ defmodule ToolchainGenerator do
     end
 
     File.cp!("toolchain_builder/VERSION", Path.join(target_dir, "VERSION"))
-    File.write!(Path.join(target_dir, "toolchain.exs"), ToolchainMetadata.contents(app_name))
+    File.write!(Path.join(target_dir, "toolchain.exs"), ToolchainMetadata.contents(config_name))
 
     # Prepare bindings for EEx templates
     module_name = target_tuple_to_module_name(target_tuple)
-    target_display = target_tuple |> to_string() |> String.replace("_", "-")
     included_components = build_included_components(versions)
     package_licenses_list = format_string_list(build_package_licenses(included_components))
     external_toolchain_settings = build_external_toolchain_settings!(versions)
@@ -94,7 +96,7 @@ defmodule ToolchainGenerator do
       app_name: app_name,
       target_tuple: target_tuple,
       target_display: target_display,
-      toolchain_metadata: ToolchainMetadata.metadata(app_name),
+      toolchain_metadata: ToolchainMetadata.metadata(config_name),
       included_components: included_components,
       package_licenses_list: package_licenses_list,
       linux_headers_series: external_toolchain_settings.linux_headers_series,

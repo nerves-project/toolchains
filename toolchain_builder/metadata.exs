@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
+Code.require_file("defconfig.exs", __DIR__)
+
 defmodule ToolchainMetadata do
   @root __DIR__
   @hosts %{
@@ -13,31 +15,26 @@ defmodule ToolchainMetadata do
   def hosts, do: @hosts
 
   def targets do
-    Path.wildcard(Path.join(@root, "configs/nerves_toolchain_*/defconfig"))
-    |> Enum.map(&(Path.dirname(&1) |> Path.basename()))
+    Path.wildcard(Path.join(@root, "configs/*.defconfig"))
+    |> Enum.map(&Path.basename(&1, ".defconfig"))
     |> Enum.sort()
   end
 
-  def metadata(app) do
-    unless app in targets(), do: raise("Unknown toolchain: #{app}")
+  def config_path(toolchain), do: Path.join(@root, "configs/#{toolchain}.defconfig")
+
+  def metadata(toolchain) do
+    unless toolchain in targets(), do: raise("Unknown toolchain: #{toolchain}")
     version = File.read!(Path.join(@root, "VERSION")) |> String.trim()
-    target = String.replace_prefix(app, "nerves_toolchain_", "") |> String.replace("_", "-")
+    target = toolchain |> String.split("--", parts: 2) |> hd()
+    config = ToolchainDefconfig.read!(config_path(toolchain))
+    gcc = component_version!(config, "GCC")
+    linux = component_version!(config, "LINUX")
+    libc = if Map.get(config, "CT_LIBC_MUSL") == "y", do: "MUSL", else: "GLIBC"
+    libc_version = component_version!(config, libc)
 
-    files =
-      [
-        "build.sh",
-        "config.exs",
-        "VERSION",
-        "defaults/**",
-        "patches/**",
-        "scripts/**",
-        "configs/#{app}/*"
-      ]
-      |> Enum.flat_map(&Path.wildcard(Path.join(@root, &1)))
-      |> Enum.filter(&File.regular?/1)
+    name =
+      "#{target}--gcc-#{gcc}-#{String.downcase(libc)}-#{libc_version}-linux-#{linux}--#{version}"
 
-    fingerprint = checksum(files)
-    name = "#{target}--#{version}-#{fingerprint}"
     site = "https://github.com/nerves-project/toolchains/releases/download/v#{version}"
 
     %{
@@ -48,8 +45,8 @@ defmodule ToolchainMetadata do
     }
   end
 
-  def contents(app) do
-    metadata = metadata(app)
+  def contents(toolchain) do
+    metadata = metadata(toolchain)
 
     archives =
       metadata.archives
@@ -68,23 +65,15 @@ defmodule ToolchainMetadata do
     """
   end
 
-  def archive_names(app, host) do
-    metadata = metadata(app)
+  def archive_name(toolchain, host) do
+    metadata = metadata(toolchain)
     canonical_host = Map.fetch!(@hosts, host)
-    fingerprint = :crypto.hash(:sha256, contents(app)) |> then(&:crypto.hash(:sha256, &1))
-    fingerprint = Base.encode16(fingerprint) |> String.slice(0, 7)
-
-    {
-      "#{metadata.name}--#{canonical_host}.tar.xz",
-      "#{app}-#{host}-#{metadata.version}-#{fingerprint}.tar.xz"
-    }
+    "#{metadata.name}--#{canonical_host}.tar.xz"
   end
 
-  defp checksum(files) do
-    files
-    |> Enum.map(&:crypto.hash(:sha256, File.read!(&1)))
-    |> then(&:crypto.hash(:sha256, &1))
-    |> Base.encode16()
-    |> String.slice(0, 7)
+  defp component_version!(config, component) do
+    config
+    |> Map.fetch!("CT_#{component}_VERSION")
+    |> String.trim("\"")
   end
 end

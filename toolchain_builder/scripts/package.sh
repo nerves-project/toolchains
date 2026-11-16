@@ -11,12 +11,11 @@ TOOLCHAIN=$3
 HOST=$4
 
 if [[ $# != 4 || ! -d "$INSTALL_DIR/bin" ]]; then
-    echo "package.sh <installed toolchain directory> <output directory> <package name> <legacy host tuple>" >&2
+    echo "package.sh <installed toolchain directory> <output directory> <config name> <host>" >&2
     exit 1
 fi
 
-ARTIFACT_NAMES=$(elixir "$BUILDER_DIR/artifact_names.exs" "$TOOLCHAIN" "$HOST")
-read -r NATIVE_ARCHIVE COMPAT_ARCHIVE <<< "$ARTIFACT_NAMES"
+NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/artifact_names.exs" "$TOOLCHAIN" "$HOST")
 RELEASE_NAME=${NATIVE_ARCHIVE%--*}
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
@@ -34,9 +33,15 @@ if [[ -e "$STAGING_DIR" ]]; then
     exit 1
 fi
 
+if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" ]]; then
+    echo "Archive already exists: $OUTPUT_DIR/$NATIVE_ARCHIVE. Use a new release version or output directory." >&2
+    exit 1
+fi
+
 mv "$INSTALL_DIR" "$STAGING_DIR"
-trap 'mv "$STAGING_DIR" "$INSTALL_DIR"' EXIT
-"$TAR" -c -J -C "$PARENT_DIR" -f "$OUTPUT_DIR/$NATIVE_ARCHIVE" "$RELEASE_NAME"
-cp "$OUTPUT_DIR/$NATIVE_ARCHIVE" "$OUTPUT_DIR/$COMPAT_ARCHIVE"
+TMP_ARCHIVE=""
+trap 'mv "$STAGING_DIR" "$INSTALL_DIR"; if [[ -n "$TMP_ARCHIVE" ]]; then rm -f "$TMP_ARCHIVE"; fi' EXIT
+TMP_ARCHIVE=$(mktemp "$OUTPUT_DIR/.toolchain.XXXXXX")
+"$TAR" -c -J -C "$PARENT_DIR" -f "$TMP_ARCHIVE" "$RELEASE_NAME"
+ln "$TMP_ARCHIVE" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
 echo "Native archive: $OUTPUT_DIR/$NATIVE_ARCHIVE"
-echo "Nerves 1 compatibility archive: $OUTPUT_DIR/$COMPAT_ARCHIVE"
