@@ -68,7 +68,7 @@ defmodule CrosstoolNG do
         brew = output!("brew", ["--prefix"])
         binutils = output!("brew", ["--prefix", "binutils"])
         ncurses = output!("brew", ["--prefix", "ncurses"])
-        gcc = "15"
+        gcc = "16"
 
         env = [
           {"CC", "gcc-#{gcc}"},

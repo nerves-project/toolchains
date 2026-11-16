@@ -33,8 +33,8 @@ On macOS, use Homebrew:
 
 ```sh
 brew install elixir python3 gawk binutils xz zstd wget automake gnu-tar help2man \
-  bash make ncurses libtool autoconf gnu-sed gcc@15 bison m4 lzip grep coreutils texinfo
-export PATH="$(brew --prefix gcc@15)/bin:$PATH"
+  bash make ncurses libtool autoconf gnu-sed gcc@16 bison m4 lzip grep coreutils texinfo
+export PATH="$(brew --prefix gcc@16)/bin:$PATH"
 ```
 
 Builds need a case-sensitive filesystem on macOS; `build.sh` creates a disk image.
@@ -47,23 +47,25 @@ Run these commands from this directory, whether it is nested or a repository roo
 
 ```sh
 make list
-make versions
 bash build.sh armv7-nerves-linux-gnueabihf--gcc15
 ```
 
-`make versions` resolves every config with the same pinned, locally patched
-crosstool-NG used for compiler builds. Both paths reject changes to explicit
-target settings, even when `savedefconfig` omits them as defaults. The cached
-crosstool-NG identity includes its commit and local preparation/patch inputs.
-Caches remain under `~/.nerves/ct-ng/` and `~/.nerves/dl/`.
+Builds resolve the config with the pinned, locally patched crosstool-NG and
+reject changes to explicit target settings, even when `savedefconfig` omits
+them as defaults. The cached crosstool-NG identity includes its commit and
+local preparation/patch inputs. Caches remain under `~/.nerves/ct-ng/` and
+`~/.nerves/dl/`.
 
 The argument to `build.sh` is a filename from `configs/` without `.defconfig`.
 Work goes in `o/<config>`; release pairs go in `o/artifacts/`. Optional second
-and third arguments override the work and output directories. Existing archives
-or checksums are never replaced. Ctrl+C terminates the build's descendants.
+and third arguments override the work and output directories. After compilation,
+packaging records the resolved component versions, creates an archive, and
+derives its release filename from the archived metadata. Existing archives or
+checksums are never replaced; collisions are detected at packaging time.
+Ctrl+C terminates the build's descendants.
 
-`bash build_all.sh` resolves configurations and builds all toolchains on this
-host. It does not publish anything. Builds are expensive; build one when testing.
+`bash build_all.sh` builds all toolchains on this host. It does not publish
+anything. Builds are expensive; build one when testing.
 
 Flat configs are named `<target>--<track>.defconfig`. The initial `gcc15` track
 uses GCC 15.3.0 and Linux 5.10.258 headers. A newer GCC 16.2 track is planned.
@@ -117,24 +119,40 @@ The default public download directory is:
 https://dl.nerves-project.org/toolchains/
 ```
 
-Print language-neutral JSON metadata, including the four host archive URLs:
+Inspect a completed archive or print its canonical filename:
 
 ```sh
-elixir artifact_names.exs armv7-nerves-linux-gnueabihf--gcc15
+elixir scripts/archive.exs path/to/toolchain.tar.zst
+elixir scripts/archive.exs --name path/to/toolchain.tar.zst
 ```
 
-Use `TOOLCHAIN_BASE_URL=https://toolchains.example.org/downloads/` to generate URLs
-for another location. This changes neither filenames nor compiler contents and
-requires no S3 credentials. A future static website can consume the same metadata.
+The report is sorted `key=value` text containing the target, host, recipe release,
+libc, and resolved component versions. Inspection streams the metadata into
+memory using GNU tar and zstd, without extracting files to disk or running the
+compiler. Metadata is the first archive member, so inspecting it does not
+require decompressing the compiler payload. Neither command needs the source
+configs, and renaming an archive does not affect its reported identity.
+
+The archive retains a single top-level directory named after the installed
+target tuple, independent of component and release versions. To repackage a
+completed installation without rebuilding:
+
+```sh
+bash scripts/package.sh path/to/installed/toolchain o/artifacts linux_x86_64
+```
+
+The installation must contain `ct-ng.config` and `toolchain-builder.version`.
+The host argument is one of `linux_x86_64`, `linux_aarch64`, `darwin_x86_64`,
+or `darwin_arm`.
+
 Consumers can derive a checksum URL by appending `.sha256` to the archive URL.
-They must verify it before extraction; the presence of a sidecar does not make
-downstream integrations verify it automatically.
+They must verify it before extraction; metadata inspection does not verify the
+archive's checksum.
 
 CI builds Linux x86_64, Linux arm64, and macOS arm64 and releases after those
 builds and tests finish. macOS x86_64 remains supported via manual native builds.
 Late host builds use the **same source tag**, versions and patches, and add their
-own archive/checksum pairs without replacing earlier hosts. Metadata lists
-expected URLs, not a promise that every host has finished building.
+own archive/checksum pairs without replacing earlier hosts.
 
 ## Publishing
 
@@ -183,8 +201,9 @@ paths and environment. A replacement archive's digest may differ and must have
 a new distribution release.
 
 Archives retain `ct-ng.config`, `ct-ng.defconfig`, `toolchain-builder.version`,
-and `share/toolchain-builder/` with the recipe files and a JSON build manifest.
-The manifest records the crosstool-NG commit, recipe digests, host compiler,
+`toolchain-builder.metadata`, and `share/toolchain-builder/` with the recipe
+files and a JSON build manifest. The manifest records the crosstool-NG commit,
+recipe digests, host compiler,
 platform, macOS SDK, and available Git provenance. Keep upstream source archives
 and their verification data available for rebuilding and corresponding-source
 distribution; a recipe snapshot alone does not replace those sources.

@@ -4,7 +4,6 @@
 
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-elixir "$ROOT/update_versions.exs"
 for config in "$ROOT"/configs/*.defconfig; do
     bash "$ROOT/build.sh" "$(basename "$config" .defconfig)"
 done

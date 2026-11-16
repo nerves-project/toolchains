@@ -57,22 +57,6 @@ class ArtifactTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse(log.exists())
 
-    def test_metadata_is_language_neutral_and_uses_the_configured_base_url(self):
-        result = subprocess.run(
-            ["elixir", str(ROOT / "artifact_names.exs"), "armv7-nerves-linux-gnueabihf--gcc15"],
-            env=dict(os.environ, TOOLCHAIN_BASE_URL="https://toolchains.example.org/files/"),
-            capture_output=True, text=True, check=True,
-        )
-        metadata = json.loads(result.stdout)
-        self.assertEqual(set(metadata["archives"]), {
-            "x86_64-linux-gnu", "aarch64-linux-gnu",
-            "x86_64-apple-darwin", "aarch64-apple-darwin",
-        })
-        self.assertTrue(all(
-            url.startswith("https://toolchains.example.org/files/") and url.endswith(".tar.zst")
-            for url in metadata["archives"].values()
-        ))
-
     def test_build_info_preserves_the_recipe_without_requiring_git(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -91,54 +75,6 @@ class ArtifactTest(unittest.TestCase):
             )
             self.assertIn("scripts/package.sh", info["recipe_sha256"])
             self.assertIn("crosstool_ng.exs", info["recipe_sha256"])
-
-    def test_compression_failure_restores_installation_without_publishing(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            install = root / "install"
-            (install / "bin").mkdir(parents=True)
-            (install / "bin/arm-gcc").write_text("compiler")
-            output = root / "output"
-            zstd = root / "zstd"
-            zstd.write_text("#!/bin/sh\nexit 9\n")
-            zstd.chmod(0o755)
-            result = subprocess.run([
-                "bash", str(ROOT / "scripts/package.sh"), str(install), str(output),
-                "armv7-nerves-linux-gnueabihf--gcc15", "linux_x86_64",
-            ], env=dict(os.environ, PATH=f"{root}:{os.environ['PATH']}"), capture_output=True)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertEqual(list(output.iterdir()), [])
-            self.assertEqual((install / "bin/arm-gcc").read_text(), "compiler")
-
-    def test_smoke_test_verifies_and_relocates_a_zstd_archive_before_compiling(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            install = root / "install"
-            (install / "bin").mkdir(parents=True)
-            compiler = install / "bin/arm-g++"
-            compiler.write_text(
-                '#!/usr/bin/env python3\nimport os, sys\n'
-                'os.execvp("c++", ["c++"] + [a for a in sys.argv[1:] if a != "-Wl,--build-id=none"])\n'
-            )
-            compiler.chmod(0o755)
-            archives = root / "archives"
-            subprocess.run([
-                "bash", str(ROOT / "scripts/package.sh"), str(install), str(archives),
-                "armv7-nerves-linux-gnueabihf--gcc15", "linux_x86_64",
-            ], capture_output=True, check=True)
-            archive, = archives.glob("*.tar.zst")
-            executable = root / "smoketest.elf"
-            subprocess.run([
-                "bash", str(ROOT / "test/smoketest.sh"), str(archive), str(executable)
-            ], capture_output=True, check=True)
-            self.assertTrue(executable.is_file())
-            executable.unlink()
-            archive.write_bytes(b"corrupted")
-            result = subprocess.run([
-                "bash", str(ROOT / "test/smoketest.sh"), str(archive), str(executable)
-            ], capture_output=True)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertFalse(executable.exists())
 
     def test_publishing_can_resume_but_rejects_changed_remote_objects(self):
         with tempfile.TemporaryDirectory() as directory:

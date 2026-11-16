@@ -5,56 +5,57 @@
 set -euo pipefail
 
 BUILDER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ $# != 4 ]]; then
-    echo "package.sh <installed toolchain directory> <output directory> <config name> <host>" >&2
+if [[ $# != 3 ]]; then
+    echo "package.sh <installed toolchain directory> <output directory> <host>" >&2
     exit 1
 fi
 
 INSTALL_DIR=$1
 OUTPUT_DIR=$2
-TOOLCHAIN=$3
-HOST=$4
+HOST=$3
 
 if [[ ! -d "$INSTALL_DIR/bin" ]]; then
-    echo "package.sh <installed toolchain directory> <output directory> <config name> <host>" >&2
+    echo "package.sh <installed toolchain directory> <output directory> <host>" >&2
     exit 1
 fi
 
-NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/artifact_names.exs" "$TOOLCHAIN" "$HOST")
-RELEASE_NAME=${NATIVE_ARCHIVE%--*}
+elixir "$BUILDER_DIR/scripts/archive.exs" --prepare "$INSTALL_DIR" "$HOST"
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
 INSTALL_DIR="$(cd "$INSTALL_DIR" && pwd)"
 PARENT_DIR=$(dirname "$INSTALL_DIR")
-STAGING_DIR="$PARENT_DIR/$RELEASE_NAME"
+INSTALL_NAME=$(basename "$INSTALL_DIR")
 
 TAR=tar
 if [[ $(uname -s) = Darwin ]]; then
     TAR=gtar
 fi
 
-if [[ -e "$STAGING_DIR" ]]; then
-    echo "Staging directory already exists: $STAGING_DIR" >&2
-    exit 1
-fi
+TMP_DIR=$(mktemp -d "$OUTPUT_DIR/.toolchain.XXXXXX")
+cleanup()
+{
+    rm -f "$TMP_DIR/archive.tar.zst" "$TMP_DIR/archive.tar.zst.sha256"
+    rmdir "$TMP_DIR"
+}
+trap cleanup EXIT
+# Put metadata first so inspection need not decompress the compiler payload.
+"$TAR" -c -C "$PARENT_DIR" -f - "$INSTALL_NAME/toolchain-builder.metadata" \
+    --exclude="$INSTALL_NAME/toolchain-builder.metadata" "$INSTALL_NAME" | \
+    zstd -T0 -q -o "$TMP_DIR/archive.tar.zst"
+NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --name "$TMP_DIR/archive.tar.zst")
 
 if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
     echo "Archive already exists: $OUTPUT_DIR/$NATIVE_ARCHIVE. Use a new release version or output directory." >&2
     exit 1
 fi
 
-TMP_DIR=$(mktemp -d "$OUTPUT_DIR/.toolchain.XXXXXX")
-cleanup()
-{
-    mv "$STAGING_DIR" "$INSTALL_DIR"
-    rm -f "$TMP_DIR/$NATIVE_ARCHIVE" "$TMP_DIR/$NATIVE_ARCHIVE.sha256"
-    rmdir "$TMP_DIR"
-}
-mv "$INSTALL_DIR" "$STAGING_DIR"
-trap cleanup EXIT
-"$TAR" -c -C "$PARENT_DIR" -f - "$RELEASE_NAME" | zstd -T0 -q -o "$TMP_DIR/$NATIVE_ARCHIVE"
-python3 "$BUILDER_DIR/scripts/artifact.py" checksum "$TMP_DIR/$NATIVE_ARCHIVE" > "$TMP_DIR/$NATIVE_ARCHIVE.sha256"
-ln "$TMP_DIR/$NATIVE_ARCHIVE" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
-ln "$TMP_DIR/$NATIVE_ARCHIVE.sha256" "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"
+if [[ $(uname -s) = Darwin ]]; then
+    DIGEST=$(shasum -a 256 "$TMP_DIR/archive.tar.zst")
+else
+    DIGEST=$(sha256sum "$TMP_DIR/archive.tar.zst")
+fi
+printf '%s  %s\n' "${DIGEST%% *}" "$NATIVE_ARCHIVE" > "$TMP_DIR/archive.tar.zst.sha256"
+ln "$TMP_DIR/archive.tar.zst" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
+ln "$TMP_DIR/archive.tar.zst.sha256" "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"
 echo "Native archive: $OUTPUT_DIR/$NATIVE_ARCHIVE"
 echo "SHA256: $OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"

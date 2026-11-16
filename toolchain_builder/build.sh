@@ -126,25 +126,10 @@ fi
 
 DL_DIR=$HOME/.nerves/dl
 
-if [[ ! -e $SCRIPT_DIR/VERSION ]]; then
-    echo "Can't find $SCRIPT_DIR/VERSION. Check that it exists."
-    exit 1
-fi
-
-BUILDER_VERSION=$(cat "$SCRIPT_DIR/VERSION" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-ARTIFACT_BASENAME=$(elixir "$SCRIPT_DIR/artifact_names.exs" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}")
-ARTIFACT_PATH="$OUTPUT_DIR/$ARTIFACT_BASENAME"
-
-if [[ -e "$ARTIFACT_PATH" || -e "$ARTIFACT_PATH.sha256" ]]; then
-    echo "Archive already exists: $ARTIFACT_PATH. Use a new release version or output directory." >&2
-    exit 1
-fi
-
 echo "Using HOST_ARCH: $HOST_ARCH"
 echo "Using HOST_OS: $HOST_OS"
 echo "Using BUILD_OS: $BUILD_OS"
 echo
-echo "Artifact tarball: $ARTIFACT_BASENAME"
 echo "Output directory: $OUTPUT_DIR"
 echo "Work directory: $WORK_DIR"
 echo
@@ -347,7 +332,7 @@ save_build_info()
 {
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
-    echo "$BUILDER_VERSION" > "$GCC_INSTALL_DIR/$TARGET_TUPLE/toolchain-builder.version"
+    cp "$SCRIPT_DIR/VERSION" "$GCC_INSTALL_DIR/$TARGET_TUPLE/toolchain-builder.version"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
     python3 "$SCRIPT_DIR/scripts/build_info.py" "$SCRIPT_DIR" \
@@ -397,7 +382,7 @@ finalize_products()
 build_artifact()
 {
     TARGET_TUPLE=$(gcc_tuple)
-    bash "$SCRIPT_DIR/scripts/package.sh" "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$OUTPUT_DIR" "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}"
+    bash "$SCRIPT_DIR/scripts/package.sh" "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$OUTPUT_DIR" "${HOST_OS}_${ARTIFACT_HOST_ARCH}"
 }
 
 init
@@ -408,4 +393,3 @@ build_artifact
 echo "Success!"
 echo
 echo "Generated toolchain: $GCC_INSTALL_DIR."
-echo "Artifact: $ARTIFACT_PATH"

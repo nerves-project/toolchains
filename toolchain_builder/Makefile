@@ -1,12 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: all versions build build-all test check format list
+.PHONY: all build build-all test check format list
 
-all: versions
-
-versions:
-	elixir update_versions.exs
+all: list
 
 build:
 	bash build.sh "$(TOOLCHAIN)"

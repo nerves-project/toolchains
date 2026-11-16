@@ -55,8 +55,8 @@ jobs:
         run: |
           brew install gawk binutils automake help2man bash make ncurses libtool \
             autoconf gnu-sed bison m4 lzip grep coreutils texinfo erlang elixir \
-            gnu-tar zstd xz wget gcc@15
-          echo "$(brew --prefix gcc@15)/bin" >> "$GITHUB_PATH"
+            gnu-tar zstd xz wget gcc@16
+          echo "$(brew --prefix gcc@16)/bin" >> "$GITHUB_PATH"
       - name: Cache sources and patched crosstool-NG
         uses: actions/cache@v5
         with:
@@ -66,9 +66,6 @@ jobs:
           key: toolchains-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(format('{0}/crosstool_ng.exs', inputs.builder_directory), format('{0}/config.exs', inputs.builder_directory), format('{0}/patches/**', inputs.builder_directory), format('{0}/configs/*.defconfig', inputs.builder_directory)) }}
           restore-keys: |
             toolchains-${{ runner.os }}-${{ runner.arch }}-
-      - name: Resolve component versions
-        working-directory: ${{ inputs.builder_directory }}
-        run: make versions
       - name: Build and smoke-test toolchain
         working-directory: ${{ inputs.builder_directory }}
         env:

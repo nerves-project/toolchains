@@ -32,7 +32,7 @@ def main():
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, destination)
 
-    cc = "gcc-15" if sys.platform == "darwin" else "cc"
+    cc = "gcc-16" if sys.platform == "darwin" else "cc"
     info = {
         "builder_version": (builder / "VERSION").read_text().strip(),
         "builder_commit": command("git", "-C", str(builder), "rev-parse", "HEAD"),
