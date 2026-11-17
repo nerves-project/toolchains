@@ -34,15 +34,15 @@ fi
 TMP_DIR=$(mktemp -d "$OUTPUT_DIR/.toolchain.XXXXXX")
 cleanup()
 {
-    rm -f "$TMP_DIR/archive.tar.zst" "$TMP_DIR/archive.tar.zst.sha256"
+    rm -f "$TMP_DIR/archive.tar.xz" "$TMP_DIR/archive.tar.xz.sha256"
     rmdir "$TMP_DIR"
 }
 trap cleanup EXIT
 # Put metadata first so inspection need not decompress the compiler payload.
 "$TAR" -c -C "$PARENT_DIR" -f - "$INSTALL_NAME/toolchain-builder.metadata" \
     --exclude="$INSTALL_NAME/toolchain-builder.metadata" "$INSTALL_NAME" | \
-    zstd -T0 -q -o "$TMP_DIR/archive.tar.zst"
-NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --name "$TMP_DIR/archive.tar.zst")
+    xz -T0 -6 -c > "$TMP_DIR/archive.tar.xz"
+NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --name "$TMP_DIR/archive.tar.xz")
 
 if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
     echo "Archive already exists: $OUTPUT_DIR/$NATIVE_ARCHIVE. Use a new release version or output directory." >&2
@@ -50,12 +50,12 @@ if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256
 fi
 
 if [[ $(uname -s) = Darwin ]]; then
-    DIGEST=$(shasum -a 256 "$TMP_DIR/archive.tar.zst")
+    DIGEST=$(shasum -a 256 "$TMP_DIR/archive.tar.xz")
 else
-    DIGEST=$(sha256sum "$TMP_DIR/archive.tar.zst")
+    DIGEST=$(sha256sum "$TMP_DIR/archive.tar.xz")
 fi
-printf '%s  %s\n' "${DIGEST%% *}" "$NATIVE_ARCHIVE" > "$TMP_DIR/archive.tar.zst.sha256"
-ln "$TMP_DIR/archive.tar.zst" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
-ln "$TMP_DIR/archive.tar.zst.sha256" "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"
+printf '%s  %s\n' "${DIGEST%% *}" "$NATIVE_ARCHIVE" > "$TMP_DIR/archive.tar.xz.sha256"
+ln "$TMP_DIR/archive.tar.xz" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
+ln "$TMP_DIR/archive.tar.xz.sha256" "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"
 echo "Native archive: $OUTPUT_DIR/$NATIVE_ARCHIVE"
 echo "SHA256: $OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"

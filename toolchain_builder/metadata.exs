@@ -50,12 +50,12 @@ defmodule ToolchainMetadata do
   def read_archive!(archive) do
     tar = if match?({:unix, :darwin}, :os.type()), do: "gtar", else: "tar"
 
-    # tar stops after metadata, so zstd's resulting broken pipe is expected.
+    # tar stops after metadata, so xz's resulting broken pipe is expected.
     # Use tar's exit status; inspecting metadata is not an archive integrity check.
     {output, status} =
       System.cmd("bash", [
         "-c",
-        ~S(zstd -dqqc -- "$1" | "$2" -xOf - --wildcards --occurrence=1 -- "$3"),
+        ~S(xz -dqc -- "$1" | "$2" -xOf - --wildcards --occurrence=1 -- "$3"),
         "archive",
         Path.expand(archive),
         tar,
@@ -81,7 +81,7 @@ defmodule ToolchainMetadata do
 
     "#{metadata["target"]}--gcc-#{metadata["gcc"]}-#{metadata["libc"]}-" <>
       "#{metadata[metadata["libc"]]}-linux-#{metadata["linux"]}--" <>
-      "#{metadata["release"]}--#{metadata["host"]}.tar.zst"
+      "#{metadata["release"]}--#{metadata["host"]}.tar.xz"
   end
 
   def contents(metadata) do

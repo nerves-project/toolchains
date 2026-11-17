@@ -19,7 +19,7 @@ spec.loader.exec_module(artifact)
 class ArtifactTest(unittest.TestCase):
     def test_checksum_rejects_changed_archive_and_wrong_filename(self):
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "compiler.tar.zst"
+            path = Path(directory) / "compiler.tar.xz"
             path.write_bytes(b"compiler")
             sidecar = Path(str(path) + ".sha256")
             contents = artifact.checksum_line(path)
@@ -28,14 +28,14 @@ class ArtifactTest(unittest.TestCase):
             path.write_bytes(b"different compiler")
             with self.assertRaisesRegex(ValueError, "Checksum mismatch"):
                 artifact.verify(path)
-            sidecar.write_text(contents.replace(path.name, "another.tar.zst"))
+            sidecar.write_text(contents.replace(path.name, "another.tar.xz"))
             with self.assertRaisesRegex(ValueError, "Invalid checksum file"):
                 artifact.verify(path)
 
     def test_publishing_checks_all_pairs_and_uploads_checksums_last_without_overwriting(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            archive = root / "compiler.tar.zst"
+            archive = root / "compiler.tar.xz"
             archive.write_bytes(b"compiler")
             sidecar = Path(str(archive) + ".sha256")
             sidecar.write_text(artifact.checksum_line(archive))
@@ -48,8 +48,9 @@ class ArtifactTest(unittest.TestCase):
             subprocess.run(command, env=env, check=True, capture_output=True)
             calls = log.read_text().splitlines()
             self.assertEqual(len(calls), 2)
-            self.assertIn("--key toolchains/compiler.tar.zst --body", calls[0])
-            self.assertIn("--key toolchains/compiler.tar.zst.sha256 --body", calls[1])
+            self.assertIn("--key toolchains/compiler.tar.xz --body", calls[0])
+            self.assertIn("--content-type application/x-xz", calls[0])
+            self.assertIn("--key toolchains/compiler.tar.xz.sha256 --body", calls[1])
             self.assertTrue(all("--if-none-match *" in call for call in calls))
             log.unlink()
             archive.write_bytes(b"corrupted")
@@ -79,7 +80,7 @@ class ArtifactTest(unittest.TestCase):
     def test_publishing_can_resume_but_rejects_changed_remote_objects(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            archive = root / "compiler.tar.zst"
+            archive = root / "compiler.tar.xz"
             archive.write_bytes(b"compiler")
             Path(str(archive) + ".sha256").write_text(artifact.checksum_line(archive))
             remote = root / "remote"

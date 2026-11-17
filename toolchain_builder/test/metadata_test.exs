@@ -27,7 +27,7 @@ defmodule ToolchainMetadataTest do
     CT_LINUX_VERSION="6.12.3"
     CT_LIBC_#{String.upcase(libc)}=y
     CT_#{String.upcase(libc)}_VERSION="2.99"
-    CT_GLIBC_MIN_KERNEL_VERSION="5.10.0"
+    CT_GLIBC_MIN_KERNEL_VERSION="6.1.0"
     CT_GMP_VERSION="6.3.0"
     CT_OPTIONAL_VERSION=""
     CT_GDB_CUSTOM_VERSION=y
@@ -38,7 +38,7 @@ defmodule ToolchainMetadataTest do
 
   defp package!(install, output, host \\ "linux_x86_64") do
     assert {_, 0} = System.cmd("bash", [@package, install, output, host], stderr_to_stdout: true)
-    [archive] = Path.wildcard(Path.join(output, "*--#{host_suffix(host)}.tar.zst"))
+    [archive] = Path.wildcard(Path.join(output, "*--#{host_suffix(host)}.tar.xz"))
     archive
   end
 
@@ -56,7 +56,7 @@ defmodule ToolchainMetadataTest do
     assert Enum.sort(File.ls!(output)) == Enum.sort([native, native <> ".sha256"])
 
     assert native ==
-             "#{@target}--gcc-99.2.1-glibc-2.99-linux-6.12.3--#{@release}--x86_64-linux-gnu.tar.zst"
+             "#{@target}--gcc-99.2.1-glibc-2.99-linux-6.12.3--#{@release}--x86_64-linux-gnu.tar.xz"
 
     archive = File.read!(archive_path)
     digest = :crypto.hash(:sha256, archive) |> Base.encode16(case: :lower)
@@ -64,7 +64,7 @@ defmodule ToolchainMetadataTest do
     assert File.read!(Path.join(install, "bin/#{@target}-gcc")) == "compiler"
     assert File.read_link!(Path.join(install, "bin/#{@target}-cc")) == "#{@target}-gcc"
 
-    {listing, 0} = System.cmd(@tar, ["--zstd", "-tf", archive_path])
+    {listing, 0} = System.cmd(@tar, ["-tJf", archive_path])
     members = String.split(listing, "\n", trim: true)
     assert hd(members) == "installed/toolchain-builder.metadata"
     assert Enum.count(members, &(&1 == hd(members))) == 1
@@ -111,7 +111,7 @@ defmodule ToolchainMetadataTest do
     File.write!(Path.join(install, "payload"), :crypto.strong_rand_bytes(1024 * 1024))
     archive = package!(install, Path.join(tmp_dir, "archives"), "darwin_arm")
     original_name = Path.basename(archive)
-    renamed = Path.join(tmp_dir, "unrelated name.tar.zst")
+    renamed = Path.join(tmp_dir, "unrelated name.tar.xz")
     File.rename!(archive, renamed)
     File.rm_rf!(install)
     before = Path.wildcard(Path.join(tmp_dir, "**/*"), match_dot: true)
@@ -149,11 +149,11 @@ defmodule ToolchainMetadataTest do
           "not metadata\n"
         ] do
       File.write!(Path.join(install, "toolchain-builder.metadata"), contents)
-      archive = Path.join(tmp_dir, "invalid.tar.zst")
+      archive = Path.join(tmp_dir, "invalid.tar.xz")
 
       assert {_, 0} =
                System.cmd(@tar, [
-                 "--zstd",
+                 "--xz",
                  "-cf",
                  archive,
                  "-C",
@@ -173,9 +173,9 @@ defmodule ToolchainMetadataTest do
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
     install = install!(tmp_dir)
     output = Path.join(tmp_dir, "archives")
-    zstd = Path.join(tmp_dir, "zstd")
-    File.write!(zstd, "#!/bin/sh\nexit 9\n")
-    File.chmod!(zstd, 0o755)
+    xz = Path.join(tmp_dir, "xz")
+    File.write!(xz, "#!/bin/sh\nexit 9\n")
+    File.chmod!(xz, 0o755)
 
     assert {_, status} =
              System.cmd("bash", [@package, install, output, "linux_x86_64"],

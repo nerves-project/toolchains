@@ -4,5 +4,7 @@
 /tmp/
 __pycache__/
 *.dmg
+*.tar.xz
+*.tar.xz.sha256
 *.tar.zst
 *.tar.zst.sha256

@@ -68,10 +68,10 @@ Ctrl+C terminates the build's descendants.
 anything. Builds are expensive; build one when testing.
 
 Flat configs are named `<target>--<track>.defconfig`. The initial `gcc15` track
-uses GCC 15.3.0 and Linux 5.10.258 headers. A newer GCC 16.2 track is planned.
+uses GCC 15.3.0 and Linux 6.1.175 headers. A newer GCC 16.2 track is planned.
 Both tracks should receive current stable libc releases rather than freezing
 libc with the compiler: currently glibc 2.43 or musl 1.2.6. glibc's minimum
-runtime kernel is explicitly 5.10.0, independent of the headers' patch level.
+runtime kernel is explicitly 6.1.0, independent of the headers' patch level.
 
 Keep both the Kconfig selector and resolved version in each config, including
 defaults. Pin crosstool-NG separately in `config.exs`. Host fragments live in
@@ -99,13 +99,13 @@ new release, even if the visible component versions stay the same.
 Archive names are:
 
 ```text
-<target>--gcc-<version>-<libc>-<version>-linux-<headers>--<release>--<host>.tar.zst
+<target>--gcc-<version>-<libc>-<version>-linux-<headers>--<release>--<host>.tar.xz
 ```
 
 For example:
 
 ```text
-armv7-nerves-linux-gnueabihf--gcc-15.3.0-glibc-2.43-linux-5.10.258--2026.11.1--x86_64-linux-gnu.tar.zst
+armv7-nerves-linux-gnueabihf--gcc-15.3.0-glibc-2.43-linux-6.1.175--2026.11.1--x86_64-linux-gnu.tar.xz
 ```
 
 Each archive is paired with `<archive>.sha256`. This is a standard SHA256 checksum
@@ -122,13 +122,13 @@ https://dl.nerves-project.org/toolchains/
 Inspect a completed archive or print its canonical filename:
 
 ```sh
-elixir scripts/archive.exs path/to/toolchain.tar.zst
-elixir scripts/archive.exs --name path/to/toolchain.tar.zst
+elixir scripts/archive.exs path/to/toolchain.tar.xz
+elixir scripts/archive.exs --name path/to/toolchain.tar.xz
 ```
 
 The report is sorted `key=value` text containing the target, host, recipe release,
 libc, and resolved component versions. Inspection streams the metadata into
-memory using GNU tar and zstd, without extracting files to disk or running the
+memory using GNU tar and xz, without extracting files to disk or running the
 compiler. Metadata is the first archive member, so inspecting it does not
 require decompressing the compiler payload. Neither command needs the source
 configs, and renaming an archive does not affect its reported identity.
@@ -183,7 +183,7 @@ deletion is not required.
 
 ```sh
 make check
-bash test/smoketest.sh path/to/toolchain.tar.zst "$PWD/target-smoke.elf"
+bash test/smoketest.sh path/to/toolchain.tar.xz "$PWD/target-smoke.elf"
 ```
 
 `make check` runs cancellation, packaging, checksum and publishing tests and

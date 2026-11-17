@@ -15,6 +15,6 @@ case System.argv() do
     archive |> ToolchainMetadata.read_archive!() |> ToolchainMetadata.contents() |> IO.write()
 
   _ ->
-    IO.puts(:stderr, "Usage: elixir scripts/archive.exs [--name] <archive.tar.zst>")
+    IO.puts(:stderr, "Usage: elixir scripts/archive.exs [--name] <archive.tar.xz>")
     System.halt(1)
 end

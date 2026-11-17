@@ -72,14 +72,14 @@ jobs:
           TOOLCHAIN: ${{ inputs.toolchain }}
         run: |
           bash build.sh "$TOOLCHAIN"
-          archive="$(find o/artifacts -name '*.tar.zst' -print -quit)"
+          archive="$(find o/artifacts -name '*.tar.xz' -print -quit)"
           bash test/smoketest.sh "$archive" "$PWD/o/smoketest.elf"
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.toolchain }}-${{ matrix.host }}
           path: |
-            ${{ inputs.builder_directory }}/o/artifacts/*.tar.zst
-            ${{ inputs.builder_directory }}/o/artifacts/*.tar.zst.sha256
+            ${{ inputs.builder_directory }}/o/artifacts/*.tar.xz
+            ${{ inputs.builder_directory }}/o/artifacts/*.tar.xz.sha256
             ${{ inputs.builder_directory }}/o/smoketest.elf
           retention-days: 7
 
@@ -117,7 +117,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
-      - run: sudo apt-get update && sudo apt-get install -y zstd
+      - run: sudo apt-get update && sudo apt-get install -y xz-utils
       - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.toolchain }}-${{ matrix.host }}
@@ -126,7 +126,7 @@ jobs:
         env:
           BUILDER_DIRECTORY: ${{ inputs.builder_directory }}
         run: |
-          archive="$(find artifacts -name '*.tar.zst' -print -quit)"
+          archive="$(find artifacts -name '*.tar.xz' -print -quit)"
           bash "$BUILDER_DIRECTORY/test/smoketest.sh" "$archive" "$PWD/smoketest.elf"
           cmp smoketest.elf "$(find artifacts -name smoketest.elf -print -quit)"
 
@@ -140,7 +140,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
-      - run: brew install gnu-tar zstd
+      - run: brew install gnu-tar xz
       - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.toolchain }}-darwin-aarch64
@@ -149,6 +149,6 @@ jobs:
         env:
           BUILDER_DIRECTORY: ${{ inputs.builder_directory }}
         run: |
-          archive="$(find artifacts -name '*.tar.zst' -print -quit)"
+          archive="$(find artifacts -name '*.tar.xz' -print -quit)"
           bash "$BUILDER_DIRECTORY/test/smoketest.sh" "$archive" "$PWD/smoketest.elf"
           cmp smoketest.elf "$(find artifacts -name smoketest.elf -print -quit)"

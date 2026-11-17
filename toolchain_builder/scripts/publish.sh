@@ -20,9 +20,9 @@ prefix=${prefix%/}
 if [[ -n "$prefix" ]]; then prefix="$prefix/"; fi
 
 shopt -s nullglob
-archives=("$ARTIFACT_DIR"/*.tar.zst)
+archives=("$ARTIFACT_DIR"/*.tar.xz)
 if [[ ${#archives[@]} = 0 ]]; then
-    echo "No .tar.zst archives in $ARTIFACT_DIR" >&2
+    echo "No .tar.xz archives in $ARTIFACT_DIR" >&2
     exit 1
 fi
 
@@ -53,7 +53,7 @@ upload()
 
 for archive in "${archives[@]}"; do
     filename=$(basename "$archive")
-    upload "$archive" "$prefix$filename" application/zstd
+    upload "$archive" "$prefix$filename" application/x-xz
     # A checksum is the publication-complete marker; upload it last.
     upload "$archive.sha256" "$prefix$filename.sha256" text/plain
 done

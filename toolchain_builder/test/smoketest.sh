@@ -11,7 +11,7 @@ WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
 if [[ $(uname -s) = Darwin ]]; then TAR=gtar; else TAR=tar; fi
-"$TAR" --zstd -xf "$ARCHIVE" --strip-components=1 -C "$WORK"
+"$TAR" -xJf "$ARCHIVE" --strip-components=1 -C "$WORK"
 compilers=("$WORK"/bin/*-g++)
 if [[ ${#compilers[@]} != 1 || ! -x "${compilers[0]}" ]]; then
     echo "Expected one relocatable cross-g++ in the archive" >&2
