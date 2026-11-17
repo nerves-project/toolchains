@@ -62,7 +62,7 @@ jobs:
         with:
           path: |
             ~/.nerves/dl
-            ~/.nerves/ct-ng
+            ${{ inputs.builder_directory }}/o/ct-ng
           key: toolchains-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(format('{0}/crosstool_ng.exs', inputs.builder_directory), format('{0}/config.exs', inputs.builder_directory), format('{0}/patches/**', inputs.builder_directory), format('{0}/configs/*.defconfig', inputs.builder_directory)) }}
           restore-keys: |
             toolchains-${{ runner.os }}-${{ runner.arch }}-

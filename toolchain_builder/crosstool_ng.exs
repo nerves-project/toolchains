@@ -25,35 +25,42 @@ defmodule CrosstoolNG do
     "#{config().ctng_tag}-#{checksum}"
   end
 
-  def ensure! do
-    install = Path.join([System.user_home!(), ".nerves", "ct-ng", identity()])
+  def ensure!(output \\ Path.join(@root, "o")) do
+    output = Path.expand(output)
+    install = Path.join([output, "ct-ng", identity()])
     ctng = Path.join(install, "bin/ct-ng")
 
     unless File.regular?(ctng) do
-      build!(install)
+      build!(install, output)
     end
 
     ctng
   end
 
-  defp build!(install) do
+  defp build!(install, output) do
     tag = config().ctng_tag
-    work = Path.join(System.tmp_dir!(), "toolchain-ctng-#{System.unique_integer([:positive])}")
+    work = Path.join([output, "tmp", "toolchain-ctng-#{System.unique_integer([:positive])}"])
     source = Path.join(work, "source")
     File.mkdir_p!(work)
+    opts = [env: [{"TMPDIR", work}]]
 
     try do
-      run!("git", ["clone", "https://github.com/crosstool-ng/crosstool-ng.git", source])
-      run!("git", ["checkout", tag], cd: source)
+      run!("git", ["clone", "https://github.com/crosstool-ng/crosstool-ng.git", source], opts)
+      run!("git", ["checkout", tag], Keyword.put(opts, :cd, source))
 
-      run!("bash", [
-        Path.join(@root, "scripts/apply-patches.sh"),
-        source,
-        Path.join(@root, "patches/crosstool-ng")
-      ])
+      run!(
+        "bash",
+        [
+          Path.join(@root, "scripts/apply-patches.sh"),
+          source,
+          Path.join(@root, "patches/crosstool-ng")
+        ],
+        opts
+      )
 
-      run!("bash", ["./bootstrap"], cd: source)
+      run!("bash", ["./bootstrap"], Keyword.put(opts, :cd, source))
       {env, make} = build_environment()
+      env = opts[:env] ++ env
       run!("bash", ["./configure", "--prefix=#{install}"], cd: source, env: env)
       run!(make, [], cd: source, env: env)
       run!(make, ["install"], cd: source, env: env)

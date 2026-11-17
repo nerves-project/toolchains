@@ -7,7 +7,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARCHIVE=$1
 OUTPUT=$2
 python3 "$ROOT/scripts/artifact.py" verify "$ARCHIVE"
-WORK=$(mktemp -d)
+mkdir -p "$ROOT/o/tmp"
+export TMPDIR="$ROOT/o/tmp"
+WORK=$(mktemp -d "$TMPDIR/smoketest.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
 
 if [[ $(uname -s) = Darwin ]]; then TAR=gtar; else TAR=tar; fi

@@ -126,6 +126,8 @@ if [[ ! -e $HOST_CONFIG ]]; then
 fi
 
 DL_DIR=$HOME/.nerves/dl
+mkdir -p "$SCRIPT_DIR/o/tmp"
+export TMPDIR="$SCRIPT_DIR/o/tmp"
 
 echo "Using HOST_ARCH: $HOST_ARCH"
 echo "Using HOST_OS: $HOST_OS"

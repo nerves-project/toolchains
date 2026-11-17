@@ -53,8 +53,10 @@ bash build.sh armv7-nerves-linux-gnueabihf--gcc15
 Builds resolve the config with the pinned, locally patched crosstool-NG and
 reject changes to explicit target settings, even when `savedefconfig` omits
 them as defaults. The cached crosstool-NG identity includes its commit and
-local preparation/patch inputs. Caches remain under `~/.nerves/ct-ng/` and
-`~/.nerves/dl/`.
+local preparation/patch inputs. crosstool-NG is built automatically and installed
+under `o/ct-ng/<identity>/`. Build temporary files stay under `o/tmp/`.
+Downloaded sources are the sole exception to keeping build files under `o/`:
+they are cached in `~/.nerves/dl/`.
 
 The argument to `build.sh` is a filename from `configs/` without `.defconfig`.
 Work goes in `o/<config>`; release pairs go in `o/artifacts/`. Optional second
