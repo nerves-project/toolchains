@@ -195,18 +195,6 @@ init()
     mkdir -p "$DL_DIR"
 }
 
-gcc_tuple()
-{
-    # Figure out the target's tuple. It's the name of the only directory.
-    # Don't call this until after build_gcc()
-    tuplepath=$(ls "$GCC_INSTALL_DIR")
-    if [[ -e $tuplepath ]]; then
-        echo "unknown"
-    else
-        basename "$tuplepath"
-    fi
-}
-
 build_gcc()
 {
     if [[ $BUILD_OS = darwin || $BUILD_OS = freebsd ]]; then
@@ -247,24 +235,30 @@ build_gcc()
 
     $CTNG $CTNG_BUILD
 
-    TARGET_TUPLE=$(gcc_tuple)
+    local compilers=("$GCC_INSTALL_DIR"/*/bin/*-gcc)
+    if [[ ${#compilers[@]} != 1 || ! -f ${compilers[0]} ]]; then
+        echo "Expected exactly one installed *-gcc compiler under $GCC_INSTALL_DIR" >&2
+        exit 1
+    fi
+    TARGET_TUPLE=${compilers[0]##*/}
+    TARGET_TUPLE=${TARGET_TUPLE%-gcc}
+    INSTALL_DIR=${compilers[0]%/bin/*}
 
     echo "Fixing permissions on release"
     # ct-ng likes to mark everything read-only which seems reasonable, but it
     # can be really annoying when trying to cleanup a toolchain.
-    chmod -R u+w "$GCC_INSTALL_DIR/$TARGET_TUPLE"
+    chmod -R u+w "$INSTALL_DIR"
 
     # Clean up the build product
-    rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
+    rm -f "$INSTALL_DIR/build.log.bz2"
 }
 
 save_build_info()
 {
     # Save useful information if we ever need to reproduce the toolchain
-    TARGET_TUPLE=$(gcc_tuple)
-    cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
-    cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
-    local recipe="$GCC_INSTALL_DIR/$TARGET_TUPLE/share/toolchain-builder"
+    cp "$CTNG_CONFIG" "$INSTALL_DIR/ct-ng.defconfig"
+    cp "$WORK_DIR/build/.config" "$INSTALL_DIR/ct-ng.config"
+    local recipe="$INSTALL_DIR/share/toolchain-builder"
     mkdir -p "$recipe"
     cp "$SCRIPT_DIR"/{VERSION,Makefile,LICENSE,README.md,*.exs} "$recipe/"
     cp -R "$SCRIPT_DIR"/{scripts,configs,defaults,patches} "$recipe/"
@@ -280,8 +274,7 @@ fix_kernel_case_conflicts()
     # The workaround is to remove case conflicts in the kernel include
     # directory so that users don't need to use case sensitive filesystems on
     # OSX.
-    TARGET_TUPLE=$(gcc_tuple)
-    LINUX_INCLUDE_DIR=$GCC_INSTALL_DIR/$TARGET_TUPLE/$TARGET_TUPLE/sysroot/usr/include/linux
+    LINUX_INCLUDE_DIR=$INSTALL_DIR/$TARGET_TUPLE/sysroot/usr/include/linux
     rm -f "$LINUX_INCLUDE_DIR/netfilter/xt_CONNMARK.h" \
           "$LINUX_INCLUDE_DIR/netfilter/xt_DSCP.h" \
           "$LINUX_INCLUDE_DIR/netfilter/xt_MARK.h" \
@@ -311,8 +304,7 @@ finalize_products()
 
 build_artifact()
 {
-    TARGET_TUPLE=$(gcc_tuple)
-    bash "$SCRIPT_DIR/scripts/package.sh" "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$OUTPUT_DIR" "${HOST_OS}_${ARTIFACT_HOST_ARCH}"
+    bash "$SCRIPT_DIR/scripts/package.sh" "$INSTALL_DIR" "$OUTPUT_DIR" "${HOST_OS}_${ARTIFACT_HOST_ARCH}"
 }
 
 init

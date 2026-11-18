@@ -47,7 +47,7 @@ exit "$TEST_STATUS"
 
     def run_init(self, modern):
         source = BUILD.read_text()
-        init = source[source.index("\ninit()\n"):source.index("\ngcc_tuple()\n")]
+        init = source[source.index("\ninit()\n"):source.index("\nbuild_gcc()\n")]
         with tempfile.TemporaryDirectory(prefix="toolchain-image-") as directory:
             root = Path(directory)
             script = """
@@ -101,6 +101,38 @@ ln() { printf 'ln %s\\n' "$*" >> "$COMMAND_LOG"; }
 
 
 class BuildProcessTest(unittest.TestCase):
+    def test_installed_target_requires_exactly_one_compiler(self):
+        source = BUILD.read_text()
+        post_build = source.split("    $CTNG $CTNG_BUILD\n", 1)[1]
+        post_build = post_build[:post_build.index("\nsave_build_info()\n")]
+        script = "set -e\nfinish_build() {\n" + post_build + """
+finish_build
+printf '%s\\n' "$TARGET_TUPLE" "$INSTALL_DIR"
+"""
+        target = "x86_64-nerves-linux-gnu"
+        for count in [0, 1, 2]:
+            with self.subTest(compilers=count), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory) / "x tools"
+                root.mkdir()
+                for index in range(count):
+                    install = root / f"install{index}"
+                    (install / "bin").mkdir(parents=True)
+                    (install / "bin" / f"{target}-gcc").touch()
+                    (install / "build.log.bz2").touch()
+                env = dict(os.environ, GCC_INSTALL_DIR=str(root))
+                result = subprocess.run(
+                    ["bash", "-c", script], env=env, capture_output=True, text=True
+                )
+                if count == 1:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(
+                        result.stdout.splitlines()[-2:], [target, str(root / "install0")]
+                    )
+                    self.assertFalse((root / "install0/build.log.bz2").exists())
+                else:
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("Expected exactly one installed", result.stderr)
+
     def test_completed_archive_skips_build_without_touching_work_directory(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
