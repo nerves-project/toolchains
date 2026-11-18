@@ -188,10 +188,6 @@ init()
             chmod -R u+w "$WORK_DIR"
             rm -fr "$WORK_DIR"
         fi
-        if [[ -e "$CT_WORK_DIR" ]]; then
-            chmod -R u+w "$CT_WORK_DIR"
-            rm -fr "$CT_WORK_DIR"
-        fi
         mkdir -p "$WORK_DIR"
     fi
 
@@ -274,16 +270,6 @@ build_gcc()
 
     # Clean up the build product
     rm -f "$GCC_INSTALL_DIR/$TARGET_TUPLE/build.log.bz2"
-
-    # Clean up crosstool-ng's work directory if we put it in a global location
-    if [[ "$CI" = "true" ]]; then
-        echo "Not cleaning up work directory since CI build"
-    else
-        if [[ -e "$CT_WORK_DIR" ]]; then
-            chmod -R u+w "$CT_WORK_DIR"
-            rm -fr "$CT_WORK_DIR"
-        fi
-    fi
 }
 
 save_build_info()
