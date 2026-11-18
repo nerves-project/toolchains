@@ -5,12 +5,15 @@
 Code.require_file("../metadata.exs", __DIR__)
 
 case System.argv() do
+  ["--check-config", base, resolved] ->
+    ToolchainMetadata.check_config!(base, resolved)
+
   ["--find", directory, config, host, release] ->
     if archive = ToolchainMetadata.find_archive(directory, config, host, release),
       do: IO.puts(archive)
 
   ["--prepare", install, host] ->
-    ToolchainMetadata.prepare!(install, host)
+    install |> ToolchainMetadata.prepare!(host) |> ToolchainMetadata.archive_name() |> IO.puts()
 
   ["--name", archive] ->
     archive |> ToolchainMetadata.read_archive!() |> ToolchainMetadata.archive_name() |> IO.puts()

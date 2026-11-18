@@ -27,14 +27,14 @@ if [[ ${#archives[@]} = 0 ]]; then
 fi
 
 for archive in "${archives[@]}"; do
-    python3 "$BUILDER_DIR/scripts/artifact.py" verify "$archive"
+    (cd "$(dirname "$archive")" && sha256sum -- "$(basename "$archive")" | \
+        cmp - "$(basename "$archive").sha256")
 done
 
 upload()
 {
     local file=$1 key=$2 content_type=$3 checksum existing
-    checksum=$(python3 "$BUILDER_DIR/scripts/artifact.py" checksum "$file" | \
-        python3 -c 'import base64, sys; print(base64.b64encode(bytes.fromhex(sys.stdin.read().split()[0])).decode())')
+    checksum=$(openssl dgst -sha256 -binary "$file" | openssl base64 -A)
 
     if aws s3api put-object --bucket "$bucket" --key "$key" --body "$file" \
         --content-type "$content_type" --checksum-algorithm SHA256 \

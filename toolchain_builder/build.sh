@@ -6,7 +6,7 @@
 #
 # build.sh <config name> [work directory] [output directory]
 
-set -e
+set -eo pipefail
 
 cleanup()
 {
@@ -86,7 +86,8 @@ OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 EXISTING_ARCHIVE=$(elixir "$SCRIPT_DIR/scripts/archive.exs" --find "$OUTPUT_DIR" \
     "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}" "$(cat "$SCRIPT_DIR/VERSION")")
 if [[ -n $EXISTING_ARCHIVE ]]; then
-    python3 "$SCRIPT_DIR/scripts/artifact.py" verify "$EXISTING_ARCHIVE"
+    (cd "$OUTPUT_DIR" && sha256sum -- "$(basename "$EXISTING_ARCHIVE")" | \
+        cmp - "$(basename "$EXISTING_ARCHIVE").sha256")
     echo "Skipping $TOOLCHAIN_NAME: already built at $EXISTING_ARCHIVE"
     exit 0
 fi
@@ -269,7 +270,7 @@ build_gcc()
     cat "$CTNG_CONFIG"
 
     # savedefconfig omits explicit defaults; validate against the full configuration.
-    elixir "$SCRIPT_DIR/scripts/check_config.exs" "$BASE_CONFIG" "$WORK_DIR/build/.config"
+    elixir "$SCRIPT_DIR/scripts/archive.exs" --check-config "$BASE_CONFIG" "$WORK_DIR/build/.config"
 
     # Configure logging when on CI (see crosstool-ng's build script)
     if [[ "$CI" = "true" ]]; then

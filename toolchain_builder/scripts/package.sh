@@ -19,9 +19,14 @@ if [[ ! -d "$INSTALL_DIR/bin" ]]; then
     exit 1
 fi
 
-elixir "$BUILDER_DIR/scripts/archive.exs" --prepare "$INSTALL_DIR" "$HOST"
+NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --prepare "$INSTALL_DIR" "$HOST")
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
+if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
+    echo "Archive already exists: $OUTPUT_DIR/$NATIVE_ARCHIVE. Use a new release version or output directory." >&2
+    exit 1
+fi
+
 INSTALL_DIR="$(cd "$INSTALL_DIR" && pwd)"
 PARENT_DIR=$(dirname "$INSTALL_DIR")
 INSTALL_NAME=$(basename "$INSTALL_DIR")
@@ -42,18 +47,7 @@ trap cleanup EXIT
 "$TAR" -c -C "$PARENT_DIR" -f - "$INSTALL_NAME/toolchain-builder.metadata" \
     --exclude="$INSTALL_NAME/toolchain-builder.metadata" "$INSTALL_NAME" | \
     xz -T0 -6 -c > "$TMP_DIR/archive.tar.xz"
-NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --name "$TMP_DIR/archive.tar.xz")
-
-if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
-    echo "Archive already exists: $OUTPUT_DIR/$NATIVE_ARCHIVE. Use a new release version or output directory." >&2
-    exit 1
-fi
-
-if [[ $(uname -s) = Darwin ]]; then
-    DIGEST=$(shasum -a 256 "$TMP_DIR/archive.tar.xz")
-else
-    DIGEST=$(sha256sum "$TMP_DIR/archive.tar.xz")
-fi
+DIGEST=$(sha256sum "$TMP_DIR/archive.tar.xz")
 printf '%s  %s\n' "${DIGEST%% *}" "$NATIVE_ARCHIVE" > "$TMP_DIR/archive.tar.xz.sha256"
 ln "$TMP_DIR/archive.tar.xz" "$OUTPUT_DIR/$NATIVE_ARCHIVE"
 ln "$TMP_DIR/archive.tar.xz.sha256" "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256"

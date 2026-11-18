@@ -244,7 +244,7 @@ defmodule ToolchainMetadataTest do
       "# CT_CREATE_LDSO_CONF is not set\nCT_GCC_VERSION=\"15.3.0\"\nCT_GCC_V_15=y\nCT_STATIC_TOOLCHAIN=y\n"
     )
 
-    assert :ok = ToolchainDefconfig.validate!(base, resolved)
+    assert :ok = ToolchainMetadata.check_config!(base, resolved)
 
     File.write!(
       resolved,
@@ -252,7 +252,7 @@ defmodule ToolchainMetadataTest do
     )
 
     assert_raise RuntimeError, ~r/CT_GCC_VERSION: requested "15.3.0", resolved "15.4.0"/, fn ->
-      ToolchainDefconfig.validate!(base, resolved)
+      ToolchainMetadata.check_config!(base, resolved)
     end
 
     assert File.read!(base) =~ "CT_GCC_VERSION=\"15.3.0\""

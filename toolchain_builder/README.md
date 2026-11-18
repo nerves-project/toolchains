@@ -26,7 +26,7 @@ On Debian/Ubuntu:
 ```sh
 sudo apt install build-essential bison flex gperf libncurses-dev texinfo help2man \
   libssl-dev gawk libtool-bin automake autoconf lzip unzip python3 wget curl \
-  ca-certificates xz-utils zstd
+  ca-certificates xz-utils zstd openssl
 ```
 
 On macOS, use Homebrew:
@@ -115,7 +115,7 @@ armv7-nerves-linux-gnueabihf--gcc-15.3.0-glibc-2.43-linux-6.1.175--2026.11.1--x8
 
 Each archive is paired with `<archive>.sha256`. This is a standard SHA256 checksum
 line containing the compressed archive's digest and basename, compatible with
-`sha256sum -c` or macOS `shasum -a 256 -c`. Published checksum files are the trust
+`sha256sum -c`. Published checksum files are the trust
 source for now; signatures are not implemented.
 
 The default public download directory is:
@@ -161,9 +161,9 @@ own archive/checksum pairs without replacing earlier hosts.
 
 ## Publishing
 
-Configure AWS credentials outside the builder. With a recent AWS CLI supporting
-conditional `s3api put-object --if-none-match`, publish to the bucket/prefix that
-backs the public URL:
+Configure AWS credentials outside the builder. With OpenSSL and a recent AWS CLI
+supporting conditional `s3api put-object --if-none-match`, publish to the
+bucket/prefix that backs the public URL:
 
 ```sh
 bash scripts/publish.sh s3://YOUR_BUCKET/toolchains/ o/artifacts

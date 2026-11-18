@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-Code.require_file("defconfig.exs", __DIR__)
-
 defmodule ToolchainMetadata do
   @filename "toolchain-builder.metadata"
   @hosts %{
@@ -12,6 +10,23 @@ defmodule ToolchainMetadata do
     "darwin_arm" => "aarch64-apple-darwin"
   }
   @excluded_versions ~w(CT_CONFIG_VERSION CT_TOOLCHAIN_PKGVERSION CT_GLIBC_MIN_KERNEL_VERSION)
+
+  def check_config!(target, resolved) do
+    expected = read_config!(target)
+    actual = read_config!(resolved)
+
+    mismatches =
+      for {key, value} <- Enum.sort(expected),
+          Map.get(actual, key) != value do
+        "#{key}: requested #{value}, resolved #{Map.get(actual, key, "<missing>")}"
+      end
+
+    if mismatches != [] do
+      raise "crosstool-NG changed explicit configuration:\n" <> Enum.join(mismatches, "\n")
+    end
+
+    :ok
+  end
 
   def find_archive(directory, config, host, release) do
     [target, "gcc" <> major] = String.split(config, "--")
@@ -24,7 +39,7 @@ defmodule ToolchainMetadata do
   end
 
   def prepare!(install, host) do
-    config = ToolchainDefconfig.read!(Path.join(install, "ct-ng.config"))
+    config = read_config!(Path.join(install, "ct-ng.config"))
     [compiler] = Path.wildcard(Path.join(install, "bin/*-gcc"))
 
     libc =
@@ -98,6 +113,27 @@ defmodule ToolchainMetadata do
     metadata
     |> Enum.sort()
     |> Enum.map_join(fn {key, value} -> "#{key}=#{value}\n" end)
+  end
+
+  defp read_config!(path) do
+    path
+    |> File.read!()
+    |> String.split("\n")
+    |> Enum.flat_map(fn line ->
+      cond do
+        match = Regex.run(~r/^(CT_[A-Z0-9_]+)=(.*)$/, line) ->
+          [_, key, value] = match
+          [{key, value}]
+
+        match = Regex.run(~r/^# (CT_[A-Z0-9_]+) is not set$/, line) ->
+          [_, key] = match
+          [{key, "n"}]
+
+        true ->
+          []
+      end
+    end)
+    |> Map.new()
   end
 
   defp validate!(metadata) do

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -11,34 +11,18 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("artifact", ROOT / "scripts/artifact.py")
-artifact = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(artifact)
 
 
 class ArtifactTest(unittest.TestCase):
-    def test_checksum_rejects_changed_archive_and_wrong_filename(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "compiler.tar.xz"
-            path.write_bytes(b"compiler")
-            sidecar = Path(str(path) + ".sha256")
-            contents = artifact.checksum_line(path)
-            sidecar.write_text(contents)
-            artifact.verify(path)
-            path.write_bytes(b"different compiler")
-            with self.assertRaisesRegex(ValueError, "Checksum mismatch"):
-                artifact.verify(path)
-            sidecar.write_text(contents.replace(path.name, "another.tar.xz"))
-            with self.assertRaisesRegex(ValueError, "Invalid checksum file"):
-                artifact.verify(path)
-
     def test_publishing_checks_all_pairs_and_uploads_checksums_last_without_overwriting(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             archive = root / "compiler.tar.xz"
             archive.write_bytes(b"compiler")
             sidecar = Path(str(archive) + ".sha256")
-            sidecar.write_text(artifact.checksum_line(archive))
+            checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+            contents = f"{checksum}  {archive.name}\n"
+            sidecar.write_text(contents)
             log = root / "aws.log"
             aws = root / "aws"
             aws.write_text("#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$AWS_TEST_LOG\"\n")
@@ -53,6 +37,14 @@ class ArtifactTest(unittest.TestCase):
             self.assertIn("--key toolchains/compiler.tar.xz.sha256 --body", calls[1])
             self.assertTrue(all("--if-none-match *" in call for call in calls))
             log.unlink()
+            other = root / "another-file"
+            other.write_bytes(archive.read_bytes())
+            for invalid in [contents.replace(archive.name, other.name), contents + "\n"]:
+                sidecar.write_text(invalid)
+                result = subprocess.run(command, env=env, capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse(log.exists())
+            sidecar.write_text(contents)
             archive.write_bytes(b"corrupted")
             result = subprocess.run(command, env=env, capture_output=True)
             self.assertNotEqual(result.returncode, 0)
@@ -82,7 +74,8 @@ class ArtifactTest(unittest.TestCase):
             root = Path(directory)
             archive = root / "compiler.tar.xz"
             archive.write_bytes(b"compiler")
-            Path(str(archive) + ".sha256").write_text(artifact.checksum_line(archive))
+            checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+            Path(str(archive) + ".sha256").write_text(f"{checksum}  {archive.name}\n")
             remote = root / "remote"
             remote.mkdir()
             aws = root / "aws"
