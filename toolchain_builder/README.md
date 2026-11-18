@@ -52,9 +52,9 @@ bash build.sh armv7-nerves-linux-gnueabihf--gcc15
 
 Builds resolve the config with the pinned, locally patched crosstool-NG and
 reject changes to explicit target settings, even when `savedefconfig` omits
-them as defaults. The cached crosstool-NG identity includes its commit and
-local preparation/patch inputs. crosstool-NG is built automatically and installed
-under `o/ct-ng/<identity>/`. Build temporary files stay under `o/tmp/`.
+them as defaults. `make ctng` builds and installs crosstool-NG under `o/ct-ng/`;
+`build.sh` runs this automatically. Make rebuilds it when the Makefile, patch
+script, or patches change. Build temporary files stay under `o/tmp/`.
 Downloaded sources are the sole exception to keeping build files under `o/`:
 they are cached in `~/.nerves/dl/`.
 
@@ -78,13 +78,14 @@ libc with the compiler: currently glibc 2.43 or musl 1.2.6. glibc's minimum
 runtime kernel is explicitly 6.1.0, independent of the headers' patch level.
 
 Keep both the Kconfig selector and resolved version in each config, including
-defaults. Pin crosstool-NG separately in `config.exs`. Host fragments live in
+defaults. Pin crosstool-NG with `CTNG_TAG` in the Makefile. Host fragments live in
 `defaults/` and must not select target component versions.
 
 To edit a config interactively:
 
 ```sh
-ctng="$(elixir scripts/ctng.exs)"
+make ctng
+ctng="$PWD/o/ct-ng/bin/ct-ng"
 cd o/armv7-nerves-linux-gnueabihf--gcc15/build
 "$ctng" menuconfig
 "$ctng" savedefconfig

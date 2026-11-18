@@ -75,7 +75,7 @@ class ArtifactTest(unittest.TestCase):
                 (ROOT / "configs/armv7-nerves-linux-gnueabihf--gcc15.defconfig").read_bytes(),
             )
             self.assertIn("scripts/package.sh", info["recipe_sha256"])
-            self.assertIn("crosstool_ng.exs", info["recipe_sha256"])
+            self.assertIn("Makefile", info["recipe_sha256"])
 
     def test_publishing_can_resume_but_rejects_changed_remote_objects(self):
         with tempfile.TemporaryDirectory() as directory:

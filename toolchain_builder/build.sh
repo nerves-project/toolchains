@@ -35,7 +35,6 @@ cleanup_build_drive()
 
 trap cleanup EXIT
 
-# Use hash or version tag (should be crosstool-ng-x.y.z)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ARTIFACT_NAME=${1:-}
 TOOLCHAIN_NAME=$ARTIFACT_NAME
@@ -44,8 +43,6 @@ if [[ ! -f "$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig" ]]; then
     echo "Pass a config name (e.g., armv7-nerves-linux-gnueabihf--gcc15)" >&2
     exit 1
 fi
-
-CTNG_TAG=$(elixir -e '{config, _} = Code.eval_file(hd(System.argv())); IO.puts(config.ctng_tag)' "$SCRIPT_DIR/config.exs")
 
 BASE_CONFIG="$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig"
 WORK_DIR=${2:-"$SCRIPT_DIR/o/$TOOLCHAIN_NAME"}
@@ -238,7 +235,13 @@ gcc_tuple_underscores()
 
 build_gcc()
 {
-    CTNG=$(elixir "$SCRIPT_DIR/scripts/ctng.exs")
+    if [[ $BUILD_OS = darwin || $BUILD_OS = freebsd ]]; then
+        gmake -C "$SCRIPT_DIR" ctng
+    else
+        make -C "$SCRIPT_DIR" ctng
+    fi
+    CTNG="$SCRIPT_DIR/o/ct-ng/bin/ct-ng"
+    CTNG_TAG=$(cat "$SCRIPT_DIR/o/ct-ng/commit")
     if [[ $BUILD_OS = darwin ]]; then
         SED=gsed
     elif [[ $BUILD_OS = freebsd ]]; then
