@@ -107,7 +107,7 @@ class BuildProcessTest(unittest.TestCase):
             shutil.copyfile(BUILD, root / "build.sh")
             for name in ["configs", "scripts"]:
                 (root / name).symlink_to(BUILD.parent / name, target_is_directory=True)
-            for name in ["metadata.exs", "VERSION"]:
+            for name in ["toolchain.exs", "VERSION"]:
                 (root / name).symlink_to(BUILD.parent / name)
             artifacts = root / "o/artifacts"
             artifacts.mkdir(parents=True)

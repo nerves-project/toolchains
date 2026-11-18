@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-Code.require_file("../metadata.exs", __DIR__)
+Code.require_file("../toolchain.exs", __DIR__)
 ExUnit.start()
 
-defmodule ToolchainMetadataTest do
+defmodule ToolchainTest do
   use ExUnit.Case
 
   @target "test-nerves-linux-gnu"
   @release "2026.11.1"
   @tar if(match?({:unix, :darwin}, :os.type()), do: "gtar", else: "tar")
   @package Path.expand("../scripts/package.sh", __DIR__)
-  @inspect_archive Path.expand("../scripts/archive.exs", __DIR__)
+  @archive Path.expand("../scripts/archive.exs", __DIR__)
 
   defp install!(tmp_dir, libc \\ "glibc") do
     install = Path.join(tmp_dir, "installed")
@@ -50,19 +50,23 @@ defmodule ToolchainMetadataTest do
        %{tmp_dir: tmp_dir} do
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
     install = install!(tmp_dir)
+    File.write!(Path.join(install, "toolchain-builder.metadata"), "stale metadata\n")
+    recipe = Path.join(install, "share/toolchain-builder")
+    File.mkdir_p!(recipe)
+    File.write!(Path.join(recipe, "build-info.json"), "{}")
     output = Path.join(tmp_dir, "archives")
     archive_path = package!(install, output)
     native = Path.basename(archive_path)
     config = @target <> "--gcc99"
 
-    assert ToolchainMetadata.find_archive(output, config, "linux_x86_64", @release) ==
+    assert Toolchain.find_archive(output, config, "linux_x86_64", @release) ==
              archive_path
 
-    refute ToolchainMetadata.find_archive(output, config, "darwin_arm", @release)
-    refute ToolchainMetadata.find_archive(output, config, "linux_x86_64", "2026.11.2")
-    refute ToolchainMetadata.find_archive(output, @target <> "--gcc15", "linux_x86_64", @release)
+    refute Toolchain.find_archive(output, config, "darwin_arm", @release)
+    refute Toolchain.find_archive(output, config, "linux_x86_64", "2026.11.2")
+    refute Toolchain.find_archive(output, @target <> "--gcc15", "linux_x86_64", @release)
     File.rename!(archive_path <> ".sha256", archive_path <> ".saved")
-    refute ToolchainMetadata.find_archive(output, config, "linux_x86_64", @release)
+    refute Toolchain.find_archive(output, config, "linux_x86_64", @release)
     File.rename!(archive_path <> ".saved", archive_path <> ".sha256")
     assert Enum.sort(File.ls!(output)) == Enum.sort([native, native <> ".sha256"])
 
@@ -77,8 +81,11 @@ defmodule ToolchainMetadataTest do
 
     {listing, 0} = System.cmd(@tar, ["-tJf", archive_path])
     members = String.split(listing, "\n", trim: true)
-    assert hd(members) == "installed/toolchain-builder.metadata"
-    assert Enum.count(members, &(&1 == hd(members))) == 1
+    refute "installed/toolchain-builder.metadata" in members
+    refute "installed/share/toolchain-builder/build-info.json" in members
+    assert "installed/ct-ng.config" in members
+    assert "installed/toolchain-builder.version" in members
+    assert File.read!(Path.join(install, "toolchain-builder.metadata")) == "stale metadata\n"
 
     extracted = Path.join(tmp_dir, "extracted")
     File.mkdir_p!(extracted)
@@ -115,66 +122,32 @@ defmodule ToolchainMetadataTest do
   end
 
   @tag :tmp_dir
-  test "inspection reads a renamed archive without an installation or extracting files",
+  test "archive naming reads the installation without creating metadata",
        %{tmp_dir: tmp_dir} do
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
     install = install!(tmp_dir, "musl")
-    File.write!(Path.join(install, "payload"), :crypto.strong_rand_bytes(1024 * 1024))
-    archive = package!(install, Path.join(tmp_dir, "archives"), "darwin_arm")
-    original_name = Path.basename(archive)
-    renamed = Path.join(tmp_dir, "unrelated name.tar.xz")
-    File.rename!(archive, renamed)
-    File.rm_rf!(install)
     before = Path.wildcard(Path.join(tmp_dir, "**/*"), match_dot: true)
 
-    metadata = ToolchainMetadata.read_archive!(renamed)
-    assert metadata["target"] == @target
-    assert metadata["host"] == "aarch64-apple-darwin"
-    assert metadata["release"] == @release
-    assert metadata["libc"] == "musl"
-    assert metadata["musl"] == "2.99"
-    assert metadata["binutils"] == "2.99"
-    assert metadata["gmp"] == "6.3.0"
-    refute Map.has_key?(metadata, "config")
-    refute Map.has_key?(metadata, "glibc_min_kernel")
-    refute Map.has_key?(metadata, "optional")
-    refute Map.has_key?(metadata, "gdb_custom")
-    assert ToolchainMetadata.archive_name(metadata) == original_name
+    assert {name, 0} = System.cmd("elixir", [@archive, "--name", install, "darwin_arm"])
 
-    assert {report, 0} = System.cmd("elixir", [@inspect_archive, renamed])
-    assert report == ToolchainMetadata.contents(metadata)
+    assert String.trim(name) ==
+             "#{@target}--gcc-99.2.1-musl-2.99-linux-6.12.3--#{@release}--aarch64-apple-darwin.tar.xz"
 
-    assert {name, 0} = System.cmd("elixir", [@inspect_archive, "--name", renamed])
-    assert String.trim(name) == original_name
     assert Path.wildcard(Path.join(tmp_dir, "**/*"), match_dot: true) == before
+    archive = package!(install, Path.join(tmp_dir, "archives"), "darwin_arm")
+    assert Path.basename(archive) == String.trim(name)
+    refute File.exists?(Path.join(install, "toolchain-builder.metadata"))
   end
 
   @tag :tmp_dir
-  test "inspection rejects malformed metadata and unsafe archive names", %{tmp_dir: tmp_dir} do
+  test "archive naming rejects unsafe component versions", %{tmp_dir: tmp_dir} do
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
     install = install!(tmp_dir)
-    metadata = ToolchainMetadata.prepare!(install, "linux_x86_64")
+    config = Path.join(install, "ct-ng.config")
+    File.write!(config, String.replace(File.read!(config), "99.2.1", "../outside"))
 
-    for contents <- [
-          metadata |> Map.put("target", "../outside") |> ToolchainMetadata.contents(),
-          "not metadata\n"
-        ] do
-      File.write!(Path.join(install, "toolchain-builder.metadata"), contents)
-      archive = Path.join(tmp_dir, "invalid.tar.xz")
-
-      assert {_, 0} =
-               System.cmd(@tar, [
-                 "--xz",
-                 "-cf",
-                 archive,
-                 "-C",
-                 tmp_dir,
-                 "installed/toolchain-builder.metadata"
-               ])
-
-      assert_raise RuntimeError, ~r/Invalid toolchain metadata/, fn ->
-        ToolchainMetadata.read_archive!(archive)
-      end
+    assert_raise RuntimeError, ~r/Invalid archive name component/, fn ->
+      Toolchain.archive_name(install, "linux_x86_64")
     end
   end
 
@@ -244,7 +217,7 @@ defmodule ToolchainMetadataTest do
       "# CT_CREATE_LDSO_CONF is not set\nCT_GCC_VERSION=\"15.3.0\"\nCT_GCC_V_15=y\nCT_STATIC_TOOLCHAIN=y\n"
     )
 
-    assert :ok = ToolchainMetadata.check_config!(base, resolved)
+    assert :ok = Toolchain.check_config!(base, resolved)
 
     File.write!(
       resolved,
@@ -252,7 +225,7 @@ defmodule ToolchainMetadataTest do
     )
 
     assert_raise RuntimeError, ~r/CT_GCC_VERSION: requested "15.3.0", resolved "15.4.0"/, fn ->
-      ToolchainMetadata.check_config!(base, resolved)
+      Toolchain.check_config!(base, resolved)
     end
 
     assert File.read!(base) =~ "CT_GCC_VERSION=\"15.3.0\""

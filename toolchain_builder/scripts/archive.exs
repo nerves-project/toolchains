@@ -2,26 +2,20 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-Code.require_file("../metadata.exs", __DIR__)
+Code.require_file("../toolchain.exs", __DIR__)
 
 case System.argv() do
   ["--check-config", base, resolved] ->
-    ToolchainMetadata.check_config!(base, resolved)
+    Toolchain.check_config!(base, resolved)
 
   ["--find", directory, config, host, release] ->
-    if archive = ToolchainMetadata.find_archive(directory, config, host, release),
+    if archive = Toolchain.find_archive(directory, config, host, release),
       do: IO.puts(archive)
 
-  ["--prepare", install, host] ->
-    install |> ToolchainMetadata.prepare!(host) |> ToolchainMetadata.archive_name() |> IO.puts()
-
-  ["--name", archive] ->
-    archive |> ToolchainMetadata.read_archive!() |> ToolchainMetadata.archive_name() |> IO.puts()
-
-  [archive] ->
-    archive |> ToolchainMetadata.read_archive!() |> ToolchainMetadata.contents() |> IO.write()
+  ["--name", install, host] ->
+    install |> Toolchain.archive_name(host) |> IO.puts()
 
   _ ->
-    IO.puts(:stderr, "Usage: elixir scripts/archive.exs [--name] <archive.tar.xz>")
+    IO.puts(:stderr, "Usage: elixir scripts/archive.exs --name <installed toolchain> <host>")
     System.halt(1)
 end

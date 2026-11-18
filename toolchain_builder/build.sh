@@ -242,7 +242,6 @@ build_gcc()
         make -C "$SCRIPT_DIR" ctng
     fi
     CTNG="$SCRIPT_DIR/o/ct-ng/bin/ct-ng"
-    CTNG_TAG=$(cat "$SCRIPT_DIR/o/ct-ng/commit")
     if [[ $BUILD_OS = darwin ]]; then
         SED=gsed
     elif [[ $BUILD_OS = freebsd ]]; then
@@ -317,9 +316,10 @@ save_build_info()
     cp "$SCRIPT_DIR/VERSION" "$GCC_INSTALL_DIR/$TARGET_TUPLE/toolchain-builder.version"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
-    python3 "$SCRIPT_DIR/scripts/build_info.py" "$SCRIPT_DIR" \
-        "$GCC_INSTALL_DIR/$TARGET_TUPLE" "$TOOLCHAIN_NAME" \
-        "${HOST_OS}_${ARTIFACT_HOST_ARCH}" "$CTNG_TAG"
+    local recipe="$GCC_INSTALL_DIR/$TARGET_TUPLE/share/toolchain-builder"
+    mkdir -p "$recipe"
+    cp "$SCRIPT_DIR"/{VERSION,Makefile,LICENSE,README.md,*.exs} "$recipe/"
+    cp -R "$SCRIPT_DIR"/{scripts,configs,defaults,patches} "$recipe/"
 }
 
 fix_kernel_case_conflicts()

@@ -12,8 +12,9 @@ top-level directory containing `bin/<target>-gcc`, companion tools, and a sysroo
 
 This directory is self-contained and can become a repository root without
 changing its commands. It has no Nerves or Mix package dependencies. Elixir
-scripts provide configuration/metadata helpers, Python provides release tooling
-and tests, and Bash drives native builds. Consumers need none of these helpers.
+scripts provide configuration and archive-naming helpers, Python provides tests,
+and Bash drives native builds. Consumers need none of these
+helpers.
 
 ## Prerequisites
 
@@ -61,9 +62,9 @@ they are cached in `~/.nerves/dl/`.
 The argument to `build.sh` is a filename from `configs/` without `.defconfig`.
 Work goes in `o/<config>`; release pairs go in `o/artifacts/`. Optional second
 and third arguments override the work and output directories. After compilation,
-packaging records the resolved component versions, creates an archive, and
-derives its release filename from the archived metadata. Existing archives or
-checksums are never replaced. Builds skip an existing archive/checksum pair for
+packaging derives its release filename from the installed compiler's target,
+`ct-ng.config`, `toolchain-builder.version`, and the host argument. Existing archives
+or checksums are never replaced. Builds skip an existing archive/checksum pair for
 the same target, GCC track, host, and release after verifying its checksum.
 On macOS, the build drive is unmounted
 and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set.
@@ -124,19 +125,16 @@ The default public download directory is:
 https://dl.nerves-project.org/toolchains/
 ```
 
-Inspect a completed archive or print its canonical filename:
+Print the canonical archive filename for an installed toolchain:
 
 ```sh
-elixir scripts/archive.exs path/to/toolchain.tar.xz
-elixir scripts/archive.exs --name path/to/toolchain.tar.xz
+elixir scripts/archive.exs --name path/to/installed/toolchain linux_x86_64
 ```
 
-The report is sorted `key=value` text containing the target, host, recipe release,
-libc, and resolved component versions. Inspection streams the metadata into
-memory using GNU tar and xz, without extracting files to disk or running the
-compiler. Metadata is the first archive member, so inspecting it does not
-require decompressing the compiler payload. Neither command needs the source
-configs, and renaming an archive does not affect its reported identity.
+Component versions and build settings are recorded in `ct-ng.config`.
+The target is the prefix of `bin/*-gcc`, and the recipe release is recorded in
+`toolchain-builder.version`. The host platform is encoded in the archive filename;
+there is no separate metadata file or archive-inspection command.
 
 The archive retains a single top-level directory named after the installed
 target tuple, independent of component and release versions. To repackage a
@@ -151,8 +149,7 @@ The host argument is one of `linux_x86_64`, `linux_aarch64`, `darwin_x86_64`,
 or `darwin_arm`.
 
 Consumers can derive a checksum URL by appending `.sha256` to the archive URL.
-They must verify it before extraction; metadata inspection does not verify the
-archive's checksum.
+They must verify it before extraction.
 
 CI builds Linux x86_64, Linux arm64, and macOS arm64 and releases after those
 builds and tests finish. macOS x86_64 remains supported via manual native builds.
@@ -206,10 +203,7 @@ paths and environment. A replacement archive's digest may differ and must have
 a new distribution release.
 
 Archives retain `ct-ng.config`, `ct-ng.defconfig`, `toolchain-builder.version`,
-`toolchain-builder.metadata`, and `share/toolchain-builder/` with the recipe
-files and a JSON build manifest. The manifest records the crosstool-NG commit,
-recipe digests, host compiler,
-platform, macOS SDK, and available Git provenance. Keep upstream source archives
+and `share/toolchain-builder/` with the recipe files. Keep upstream source archives
 and their verification data available for rebuilding and corresponding-source
 distribution; a recipe snapshot alone does not replace those sources.
 

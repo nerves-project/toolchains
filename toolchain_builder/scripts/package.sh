@@ -19,7 +19,7 @@ if [[ ! -d "$INSTALL_DIR/bin" ]]; then
     exit 1
 fi
 
-NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --prepare "$INSTALL_DIR" "$HOST")
+NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --name "$INSTALL_DIR" "$HOST")
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
 if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
@@ -43,9 +43,9 @@ cleanup()
     rmdir "$TMP_DIR"
 }
 trap cleanup EXIT
-# Put metadata first so inspection need not decompress the compiler payload.
-"$TAR" -c -C "$PARENT_DIR" -f - "$INSTALL_NAME/toolchain-builder.metadata" \
-    --exclude="$INSTALL_NAME/toolchain-builder.metadata" "$INSTALL_NAME" | \
+"$TAR" -c -C "$PARENT_DIR" -f - \
+    --exclude="$INSTALL_NAME/toolchain-builder.metadata" \
+    --exclude="$INSTALL_NAME/share/toolchain-builder/build-info.json" "$INSTALL_NAME" | \
     xz -T0 -6 -c > "$TMP_DIR/archive.tar.xz"
 DIGEST=$(sha256sum "$TMP_DIR/archive.tar.xz")
 printf '%s  %s\n' "${DIGEST%% *}" "$NATIVE_ARCHIVE" > "$TMP_DIR/archive.tar.xz.sha256"

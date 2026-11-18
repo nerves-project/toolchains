@@ -41,7 +41,6 @@ o/ct-ng/.installed: Makefile scripts/apply-patches.sh patches/crosstool-ng $(wil
 	cd o/tmp/ct-ng-source && $(CTNG_ENV) bash ./configure --prefix="$(CTNG_PREFIX)"
 	cd o/tmp/ct-ng-source && $(CTNG_ENV) $(CTNG_MAKE)
 	cd o/tmp/ct-ng-source && $(CTNG_ENV) $(CTNG_MAKE) install
-	git -C o/tmp/ct-ng-source rev-parse HEAD > o/ct-ng/commit
 	rm -rf o/tmp/ct-ng-source
 	touch $@
 
@@ -56,7 +55,7 @@ list:
 
 test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s test -p '*_test.py'
-	elixir test/metadata_test.exs
+	elixir test/toolchain_test.exs
 
 check: test
 	mix format --check-formatted

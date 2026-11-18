@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import hashlib
-import json
 import os
 from pathlib import Path
 import subprocess
@@ -49,25 +48,6 @@ class ArtifactTest(unittest.TestCase):
             result = subprocess.run(command, env=env, capture_output=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse(log.exists())
-
-    def test_build_info_preserves_the_recipe_without_requiring_git(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            install = root / "installed"
-            install.mkdir()
-            subprocess.run([
-                "python3", str(ROOT / "scripts/build_info.py"), str(ROOT), str(install),
-                "armv7-nerves-linux-gnueabihf--gcc15", "linux_x86_64", "ctng-commit",
-            ], check=True)
-            recipe = install / "share/toolchain-builder"
-            info = json.loads((recipe / "build-info.json").read_text())
-            self.assertEqual(info["crosstool_ng_commit"], "ctng-commit")
-            self.assertEqual(
-                (recipe / "configs/armv7-nerves-linux-gnueabihf--gcc15.defconfig").read_bytes(),
-                (ROOT / "configs/armv7-nerves-linux-gnueabihf--gcc15.defconfig").read_bytes(),
-            )
-            self.assertIn("scripts/package.sh", info["recipe_sha256"])
-            self.assertIn("Makefile", info["recipe_sha256"])
 
     def test_publishing_can_resume_but_rejects_changed_remote_objects(self):
         with tempfile.TemporaryDirectory() as directory:
