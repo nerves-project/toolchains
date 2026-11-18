@@ -65,7 +65,7 @@ packaging records the resolved component versions, creates an archive, and
 derives its release filename from the archived metadata. Existing archives or
 checksums are never replaced. Builds skip an existing archive/checksum pair for
 the same target, GCC track, host, and release after verifying its checksum.
-Ctrl+C terminates the build's descendants. On macOS, the build drive is unmounted
+On macOS, the build drive is unmounted
 and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set.
 
 `bash build_all.sh` builds all toolchains on this host. It does not publish
@@ -190,7 +190,7 @@ make check
 bash test/smoketest.sh path/to/toolchain.tar.xz "$PWD/target-smoke.elf"
 ```
 
-`make check` runs cancellation, packaging, checksum and publishing tests and
+`make check` runs packaging, checksum and publishing tests and
 format/syntax checks without building a compiler. The smoke test checks the
 published digest, extracts to a new location, and compiles the C++ fixture.
 CI compares its target ELF output byte-for-byte across the three CI build hosts

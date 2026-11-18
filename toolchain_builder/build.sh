@@ -8,42 +8,9 @@
 
 set -e
 
-terminate_descendants()
-{
-    local parent=$1 index
-
-    for ((index = 0; index < ${#process_ids[@]}; index++)); do
-        if [[ ${parent_ids[index]} = "$parent" ]]; then
-            terminate_descendants "${process_ids[index]}"
-            kill -TERM "${process_ids[index]}" 2>/dev/null || true
-            stopped_ids+=("${process_ids[index]}")
-        fi
-    done
-}
-
 cleanup()
 {
-    local status=$? pid ppid
-    local -a process_ids=() parent_ids=() stopped_ids=()
-    trap '' INT TERM
-    trap - EXIT
-
-    # Snapshot before signaling so exiting parents cannot hide their children.
-    while read -r pid ppid; do
-        process_ids+=("$pid")
-        parent_ids+=("$ppid")
-    done < <(ps -axo pid=,ppid=)
-
-    terminate_descendants "$$"
-
-    if [[ ${#stopped_ids[@]} -gt 0 ]]; then
-        sleep 1
-        for pid in "${stopped_ids[@]}"; do
-            kill -KILL "$pid" 2>/dev/null || true
-        done
-    fi
-
-    wait 2>/dev/null || true
+    local status=$?
     if ! cleanup_build_drive; then
         if [[ $status = 0 ]]; then status=1; fi
     fi
@@ -66,18 +33,6 @@ cleanup_build_drive()
     rm -f "$WORK_DIR" "$WORK_DMG"
 }
 
-if [[ ${1:-} != --build-worker ]]; then
-    # Background jobs ignore terminal SIGINT. Keep a supervising shell in wait
-    # so Ctrl+C can terminate nested make and compiler jobs as well.
-    trap cleanup EXIT
-    trap 'exit 130' INT
-    trap 'exit 143' TERM
-    bash "$0" --build-worker "$@" &
-    wait "$!"
-    exit "$?"
-fi
-
-shift
 trap cleanup EXIT
 
 # Use hash or version tag (should be crosstool-ng-x.y.z)
@@ -328,24 +283,7 @@ build_gcc()
         "$WORK_DIR/build/.config"
     fi
 
-    # Start building and print dots to keep CI from killing the build due
-    # to console inactivity.
-    $CTNG $CTNG_BUILD &
-    local build_pid=$!
-    {
-        while ps -p $build_pid >/dev/null; do
-           sleep 12
-           printf "."
-        done
-    } &
-    local keepalive_pid=$!
-
-    # Wait for the build to finish
-    wait $build_pid 2>/dev/null
-
-    # Stop the keepalive task
-    kill $keepalive_pid
-    wait $keepalive_pid 2>/dev/null || true
+    $CTNG $CTNG_BUILD
 
     TARGET_TUPLE=$(gcc_tuple)
 
