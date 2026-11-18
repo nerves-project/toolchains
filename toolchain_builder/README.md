@@ -111,7 +111,7 @@ Archive names are:
 For example:
 
 ```text
-armv7-nerves-linux-gnueabihf--gcc-15.3.0-glibc-2.43-linux-6.1.175--2026.11.1--x86_64-linux-gnu.tar.xz
+armv7-nerves-linux-gnueabihf--gcc-15.3.0-glibc-2.43-linux-6.1.175--2026.11.1--linux_x86_64.tar.xz
 ```
 
 Each archive is paired with `<archive>.sha256`. This is a standard SHA256 checksum
@@ -147,7 +147,8 @@ bash scripts/package.sh path/to/installed/toolchain o/artifacts linux_x86_64
 The installation must contain `ct-ng.config`. Repackaging uses the current
 builder's `VERSION`, not the original installation's release.
 The host argument is one of `linux_x86_64`, `linux_aarch64`, `darwin_x86_64`,
-or `darwin_arm`.
+or `darwin_arm` and is used unchanged in the archive filename. The Linux host
+label does not imply a glibc runtime requirement.
 
 Consumers can derive a checksum URL by appending `.sha256` to the archive URL.
 They must verify it before extraction.

@@ -2,13 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 defmodule Toolchain do
-  @hosts %{
-    "linux_x86_64" => "x86_64-linux-gnu",
-    "linux_aarch64" => "aarch64-linux-gnu",
-    "darwin_x86_64" => "x86_64-apple-darwin",
-    "darwin_arm" => "aarch64-apple-darwin"
-  }
-
   def check_config!(target, resolved) do
     expected = read_config!(target)
     actual = read_config!(resolved)
@@ -28,10 +21,9 @@ defmodule Toolchain do
 
   def find_archive(directory, config, host, release) do
     [target, "gcc" <> major] = String.split(config, "--")
-    suffix = Map.fetch!(@hosts, host)
 
     directory
-    |> Path.join("#{target}--gcc-#{major}.*--#{release}--#{suffix}.tar.xz")
+    |> Path.join("#{target}--gcc-#{major}.*--#{release}--#{host}.tar.xz")
     |> Path.wildcard()
     |> Enum.find(&(File.regular?(&1) and File.regular?(&1 <> ".sha256")))
   end
@@ -48,14 +40,13 @@ defmodule Toolchain do
       end
 
     target = Path.basename(compiler, "-gcc")
-    host = Map.fetch!(@hosts, host)
     release = File.read!(Path.join(__DIR__, "VERSION")) |> String.trim()
     version = fn key -> config |> Map.fetch!(key) |> String.trim("\"") end
     gcc = version.("CT_GCC_VERSION")
     linux = version.("CT_LINUX_VERSION")
     libc_version = version.("CT_#{String.upcase(libc)}_VERSION")
 
-    for value <- [target, gcc, linux, libc_version] do
+    for value <- [target, host, gcc, linux, libc_version] do
       unless Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9_.+-]*$/, value),
         do: raise("Invalid archive name component: #{value}")
     end

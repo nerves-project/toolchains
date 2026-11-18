@@ -115,7 +115,7 @@ class BuildProcessTest(unittest.TestCase):
             release = (root / "VERSION").read_text().strip()
             archive = artifacts / (
                 f"{target}--gcc-15.3.0-glibc-2.43-linux-6.1.175--{release}"
-                "--x86_64-linux-gnu.tar.xz"
+                "--linux_x86_64.tar.xz"
             )
             archive.write_bytes(b"completed archive")
             checksum = hashlib.sha256(archive.read_bytes()).hexdigest()

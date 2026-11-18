@@ -37,12 +37,9 @@ defmodule ToolchainTest do
 
   defp package!(install, output, host \\ "linux_x86_64") do
     assert {_, 0} = System.cmd("bash", [@package, install, output, host], stderr_to_stdout: true)
-    [archive] = Path.wildcard(Path.join(output, "*--#{host_suffix(host)}.tar.xz"))
+    [archive] = Path.wildcard(Path.join(output, "*--#{host}.tar.xz"))
     archive
   end
-
-  defp host_suffix("linux_x86_64"), do: "x86_64-linux-gnu"
-  defp host_suffix("darwin_arm"), do: "aarch64-apple-darwin"
 
   @tag :tmp_dir
   test "packaging uses resolved versions, preserves the install tree, and refuses replacement",
@@ -71,7 +68,7 @@ defmodule ToolchainTest do
     assert Enum.sort(File.ls!(output)) == Enum.sort([native, native <> ".sha256"])
 
     assert native ==
-             "#{@target}--gcc-99.2.1-glibc-2.99-linux-6.12.3--#{@release}--x86_64-linux-gnu.tar.xz"
+             "#{@target}--gcc-99.2.1-glibc-2.99-linux-6.12.3--#{@release}--linux_x86_64.tar.xz"
 
     archive = File.read!(archive_path)
     digest = :crypto.hash(:sha256, archive) |> Base.encode16(case: :lower)
@@ -114,7 +111,7 @@ defmodule ToolchainTest do
     assert File.read!(Path.join(install, "bin/#{@target}-gcc")) == "different compiler"
 
     later_host = package!(install, output, "darwin_arm") |> Path.basename()
-    assert later_host == String.replace(native, "--x86_64-linux-gnu", "--aarch64-apple-darwin")
+    assert later_host == String.replace(native, "--linux_x86_64", "--darwin_arm")
     assert File.read!(archive_path) == archive
 
     assert Enum.sort(File.ls!(output)) ==
@@ -131,7 +128,7 @@ defmodule ToolchainTest do
     assert {name, 0} = System.cmd("elixir", [@archive, "--name", install, "darwin_arm"])
 
     assert String.trim(name) ==
-             "#{@target}--gcc-99.2.1-musl-2.99-linux-6.12.3--#{@release}--aarch64-apple-darwin.tar.xz"
+             "#{@target}--gcc-99.2.1-musl-2.99-linux-6.12.3--#{@release}--darwin_arm.tar.xz"
 
     assert Path.wildcard(Path.join(tmp_dir, "**/*"), match_dot: true) == before
     archive = package!(install, Path.join(tmp_dir, "archives"), "darwin_arm")
