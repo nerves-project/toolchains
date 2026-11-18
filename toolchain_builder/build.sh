@@ -110,14 +110,6 @@ echo
 # Install directories for the tools we make
 GCC_INSTALL_DIR="$WORK_DIR/x-tools"  # make sure that this is the same as in the config file
 
-# Bump the number of open files. ct-ng does this now so this can be deleted when we're
-# happy with it. (Probably the next time someone looks at these lines of code.)
-n_open_files=$(ulimit -n)
-if [ "${n_open_files}" -lt 2048 ]; then
-     echo "Number of open files ${n_open_files} may not be sufficient to build the toolchain; increasing to 2048"
-     ulimit -n 2048
-fi
-
 if [[ "$CI" = "true" ]]; then
     # CircleCI runs out of memory if too many concurrent builds go at once
     CTNG_BUILD=build.4
