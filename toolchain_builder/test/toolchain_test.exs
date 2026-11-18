@@ -8,7 +8,7 @@ defmodule ToolchainTest do
   use ExUnit.Case
 
   @target "test-nerves-linux-gnu"
-  @release "2026.11.1"
+  @release File.read!(Path.expand("../VERSION", __DIR__)) |> String.trim()
   @tar if(match?({:unix, :darwin}, :os.type()), do: "gtar", else: "tar")
   @package Path.expand("../scripts/package.sh", __DIR__)
   @archive Path.expand("../scripts/archive.exs", __DIR__)
@@ -18,7 +18,6 @@ defmodule ToolchainTest do
     File.mkdir_p!(Path.join(install, "bin"))
     File.write!(Path.join(install, "bin/#{@target}-gcc"), "compiler")
     File.ln_s!("#{@target}-gcc", Path.join(install, "bin/#{@target}-cc"))
-    File.write!(Path.join(install, "toolchain-builder.version"), @release <> "\n")
 
     File.write!(Path.join(install, "ct-ng.config"), """
     CT_CONFIG_VERSION="4"
@@ -51,6 +50,7 @@ defmodule ToolchainTest do
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
     install = install!(tmp_dir)
     File.write!(Path.join(install, "toolchain-builder.metadata"), "stale metadata\n")
+    File.write!(Path.join(install, "toolchain-builder.version"), "2000.01.1\n")
     recipe = Path.join(install, "share/toolchain-builder")
     File.mkdir_p!(recipe)
     File.write!(Path.join(recipe, "build-info.json"), "{}")
@@ -84,7 +84,7 @@ defmodule ToolchainTest do
     refute "installed/toolchain-builder.metadata" in members
     refute "installed/share/toolchain-builder/build-info.json" in members
     assert "installed/ct-ng.config" in members
-    assert "installed/toolchain-builder.version" in members
+    refute "installed/toolchain-builder.version" in members
     assert File.read!(Path.join(install, "toolchain-builder.metadata")) == "stale metadata\n"
 
     extracted = Path.join(tmp_dir, "extracted")
@@ -137,6 +137,7 @@ defmodule ToolchainTest do
     archive = package!(install, Path.join(tmp_dir, "archives"), "darwin_arm")
     assert Path.basename(archive) == String.trim(name)
     refute File.exists?(Path.join(install, "toolchain-builder.metadata"))
+    refute File.exists?(Path.join(install, "toolchain-builder.version"))
   end
 
   @tag :tmp_dir

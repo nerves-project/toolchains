@@ -49,7 +49,7 @@ defmodule Toolchain do
 
     target = Path.basename(compiler, "-gcc")
     host = Map.fetch!(@hosts, host)
-    release = File.read!(Path.join(install, "toolchain-builder.version")) |> String.trim()
+    release = File.read!(Path.join(__DIR__, "VERSION")) |> String.trim()
     version = fn key -> config |> Map.fetch!(key) |> String.trim("\"") end
     gcc = version.("CT_GCC_VERSION")
     linux = version.("CT_LINUX_VERSION")

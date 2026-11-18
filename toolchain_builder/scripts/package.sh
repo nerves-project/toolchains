@@ -45,6 +45,7 @@ cleanup()
 trap cleanup EXIT
 "$TAR" -c -C "$PARENT_DIR" -f - \
     --exclude="$INSTALL_NAME/toolchain-builder.metadata" \
+    --exclude="$INSTALL_NAME/toolchain-builder.version" \
     --exclude="$INSTALL_NAME/share/toolchain-builder/build-info.json" "$INSTALL_NAME" | \
     xz -T0 -6 -c > "$TMP_DIR/archive.tar.xz"
 DIGEST=$(sha256sum "$TMP_DIR/archive.tar.xz")

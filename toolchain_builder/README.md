@@ -63,7 +63,7 @@ The argument to `build.sh` is a filename from `configs/` without `.defconfig`.
 Work goes in `o/<config>`; release pairs go in `o/artifacts/`. Optional second
 and third arguments override the work and output directories. After compilation,
 packaging derives its release filename from the installed compiler's target,
-`ct-ng.config`, `toolchain-builder.version`, and the host argument. Existing archives
+`ct-ng.config`, the builder's `VERSION`, and the host argument. Existing archives
 or checksums are never replaced. Builds skip an existing archive/checksum pair for
 the same target, GCC track, host, and release after verifying its checksum.
 On macOS, the build drive is unmounted
@@ -132,8 +132,8 @@ elixir scripts/archive.exs --name path/to/installed/toolchain linux_x86_64
 ```
 
 Component versions and build settings are recorded in `ct-ng.config`.
-The target is the prefix of `bin/*-gcc`, and the recipe release is recorded in
-`toolchain-builder.version`. The host platform is encoded in the archive filename;
+The target is the prefix of `bin/*-gcc`, and the recipe release comes from the
+builder's `VERSION`. The host platform is encoded in the archive filename;
 there is no separate metadata file or archive-inspection command.
 
 The archive retains a single top-level directory named after the installed
@@ -144,7 +144,8 @@ completed installation without rebuilding:
 bash scripts/package.sh path/to/installed/toolchain o/artifacts linux_x86_64
 ```
 
-The installation must contain `ct-ng.config` and `toolchain-builder.version`.
+The installation must contain `ct-ng.config`. Repackaging uses the current
+builder's `VERSION`, not the original installation's release.
 The host argument is one of `linux_x86_64`, `linux_aarch64`, `darwin_x86_64`,
 or `darwin_arm`.
 
@@ -202,8 +203,8 @@ reference outputs when qualifying future rebuilds, using the same source, flags,
 paths and environment. A replacement archive's digest may differ and must have
 a new distribution release.
 
-Archives retain `ct-ng.config`, `ct-ng.defconfig`, `toolchain-builder.version`,
-and `share/toolchain-builder/` with the recipe files. Keep upstream source archives
+Archives retain `ct-ng.config`, `ct-ng.defconfig`, and `share/toolchain-builder/`
+with the recipe files. Keep upstream source archives
 and their verification data available for rebuilding and corresponding-source
 distribution; a recipe snapshot alone does not replace those sources.
 

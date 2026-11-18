@@ -313,7 +313,6 @@ save_build_info()
 {
     # Save useful information if we ever need to reproduce the toolchain
     TARGET_TUPLE=$(gcc_tuple)
-    cp "$SCRIPT_DIR/VERSION" "$GCC_INSTALL_DIR/$TARGET_TUPLE/toolchain-builder.version"
     cp "$CTNG_CONFIG" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.defconfig"
     cp "$WORK_DIR/build/.config" "$GCC_INSTALL_DIR/$TARGET_TUPLE/ct-ng.config"
     local recipe="$GCC_INSTALL_DIR/$TARGET_TUPLE/share/toolchain-builder"
