@@ -215,19 +215,20 @@ build_gcc()
         make -C "$SCRIPT_DIR" ctng
     fi
     CTNG="$SCRIPT_DIR/o/ct-ng/bin/ct-ng"
-    if [[ $BUILD_OS = darwin ]]; then
-        SED=gsed
-    elif [[ $BUILD_OS = freebsd ]]; then
-        SED=/usr/local/bin/gsed
-    else
-        SED="sed"
-    fi
 
     # Setup the toolchain build directory
     mkdir -p "$WORK_DIR/build"
     cd "$WORK_DIR/build"
     CTNG_CONFIG=$PWD/defconfig
-    { cat "$BASE_CONFIG"; printf '\n'; cat "$HOST_CONFIG"; } > "$CTNG_CONFIG"
+    {
+        cat "$BASE_CONFIG"
+        printf '\n'
+        cat "$HOST_CONFIG"
+        if [[ "$CI" = "true" ]]; then
+            printf '\n'
+            cat "$SCRIPT_DIR/defaults/ci_defconfig"
+        fi
+    } > "$CTNG_CONFIG"
 
     # Process the configuration
     $CTNG defconfig
@@ -243,21 +244,6 @@ build_gcc()
 
     # savedefconfig omits explicit defaults; validate against the full configuration.
     elixir "$SCRIPT_DIR/scripts/archive.exs" --check-config "$BASE_CONFIG" "$WORK_DIR/build/.config"
-
-    # Configure logging when on CI (see crosstool-ng's build script)
-    if [[ "$CI" = "true" ]]; then
-      echo "Modifying logging for CI"
-      $SED -i -e 's/^.*\(CT_LOG_ERROR\).*$/# \1 is not set/' \
-        -e 's/^.*\(CT_LOG_WARN\).*$/# \1 is not set/' \
-        -e 's/^.*\(CT_LOG_INFO\).*$/# \1 is not set/' \
-        -e 's/^.*\(CT_LOG_EXTRA\).*$/\1=y/' \
-        -e 's/^.*\(CT_LOG_ALL\).*$/# \1 is not set/' \
-        -e 's/^.*\(CT_LOG_DEBUG\).*$/# \1 is not set/' \
-        -e 's/^.*\(CT_LOG_LEVEL_MAX\).*$/\1="EXTRA"/' \
-        -e 's/^.*\(CT_LOG_PROGRESS_BAR\).*$/# \1 is not set/' \
-        -e 's/^.*\(CT_SAVE_TARBALLS\).*$/\1=y/' \
-        "$WORK_DIR/build/.config"
-    fi
 
     $CTNG $CTNG_BUILD
 
