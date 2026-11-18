@@ -3,9 +3,11 @@
 
 import errno
 import fcntl
+import hashlib
 import os
 from pathlib import Path
 import pty
+import shutil
 import signal
 import subprocess
 import sys
@@ -55,6 +57,39 @@ def running(pid):
 
 
 class BuildDiskImageTest(unittest.TestCase):
+    def test_exit_removes_image_unless_debug_is_set_or_unmount_fails(self):
+        source = BUILD.read_text()
+        functions = source[:source.index("\nif [[ ${1:-}")]
+        for status, debug, eject_status in [
+            (0, None, 0), (23, None, 0), (0, "", 0), (0, "1", 0), (0, None, 1)
+        ]:
+            with self.subTest(status=status, debug=debug, eject_status=eject_status):
+                with tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    mount = root / "mount"
+                    mount.mkdir()
+                    work = root / "work"
+                    work.symlink_to(mount)
+                    image = root / "work.dmg"
+                    image.write_text("image")
+                    env = dict(os.environ, SCRIPT_DIR=directory, WORK_DIR=str(work),
+                               WORK_DMG=str(image), WORK_DMG_CREATED="true",
+                               WORK_DMG_DEVICE="/dev/disk99", WORK_DMG_VOLNAME="test",
+                               TEST_STATUS=str(status), EJECT_STATUS=str(eject_status))
+                    env.pop("DEBUG", None)
+                    if debug is not None:
+                        env["DEBUG"] = debug
+                    result = subprocess.run(["bash", "-c", functions + """
+diskutil() { echo "$*" > "$SCRIPT_DIR/ejected"; return "$EJECT_STATUS"; }
+cd "$WORK_DIR"
+trap cleanup EXIT
+exit "$TEST_STATUS"
+"""], env=env, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, status or eject_status, result.stderr)
+                    self.assertEqual(image.exists(), debug is not None or eject_status != 0)
+                    self.assertEqual(work.is_symlink(), image.exists())
+                    self.assertEqual((root / "ejected").exists(), debug is None)
+
     def run_init(self, modern):
         source = BUILD.read_text()
         init = source[source.index("\ninit()\n"):source.index("\ngcc_tuple()\n")]
@@ -111,6 +146,41 @@ ln() { printf 'ln %s\\n' "$*" >> "$COMMAND_LOG"; }
 
 
 class BuildProcessTest(unittest.TestCase):
+    def test_completed_archive_skips_build_without_touching_work_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copyfile(BUILD, root / "build.sh")
+            for name in ["configs", "scripts"]:
+                (root / name).symlink_to(BUILD.parent / name, target_is_directory=True)
+            for name in ["metadata.exs", "defconfig.exs", "config.exs", "VERSION"]:
+                (root / name).symlink_to(BUILD.parent / name)
+            artifacts = root / "o/artifacts"
+            artifacts.mkdir(parents=True)
+            target = "x86_64-nerves-linux-gnu"
+            release = (root / "VERSION").read_text().strip()
+            archive = artifacts / (
+                f"{target}--gcc-15.3.0-glibc-2.43-linux-6.1.175--{release}"
+                "--x86_64-linux-gnu.tar.xz"
+            )
+            archive.write_bytes(b"completed archive")
+            checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+            Path(str(archive) + ".sha256").write_text(f"{checksum}  {archive.name}\n")
+            work = root / "o" / f"{target}--gcc15"
+            work.mkdir()
+            marker = work / "preserve"
+            marker.write_text("build data")
+            env = dict(os.environ, HOST_OS="linux", HOST_ARCH="x86_64")
+            command = ["bash", str(root / "build.sh"), f"{target}--gcc15"]
+            result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Skipping", result.stdout)
+            self.assertEqual(marker.read_text(), "build data")
+            archive.write_bytes(b"corrupt")
+            result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=15)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertNotIn("Skipping", result.stdout)
+            self.assertTrue(marker.exists())
+
     def run_build(self, mode, interrupt=None):
         with tempfile.TemporaryDirectory(prefix="toolchain-interrupt-") as directory:
             root = Path(directory)

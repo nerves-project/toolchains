@@ -63,8 +63,10 @@ Work goes in `o/<config>`; release pairs go in `o/artifacts/`. Optional second
 and third arguments override the work and output directories. After compilation,
 packaging records the resolved component versions, creates an archive, and
 derives its release filename from the archived metadata. Existing archives or
-checksums are never replaced; collisions are detected at packaging time.
-Ctrl+C terminates the build's descendants.
+checksums are never replaced. Builds skip an existing archive/checksum pair for
+the same target, GCC track, host, and release after verifying its checksum.
+Ctrl+C terminates the build's descendants. On macOS, the build drive is unmounted
+and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set.
 
 `bash build_all.sh` builds all toolchains on this host. It does not publish
 anything. Builds are expensive; build one when testing.

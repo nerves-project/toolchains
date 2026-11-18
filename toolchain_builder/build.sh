@@ -44,7 +44,26 @@ cleanup()
     fi
 
     wait 2>/dev/null || true
+    if ! cleanup_build_drive; then
+        if [[ $status = 0 ]]; then status=1; fi
+    fi
     exit "$status"
+}
+
+cleanup_build_drive()
+{
+    if [[ ${WORK_DMG_CREATED:-} != true || ${DEBUG+x} ]]; then
+        return 0
+    fi
+
+    cd "$SCRIPT_DIR" || return 1
+    if [[ -n ${WORK_DMG_DEVICE:-} || -d /Volumes/$WORK_DMG_VOLNAME ]]; then
+        if ! diskutil eject "${WORK_DMG_DEVICE:-/Volumes/$WORK_DMG_VOLNAME}"; then
+            echo "Could not unmount build drive; keeping $WORK_DMG" >&2
+            return 1
+        fi
+    fi
+    rm -f "$WORK_DIR" "$WORK_DMG"
 }
 
 if [[ ${1:-} != --build-worker ]]; then
@@ -112,9 +131,17 @@ fi
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 
+EXISTING_ARCHIVE=$(elixir "$SCRIPT_DIR/scripts/archive.exs" --find "$OUTPUT_DIR" \
+    "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}" "$(cat "$SCRIPT_DIR/VERSION")")
+if [[ -n $EXISTING_ARCHIVE ]]; then
+    python3 "$SCRIPT_DIR/scripts/artifact.py" verify "$EXISTING_ARCHIVE"
+    echo "Skipping $TOOLCHAIN_NAME: already built at $EXISTING_ARCHIVE"
+    exit 0
+fi
+
 # Ensure that the config and work paths are absolute
 BASE_CONFIG=$($READLINK -f "$BASE_CONFIG")
-rm -f "$WORK_DIR"
+if [[ -L $WORK_DIR ]]; then rm -f "$WORK_DIR"; fi
 mkdir -p "$WORK_DIR"
 WORK_DIR=$($READLINK -f "$WORK_DIR")
 
@@ -208,11 +235,13 @@ init()
     if [[ $BUILD_OS = "darwin" ]]; then
         diskutil eject "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
         rm -fr "$WORK_DIR" "$WORK_DMG"
+        WORK_DMG_CREATED=true
         if diskutil image create blank --help >/dev/null 2>&1; then
             # The image API cannot create case-sensitive filesystems directly.
             local device
             diskutil image create blank --size 32g --fs None "$WORK_DMG"
             device=$(diskutil image attach --noMount "$WORK_DMG")
+            WORK_DMG_DEVICE=$device
             diskutil eraseDisk HFSX "$WORK_DMG_VOLNAME" "$device"
         else
             hdiutil create -size 32g -fs "Case-sensitive HFS+" -volname "$WORK_DMG_VOLNAME" "$WORK_DMG"
@@ -403,4 +432,4 @@ build_artifact
 
 echo "Success!"
 echo
-echo "Generated toolchain: $GCC_INSTALL_DIR."
+echo "Generated archives in: $OUTPUT_DIR."

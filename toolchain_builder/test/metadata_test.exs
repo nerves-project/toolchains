@@ -126,6 +126,17 @@ defmodule ToolchainMetadataTest do
     output = Path.join(tmp_dir, "archives")
     archive_path = package!(install, output)
     native = Path.basename(archive_path)
+    config = @target <> "--gcc99"
+
+    assert ToolchainMetadata.find_archive(output, config, "linux_x86_64", @release) ==
+             archive_path
+
+    refute ToolchainMetadata.find_archive(output, config, "darwin_arm", @release)
+    refute ToolchainMetadata.find_archive(output, config, "linux_x86_64", "2026.11.2")
+    refute ToolchainMetadata.find_archive(output, @target <> "--gcc15", "linux_x86_64", @release)
+    File.rename!(archive_path <> ".sha256", archive_path <> ".saved")
+    refute ToolchainMetadata.find_archive(output, config, "linux_x86_64", @release)
+    File.rename!(archive_path <> ".saved", archive_path <> ".sha256")
     assert Enum.sort(File.ls!(output)) == Enum.sort([native, native <> ".sha256"])
 
     assert native ==

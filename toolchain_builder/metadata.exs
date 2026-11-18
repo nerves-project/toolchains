@@ -13,6 +13,16 @@ defmodule ToolchainMetadata do
   }
   @excluded_versions ~w(CT_CONFIG_VERSION CT_TOOLCHAIN_PKGVERSION CT_GLIBC_MIN_KERNEL_VERSION)
 
+  def find_archive(directory, config, host, release) do
+    [target, "gcc" <> major] = String.split(config, "--")
+    suffix = Map.fetch!(@hosts, host)
+
+    directory
+    |> Path.join("#{target}--gcc-#{major}.*--#{release}--#{suffix}.tar.xz")
+    |> Path.wildcard()
+    |> Enum.find(&(File.regular?(&1) and File.regular?(&1 <> ".sha256")))
+  end
+
   def prepare!(install, host) do
     config = ToolchainDefconfig.read!(Path.join(install, "ct-ng.config"))
     [compiler] = Path.wildcard(Path.join(install, "bin/*-gcc"))

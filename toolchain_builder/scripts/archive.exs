@@ -5,6 +5,10 @@
 Code.require_file("../metadata.exs", __DIR__)
 
 case System.argv() do
+  ["--find", directory, config, host, release] ->
+    if archive = ToolchainMetadata.find_archive(directory, config, host, release),
+      do: IO.puts(archive)
+
   ["--prepare", install, host] ->
     ToolchainMetadata.prepare!(install, host)
 
