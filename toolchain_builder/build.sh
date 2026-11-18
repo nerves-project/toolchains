@@ -36,8 +36,7 @@ cleanup_build_drive()
 trap cleanup EXIT
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ARTIFACT_NAME=${1:-}
-TOOLCHAIN_NAME=$ARTIFACT_NAME
+TOOLCHAIN_NAME=${1:-}
 
 if [[ ! -f "$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig" ]]; then
     echo "Pass a config name (e.g., armv7-nerves-linux-gnueabihf--gcc15)" >&2
@@ -47,15 +46,6 @@ fi
 BASE_CONFIG="$SCRIPT_DIR/configs/$TOOLCHAIN_NAME.defconfig"
 WORK_DIR=${2:-"$SCRIPT_DIR/o/$TOOLCHAIN_NAME"}
 OUTPUT_DIR=${3:-"$SCRIPT_DIR/o/artifacts"}
-
-if [[ -z $WORK_DIR ]]; then
-    echo "build.sh <work directory>"
-    exit 1
-fi
-
-if [[ -z $OUTPUT_DIR ]]; then
-    OUTPUT_DIR="$SCRIPT_DIR"
-fi
 
 READLINK=readlink
 BUILD_ARCH=$(uname -m)
@@ -139,7 +129,7 @@ if [[ $BUILD_OS = "darwin" ]]; then
     # Mac-specific updates
 
     WORK_DMG="$WORK_DIR.dmg"
-    WORK_DMG_VOLNAME=$ARTIFACT_NAME
+    WORK_DMG_VOLNAME=$TOOLCHAIN_NAME
 
     # Used by crosstool-ng's configure script
     export CURSES_LIBS="-L$(brew --prefix ncurses)/lib -lncursesw"
@@ -227,11 +217,6 @@ gcc_tuple()
     else
         basename "$tuplepath"
     fi
-}
-
-gcc_tuple_underscores()
-{
-    gcc_tuple | tr - _
 }
 
 build_gcc()
