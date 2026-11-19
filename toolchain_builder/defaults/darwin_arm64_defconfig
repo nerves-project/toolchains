@@ -14,4 +14,4 @@ CT_CC_GCC_BUILD_ID=y
 CT_CC_LANG_CXX=y
 CT_CC_LANG_FORTRAN=y
 # CT_GDB_CROSS_PYTHON is not set
-CT_GDB_CROSS_EXTRA_CONFIG_ARRAY="--without-guile"
+CT_GDB_CROSS_EXTRA_CONFIG_ARRAY="--without-guile --without-lzma --without-zstd"
