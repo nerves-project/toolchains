@@ -3,7 +3,7 @@
 
 .PHONY: all build build-all test check format list ctng
 
-CTNG_TAG = 203a48cb11ebb39e288b386e9c35d99ab4e7714b
+CTNG_TAG = a4895d7fc49d5b423abc5f166895c80175019570
 CTNG_PREFIX = $(CURDIR)/o/ct-ng
 CTNG_MAKE = $(MAKE)
 CTNG_ENV = SED=sed
