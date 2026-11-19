@@ -88,11 +88,12 @@ esac
         self.assertIn(f"PASS\tgolden-gate\t{good.name}", result.stdout)
         self.assertIn(f"PASS\tubuntu-22.04\t{linux.name}", result.stdout)
         self.assertIn(f"PASS\tubuntu-24.04\t{linux.name}", result.stdout)
+        self.assertIn(f"PASS\trocky-9\t{linux.name}", result.stdout)
         self.assertIn(f"SKIP {intel.name}", result.stdout)
         calls = self.log.read_text()
-        self.assertEqual(calls.count(":ro,tag=nerves-toolchains"), 8)
-        self.assertEqual(calls.count("stop --timeout 5"), 4)
-        self.assertEqual(calls.count("delete "), 4)
+        self.assertEqual(calls.count(":ro,tag=nerves-toolchains"), 10)
+        self.assertEqual(calls.count("stop --timeout 5"), 5)
+        self.assertEqual(calls.count("delete "), 5)
         self.assertTrue(list((self.root / "o/tart-tests").glob("run-*/results.tsv")))
 
     def test_single_archive_only_runs_its_host_guests(self):
@@ -101,6 +102,7 @@ esac
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn(f"PASS\tubuntu-22.04\t{archive.name}", result.stdout)
         self.assertIn(f"PASS\tubuntu-24.04\t{archive.name}", result.stdout)
+        self.assertIn(f"PASS\trocky-9\t{archive.name}", result.stdout)
         self.assertNotIn("macos-", self.log.read_text())
         self.assertIn("SKIP macOS guests", result.stdout)
 
@@ -164,7 +166,7 @@ esac
         self.assertIn("delete ", calls)
         self.assertNotIn("tart-guest.sh", calls)
 
-    def test_guest_validates_requested_ubuntu_version_distribution_and_architecture(self):
+    def test_guest_validates_requested_linux_version_distribution_and_architecture(self):
         source = (ROOT / "test/tart-guest.sh").read_text().split("\nWORK=", 1)[0]
         script = source.replace("/etc/os-release", '"$TART_TEST_OS_RELEASE"')
         release = self.root / "os-release"
@@ -172,16 +174,20 @@ esac
         uname.write_text('#!/bin/sh\necho "$TART_TEST_ARCH"\n')
         env = dict(self.env, TART_TEST_OS_RELEASE=str(release))
         for requested, distribution, actual, arch, success in (
-            ("22.04", "ubuntu", "22.04", "aarch64", True),
-            ("24.04", "ubuntu", "24.04", "aarch64", True),
-            ("24.04", "ubuntu", "22.04", "aarch64", False),
-            ("24.04", "debian", "24.04", "aarch64", False),
-            ("24.04", "ubuntu", "24.04", "x86_64", False),
+            ("ubuntu-22.04", "ubuntu", "22.04", "aarch64", True),
+            ("ubuntu-24.04", "ubuntu", "24.04", "aarch64", True),
+            ("ubuntu-24.04", "ubuntu", "22.04", "aarch64", False),
+            ("ubuntu-24.04", "debian", "24.04", "aarch64", False),
+            ("ubuntu-24.04", "ubuntu", "24.04", "x86_64", False),
+            ("rocky-9", "rocky", "9.7", "aarch64", True),
+            ("rocky-9", "rocky", "10.1", "aarch64", False),
+            ("rocky-9", "ubuntu", "9.7", "aarch64", False),
+            ("rocky-9", "rocky", "9.7", "x86_64", False),
         ):
             with self.subTest(requested=requested, distribution=distribution, actual=actual, arch=arch):
                 release.write_text(f'ID={distribution}\nVERSION_ID="{actual}"\n')
                 result = subprocess.run(
-                    ["/bin/sh", "-c", script, "tart-guest.sh", f"ubuntu-{requested}", "unused", "unused"],
+                    ["/bin/sh", "-c", script, "tart-guest.sh", requested, "unused", "unused"],
                     env=dict(env, TART_TEST_ARCH=arch), capture_output=True, text=True,
                 )
                 self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)

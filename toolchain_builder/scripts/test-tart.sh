@@ -16,6 +16,7 @@ ghcr.io/cirruslabs/macos-sequoia-base:latest
 ghcr.io/cirruslabs/macos-golden-gate-base:latest
 ghcr.io/cirruslabs/ubuntu:22.04
 ghcr.io/cirruslabs/ubuntu:24.04
+ghcr.io/cirruslabs/rocky:9
 "}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -152,9 +153,10 @@ test_guest()
 RESULT=0
 for image in $GUEST_IMAGES; do
     case "$image" in
-        */ubuntu:*)
+        */ubuntu:*|*/rocky:*)
             $HAS_LINUX || continue
-            guest="ubuntu-${image##*:}"
+            guest=${image##*/}
+            guest=${guest/:/-}
             host=linux_aarch64
             ;;
         */macos-*-base:*)

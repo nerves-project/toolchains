@@ -18,12 +18,15 @@ case "$GUEST" in
         test "$(uname -m)" = arm64
         test "$(sw_vers -productVersion | cut -d. -f1)" = "$VERSION"
         ;;
-    ubuntu-*)
+    ubuntu-*|rocky-*)
         cat /etc/os-release
         # shellcheck source=/dev/null
         . /etc/os-release
-        test "$ID" = ubuntu
-        test "$VERSION_ID" = "${GUEST#ubuntu-}"
+        test "$ID" = "${GUEST%-*}"
+        case "$GUEST" in
+            ubuntu-*) test "$VERSION_ID" = "${GUEST#ubuntu-}" ;;
+            rocky-*) test "${VERSION_ID%%.*}" = "${GUEST#rocky-}" ;;
+        esac
         test "$(uname -m)" = aarch64
         ;;
     *) exit 1 ;;

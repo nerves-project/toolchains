@@ -246,7 +246,8 @@ bash scripts/test-tart.sh all /path/to/archives
 
 The script verifies archive/checksum pairs before starting VMs. It tests
 `darwin_arm` archives on macOS Sequoia and Golden Gate. It tests
-`linux_aarch64` archives on Ubuntu 22.04 LTS. Ubuntu 26.04 and Alpine are not yet
+`linux_aarch64` archives on Ubuntu 22.04 LTS, Ubuntu 24.04 LTS, and Rocky Linux 9
+(RHEL-compatible). Ubuntu 26.04 and Alpine are not yet
 included. A single archive is tested only on its corresponding host OS;
 `all` selects compatible archives and explicitly reports skipped architectures
 and host OSes with no archives. Intel archives require native Intel testing.
