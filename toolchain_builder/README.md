@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Nerves toolchain builder
 
 Native crosstool-NG recipes for Linux cross-compilers that run on Linux x86_64,
-Linux arm64, macOS x86_64, and macOS arm64. Windows hosts are future work.
+Linux arm64, and macOS 15 or later (x86_64 and arm64). Windows hosts are future work.
 The output uses the existing Buildroot-compatible toolchain layout: a single
 top-level directory containing `bin/<target>-gcc`, companion tools, and a sysroot.
 

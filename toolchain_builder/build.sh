@@ -120,6 +120,8 @@ fi
 if [[ $BUILD_OS = "darwin" ]]; then
     # Mac-specific updates
 
+    export MACOSX_DEPLOYMENT_TARGET=15.0
+
     WORK_DMG="$WORK_DIR.dmg"
     WORK_DMG_VOLNAME=$TOOLCHAIN_NAME
 
