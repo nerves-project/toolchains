@@ -42,19 +42,11 @@ jobs:
             git curl build-essential libtool gperf bison flex texinfo wget gawk \
             libtool-bin libncurses5-dev help2man ca-certificates unzip lzip \
             python3 rsync autoconf automake xz-utils zstd
-      - name: Normalize ImageOS for setup-beam
-        if: runner.os == 'Linux'
-        run: echo "ImageOS=${ImageOS%-arm64}" >> "$GITHUB_ENV"
-      - uses: erlef/setup-beam@v1
-        if: runner.os == 'Linux'
-        with:
-          elixir-version: '1.17.3'
-          otp-version: '26.2'
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
           brew install gawk binutils automake help2man bash make ncurses libtool \
-            autoconf gnu-sed bison m4 lzip grep coreutils texinfo erlang elixir \
+            autoconf gnu-sed bison m4 lzip grep coreutils texinfo \
             gnu-tar zstd xz wget gcc@15
           echo "$(brew --prefix gcc@15)/bin" >> "$GITHUB_PATH"
       - name: Cache sources and patched crosstool-NG

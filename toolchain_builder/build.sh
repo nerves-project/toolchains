@@ -73,7 +73,7 @@ fi
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR=$($READLINK -f "$OUTPUT_DIR")
 
-EXISTING_ARCHIVE=$(elixir "$SCRIPT_DIR/scripts/archive.exs" --find "$OUTPUT_DIR" \
+EXISTING_ARCHIVE=$(bash "$SCRIPT_DIR/scripts/archive.sh" --find "$OUTPUT_DIR" \
     "$TOOLCHAIN_NAME" "${HOST_OS}_${ARTIFACT_HOST_ARCH}" "$(cat "$SCRIPT_DIR/VERSION")")
 if [[ -n $EXISTING_ARCHIVE ]]; then
     (cd "$OUTPUT_DIR" && sha256sum -- "$(basename "$EXISTING_ARCHIVE")" | \
@@ -173,7 +173,8 @@ init()
         diskutil eject "/Volumes/$WORK_DMG_VOLNAME" 2>/dev/null || true
         rm -fr "$WORK_DIR" "$WORK_DMG"
         WORK_DMG_CREATED=true
-        if diskutil image create blank --help >/dev/null 2>&1; then
+        # Sequoia has the image API but not its --fs option.
+        if diskutil image create blank --help 2>/dev/null | grep -q -- '--fs'; then
             # The image API cannot create case-sensitive filesystems directly.
             local device
             diskutil image create blank --size 32g --fs None "$WORK_DMG"
@@ -233,7 +234,7 @@ build_gcc()
     cat "$CTNG_CONFIG"
 
     # savedefconfig omits explicit defaults; validate against the full configuration.
-    elixir "$SCRIPT_DIR/scripts/archive.exs" --check-config "$BASE_CONFIG" "$WORK_DIR/build/.config"
+    bash "$SCRIPT_DIR/scripts/archive.sh" --check-config "$BASE_CONFIG" "$WORK_DIR/build/.config"
 
     $CTNG $CTNG_BUILD
 
@@ -262,7 +263,7 @@ save_build_info()
     cp "$WORK_DIR/build/.config" "$INSTALL_DIR/ct-ng.config"
     local recipe="$INSTALL_DIR/share/toolchain-builder"
     mkdir -p "$recipe"
-    cp "$SCRIPT_DIR"/{VERSION,Makefile,LICENSE,README.md,*.exs} "$recipe/"
+    cp "$SCRIPT_DIR"/{VERSION,Makefile,LICENSE,README.md} "$recipe/"
     cp -R "$SCRIPT_DIR"/{scripts,configs,defaults,patches} "$recipe/"
 }
 

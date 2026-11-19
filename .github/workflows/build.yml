@@ -45,10 +45,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
-      - uses: erlef/setup-beam@v1
-        with:
-          elixir-version: '1.17.3'
-          otp-version: '26.2'
       - run: sudo apt-get update && sudo apt-get install -y zstd
       - name: Check standalone builder
         run: make -C "$BUILDER_DIRECTORY" check

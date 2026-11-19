@@ -11,16 +11,14 @@ The output uses the existing Buildroot-compatible toolchain layout: a single
 top-level directory containing `bin/<target>-gcc`, companion tools, and a sysroot.
 
 This directory is self-contained and can become a repository root without
-changing its commands. It has no Nerves or Mix package dependencies. Elixir
-scripts provide configuration and archive-naming helpers, Python provides tests,
-and Bash drives native builds. Consumers need none of these
+changing its commands. It has no Nerves or Mix package dependencies. Bash and awk
+provide build and archive helpers, and Python provides tests. Consumers need none of these
 helpers.
 
 ## Prerequisites
 
-Install Elixir 1.17 or newer with its Erlang runtime, Python 3, Git, and Make.
-The `mix` executable is only used to format Elixir scripts; there is no Mix project
-and no Hex dependencies to install.
+Install Git and Make plus the platform dependencies below. Python 3 is used by
+the test suite and build tools; Erlang and Elixir are not required.
 
 On Debian/Ubuntu:
 
@@ -33,7 +31,7 @@ sudo apt install build-essential bison flex gperf libncurses-dev texinfo help2ma
 On macOS, use Homebrew:
 
 ```sh
-brew install elixir python3 gawk binutils xz zstd wget automake gnu-tar help2man \
+brew install python3 gawk binutils xz zstd wget automake gnu-tar help2man \
   bash make ncurses libtool autoconf gnu-sed gcc@16 bison m4 lzip grep coreutils texinfo
 export PATH="$(brew --prefix gcc@16)/bin:$PATH"
 ```
@@ -71,6 +69,37 @@ and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set
 
 `bash build_all.sh` builds all toolchains on this host. It does not publish
 anything. Builds are expensive; build one when testing.
+
+### Building in Tart
+
+On an Apple Silicon Mac with [Tart](https://tart.run/quick-start/) and GNU
+coreutils installed:
+
+```sh
+bash build_with_tart.sh macos armv7-nerves-linux-gnueabihf--gcc16
+bash build_with_tart.sh linux armv7-nerves-linux-gnueabihf--gcc16
+```
+
+`macos` selects `ghcr.io/cirruslabs/macos-sequoia-base:latest`; `linux` selects
+`ghcr.io/cirruslabs/ubuntu:22.04`. The image mapping is at the top of
+`build_with_tart.sh`. The wrapper installs build prerequisites automatically, copies
+the current source (including uncommitted changes) into the guest's native
+filesystem, and runs `build.sh`. Builds run as the image's `admin` user.
+
+The guest uses 4 CPUs, 8 GiB RAM and a 100 GB virtual disk. It is stopped and
+deleted on exit; prerequisites and guest-local build/source caches are not
+retained. VM image downloads share the smoke-test cache under
+`o/tart-tests/tart/`. Build logs, the source snapshot and incoming artifacts
+remain under `o/tart-builds/run-*/`.
+
+Successful archive/checksum pairs are verified and published to the host's
+`o/artifacts/` without replacing existing files. As with `build.sh`, an existing
+matching pair is verified and skipped; move it aside or change the release
+version to rebuild it. macOS guests produce `darwin_arm` artifacts; Linux
+guests produce `linux_aarch64` artifacts.
+
+Use Sequoia with its older SDK to build macOS distributions for Sequoia and
+newer hosts, then run `scripts/test-tart.sh` to check compatibility.
 
 Flat configs are named `<target>--<track>.defconfig`. The initial `gcc15` track
 uses GCC 15.3.0 and Linux 6.1.175 headers. A newer GCC 16.2 track is planned.
@@ -128,7 +157,7 @@ https://dl.nerves-project.org/toolchains/
 Print the canonical archive filename for an installed toolchain:
 
 ```sh
-elixir scripts/archive.exs --name path/to/installed/toolchain linux_x86_64
+bash scripts/archive.sh --name path/to/installed/toolchain linux_x86_64
 ```
 
 Component versions and build settings are recorded in `ct-ng.config`.
@@ -203,6 +232,41 @@ regression check, not proof that all programs produce identical output. Preserve
 reference outputs when qualifying future rebuilds, using the same source, flags,
 paths and environment. A replacement archive's digest may differ and must have
 a new distribution release.
+
+### Tart compatibility tests
+
+On an Apple Silicon Mac with [Tart](https://tart.run/quick-start/) and GNU
+coreutils installed:
+
+```sh
+bash scripts/test-tart.sh o/artifacts/<archive>.tar.xz
+bash scripts/test-tart.sh all
+bash scripts/test-tart.sh all /path/to/archives
+```
+
+The script verifies archive/checksum pairs before starting VMs. It tests
+`darwin_arm` archives on macOS Sequoia and Golden Gate. It tests
+`linux_aarch64` archives on Ubuntu 22.04 LTS. Ubuntu 26.04 and Alpine are not yet
+included. A single archive is tested only on its corresponding host OS;
+`all` selects compatible archives and explicitly reports skipped architectures
+and host OSes with no archives. Intel archives require native Intel testing.
+
+Each guest extracts the archives to fresh locations, compiles and links C, C++
+and LTO examples, checks binutils, and tests Fortran and GDB when configured.
+Target executables are not run. The tests verify the guest OS version and run
+with a system-only PATH and no inherited environment.
+
+VMs run sequentially and are stopped and deleted on exit, including on failure.
+Tart images are large; allow tens of gigabytes per image for the initial download.
+The image cache stays under `o/tart-tests/tart/`, and each run's logs and
+`results.tsv` stay under `o/tart-tests/run-*/`. Archive and test directories are
+shared read-only with guests. No guest packages are installed by the script.
+The published base images include Homebrew on macOS, so these checks complement,
+rather than replace, inspection for accidental external library dependencies.
+Image tags track updates and do not guarantee testing the initial macOS 15.0
+patch release or older Ubuntu kernels.
+
+### Build records
 
 Archives retain `ct-ng.config`, `ct-ng.defconfig`, and `share/toolchain-builder/`
 with the recipe files. Keep upstream source archives

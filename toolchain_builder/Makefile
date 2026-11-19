@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Frank Hunleth
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: all build build-all test check format list ctng
+.PHONY: all build build-all test check list ctng
 
 CTNG_TAG = a4895d7fc49d5b423abc5f166895c80175019570
 CTNG_PREFIX = $(CURDIR)/o/ct-ng
@@ -55,11 +55,6 @@ list:
 
 test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s test -p '*_test.py'
-	elixir test/toolchain_test.exs
 
 check: test
-	mix format --check-formatted
-	@for script in build.sh build_all.sh scripts/*.sh test/*.sh; do bash -n "$$script"; done
-
-format:
-	mix format
+	@for script in build*.sh scripts/*.sh test/*.sh; do bash -n "$$script"; done

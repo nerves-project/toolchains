@@ -19,7 +19,7 @@ if [[ ! -d "$INSTALL_DIR/bin" ]]; then
     exit 1
 fi
 
-NATIVE_ARCHIVE=$(elixir "$BUILDER_DIR/scripts/archive.exs" --name "$INSTALL_DIR" "$HOST")
+NATIVE_ARCHIVE=$(bash "$BUILDER_DIR/scripts/archive.sh" --name "$INSTALL_DIR" "$HOST")
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
 if [[ -e "$OUTPUT_DIR/$NATIVE_ARCHIVE" || -e "$OUTPUT_DIR/$NATIVE_ARCHIVE.sha256" ]]; then
