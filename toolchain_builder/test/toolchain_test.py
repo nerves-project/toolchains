@@ -125,7 +125,7 @@ class ToolchainTest(unittest.TestCase):
         self.assertEqual(self.package().returncode, 0)
         archive = next(self.output.glob("*.tar.xz"))
         executable = self.root / "smoketest.elf"
-        command = ["bash", str(ROOT / "test/smoketest.sh"), str(archive), str(executable)]
+        command = ["bash", str(ROOT / "scripts/smoketest.sh"), str(archive), str(executable)]
         result = subprocess.run(command, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(executable.is_file())

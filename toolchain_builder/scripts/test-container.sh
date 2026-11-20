@@ -107,11 +107,11 @@ DOCKERFILE
         if timeout --kill-after=10 300 docker run --rm --name "$CONTAINER" \
             --platform linux/amd64 --network none --user "$(id -u):$(id -g)" \
             --mount "type=bind,source=$ARCHIVE_DIR,target=/archives,readonly" \
-            --mount "type=bind,source=$ROOT/test,target=/tests,readonly" \
+            --mount "type=bind,source=$ROOT/scripts,target=/scripts,readonly" \
             "$local_image" /usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin \
             LC_ALL=C TMPDIR=/tmp HOME=/tmp \
-            /bin/sh /tests/toolchain-guest.sh "$guest" "/archives/${archive##*/}" \
-            /tests/smoketest/main.cpp x86_64 > "$test_log" 2>&1; then
+            /bin/sh /scripts/toolchain-guest.sh "$guest" "/archives/${archive##*/}" \
+            /scripts/smoketest/main.cpp x86_64 > "$test_log" 2>&1; then
             outcome=PASS
         else
             outcome=FAIL

@@ -115,7 +115,7 @@ test_guest()
     VM=$name
     tart run "$VM" --no-graphics \
         --dir "archives:$ARCHIVE_DIR:ro,tag=nerves-toolchains" \
-        --dir "tests:$ROOT/test:ro,tag=nerves-toolchains" >> "$BOOT_LOG" 2>&1 &
+        --dir "scripts:$ROOT/scripts:ro,tag=nerves-toolchains" >> "$BOOT_LOG" 2>&1 &
     PID=$!
     deadline=$((SECONDS + 300))
     until "$TIMEOUT" 10 tart exec "$VM" /usr/bin/true >/dev/null 2>&1; do
@@ -137,8 +137,8 @@ test_guest()
         test_log="$RUN_DIR/$guest--${archive##*/}.log"
         if "$TIMEOUT" 300 tart exec "$VM" /usr/bin/env -i \
             PATH=/usr/bin:/bin:/usr/sbin:/sbin LC_ALL=C TMPDIR=/tmp \
-            /bin/sh "$SHARE/tests/toolchain-guest.sh" "$guest" \
-            "$SHARE/archives/${archive##*/}" "$SHARE/tests/smoketest/main.cpp" > "$test_log" 2>&1; then
+            /bin/sh "$SHARE/scripts/toolchain-guest.sh" "$guest" \
+            "$SHARE/archives/${archive##*/}" "$SHARE/scripts/smoketest/main.cpp" > "$test_log" 2>&1; then
             outcome=PASS
         else
             outcome=FAIL

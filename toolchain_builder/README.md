@@ -216,11 +216,15 @@ deletion is not required.
 
 ```sh
 make check
-bash test/smoketest.sh path/to/toolchain.tar.xz "$PWD/target-smoke.elf"
+bash scripts/smoketest.sh path/to/toolchain.tar.xz "$PWD/target-smoke.elf"
 ```
 
+`test/` contains Python unit tests. Toolchain validation scripts and their shared
+C++ fixture live under `scripts/`, including `scripts/toolchain-guest.sh` shared
+by the Tart and Docker runners.
+
 `make check` runs packaging, checksum and publishing tests and
-format/syntax checks without building a compiler. The smoke test checks the
+shell syntax checks without building a compiler. The smoke test checks the
 published digest, extracts to a new location, and compiles the C++ fixture.
 CI compares its target ELF output byte-for-byte across the three CI build hosts
 and checks relocation on the supported test runners.

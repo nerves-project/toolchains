@@ -20,4 +20,4 @@ if [[ ${#compilers[@]} != 1 || ! -x "${compilers[0]}" ]]; then
     echo "Expected one relocatable cross-g++ in the archive" >&2
     exit 1
 fi
-"${compilers[0]}" -O2 -g0 -Wl,--build-id=none "$ROOT/test/smoketest/main.cpp" -o "$OUTPUT"
+"${compilers[0]}" -O2 -g0 -Wl,--build-id=none "$ROOT/scripts/smoketest/main.cpp" -o "$OUTPUT"

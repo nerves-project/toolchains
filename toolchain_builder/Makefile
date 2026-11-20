@@ -57,4 +57,4 @@ test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s test -p '*_test.py'
 
 check: test
-	@for script in build*.sh scripts/*.sh test/*.sh; do bash -n "$$script"; done
+	@for script in build*.sh scripts/*.sh; do bash -n "$$script"; done
