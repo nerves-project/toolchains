@@ -101,6 +101,34 @@ guests produce `linux_aarch64` artifacts.
 Use Sequoia with its older SDK to build macOS distributions for Sequoia and
 newer hosts, then run `scripts/test-tart.sh` to check compatibility.
 
+### Building in Docker
+
+With Docker and GNU coreutils installed:
+
+```sh
+bash build_with_docker.sh armv7-nerves-linux-gnueabihf--gcc16
+```
+
+This builds only `linux_x86_64` toolchains. The Ubuntu 22.04 image and local
+builder image tag are listed at the top of `build_with_docker.sh`. Docker
+installs and caches the build prerequisites in that image; Erlang and Elixir
+are not required.
+
+The wrapper snapshots the current build inputs, mounts them read-only, and
+runs `build.sh` as a non-root `builder` user on the container's native
+filesystem. Successful archive/checksum pairs are verified and published to
+`o/artifacts/` without overwriting existing files. Existing matching pairs
+are verified and skipped, just like native and Tart builds.
+
+Build logs, source snapshots and incoming artifacts remain under
+`o/docker-builds/run-*/`. The build container is removed on exit, including
+failure; its build files and source-download cache are not retained. Docker
+retains the cached builder image.
+
+The wrapper requests `linux/amd64`, so native x86_64 Linux is recommended.
+Other Docker hosts require working amd64 emulation, which can make compiler
+builds significantly slower. Containers use the Docker host's kernel.
+
 Flat configs are named `<target>--<track>.defconfig`. The initial `gcc15` track
 uses GCC 15.3.0 and Linux 6.1.175 headers. A newer GCC 16.2 track is planned.
 Both tracks should receive current stable libc releases rather than freezing
