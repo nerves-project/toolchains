@@ -6,6 +6,7 @@ set -eu
 GUEST=$1
 ARCHIVE=$2
 FIXTURE=$3
+ARCH=${4:-aarch64}
 
 uname -a
 case "$GUEST" in
@@ -18,7 +19,7 @@ case "$GUEST" in
         test "$(uname -m)" = arm64
         test "$(sw_vers -productVersion | cut -d. -f1)" = "$VERSION"
         ;;
-    ubuntu-*|rocky-*)
+    ubuntu-*|rocky-*|alpine-*)
         cat /etc/os-release
         # shellcheck source=/dev/null
         . /etc/os-release
@@ -26,8 +27,9 @@ case "$GUEST" in
         case "$GUEST" in
             ubuntu-*) test "$VERSION_ID" = "${GUEST#ubuntu-}" ;;
             rocky-*) test "${VERSION_ID%%.*}" = "${GUEST#rocky-}" ;;
+            alpine-*) test "${VERSION_ID%.*}" = "${GUEST#alpine-}" ;;
         esac
-        test "$(uname -m)" = aarch64
+        test "$(uname -m)" = "$ARCH"
         ;;
     *) exit 1 ;;
 esac

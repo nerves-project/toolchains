@@ -137,7 +137,7 @@ test_guest()
         test_log="$RUN_DIR/$guest--${archive##*/}.log"
         if "$TIMEOUT" 300 tart exec "$VM" /usr/bin/env -i \
             PATH=/usr/bin:/bin:/usr/sbin:/sbin LC_ALL=C TMPDIR=/tmp \
-            /bin/sh "$SHARE/tests/tart-guest.sh" "$guest" \
+            /bin/sh "$SHARE/tests/toolchain-guest.sh" "$guest" \
             "$SHARE/archives/${archive##*/}" "$SHARE/tests/smoketest/main.cpp" > "$test_log" 2>&1; then
             outcome=PASS
         else

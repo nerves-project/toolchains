@@ -250,7 +250,7 @@ The script verifies archive/checksum pairs before starting VMs. It tests
 (RHEL-compatible). Ubuntu 26.04 and Alpine are not yet
 included. A single archive is tested only on its corresponding host OS;
 `all` selects compatible archives and explicitly reports skipped architectures
-and host OSes with no archives. Intel archives require native Intel testing.
+and host OSes with no archives. Use Docker below for x86_64 Linux archives.
 
 Each guest extracts the archives to fresh locations, compiles and links C, C++
 and LTO examples, checks binutils, and tests Fortran and GDB when configured.
@@ -266,6 +266,38 @@ The published base images include Homebrew on macOS, so these checks complement,
 rather than replace, inspection for accidental external library dependencies.
 Image tags track updates and do not guarantee testing the initial macOS 15.0
 patch release or older Ubuntu kernels.
+
+### Docker compatibility tests
+
+On x86_64 Linux with Docker and GNU coreutils installed:
+
+```sh
+bash scripts/test-container.sh o/artifacts/<archive>--linux_x86_64.tar.xz
+bash scripts/test-container.sh all
+bash scripts/test-container.sh all /path/to/archives
+```
+
+The runner verifies strict archive/checksum pairs before using Docker and tests
+only `linux_x86_64` archives. Ubuntu 22.04, Ubuntu 24.04, and Alpine 3.24 images
+are listed at the top of the script; `CONTAINER_IMAGES` can override the
+whitespace-separated list of full image names.
+
+Docker builds and caches minimal test images with `xz` for archive extraction.
+No host compiler, glibc compatibility package, or other toolchain dependencies
+are installed. Each archive is extracted in a fresh container and runs the same
+C, C++, LTO, binutils, optional Fortran and GDB checks as Tart. The checks verify
+the distribution version and x86_64 architecture. Target executables are not run.
+
+Archives and tests are mounted read-only. Test containers have no network access,
+run as the invoking user's UID/GID, and are removed after testing or interruption.
+Logs and `results.tsv` stay under `o/container-tests/run-*/`; image layers remain
+in Docker's cache. Tests continue after individual archive or image failures
+and return a nonzero exit status if anything fails.
+
+Containers share the Docker host's kernel: this tests distro userspaces, not
+older kernels. The runner requests `linux/amd64`; an ARM Docker daemon can run
+it if amd64 emulation is already configured, but that is not native x86_64
+validation. No macOS-specific setup is provided.
 
 ### Build records
 

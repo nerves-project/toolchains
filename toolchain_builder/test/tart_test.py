@@ -44,7 +44,7 @@ case "$1" in
     exec)
         case "$*" in
             */usr/bin/true) test -f "$TMPDIR/$2.pid" ;;
-            *tart-guest.sh*)
+            *toolchain-guest.sh*)
                 if [[ -n ${TART_TEST_FAIL:-} && $* = *"$TART_TEST_FAIL"* ]]; then exit 9; fi
                 ;;
             *) test "${TART_TEST_MOUNT_FAIL:-0}" = 0 ;;
@@ -164,30 +164,39 @@ esac
         calls = self.log.read_text()
         self.assertIn("stop --timeout 5", calls)
         self.assertIn("delete ", calls)
-        self.assertNotIn("tart-guest.sh", calls)
+        self.assertNotIn("toolchain-guest.sh", calls)
 
     def test_guest_validates_requested_linux_version_distribution_and_architecture(self):
-        source = (ROOT / "test/tart-guest.sh").read_text().split("\nWORK=", 1)[0]
+        source = (ROOT / "test/toolchain-guest.sh").read_text().split("\nWORK=", 1)[0]
         script = source.replace("/etc/os-release", '"$TART_TEST_OS_RELEASE"')
         release = self.root / "os-release"
         uname = self.root / "tools/uname"
         uname.write_text('#!/bin/sh\necho "$TART_TEST_ARCH"\n')
         env = dict(self.env, TART_TEST_OS_RELEASE=str(release))
-        for requested, distribution, actual, arch, success in (
-            ("ubuntu-22.04", "ubuntu", "22.04", "aarch64", True),
-            ("ubuntu-24.04", "ubuntu", "24.04", "aarch64", True),
-            ("ubuntu-24.04", "ubuntu", "22.04", "aarch64", False),
-            ("ubuntu-24.04", "debian", "24.04", "aarch64", False),
-            ("ubuntu-24.04", "ubuntu", "24.04", "x86_64", False),
-            ("rocky-9", "rocky", "9.7", "aarch64", True),
-            ("rocky-9", "rocky", "10.1", "aarch64", False),
-            ("rocky-9", "ubuntu", "9.7", "aarch64", False),
-            ("rocky-9", "rocky", "9.7", "x86_64", False),
+        for requested, distribution, actual, arch, expected_arch, success in (
+            ("ubuntu-22.04", "ubuntu", "22.04", "aarch64", None, True),
+            ("ubuntu-24.04", "ubuntu", "24.04", "aarch64", None, True),
+            ("ubuntu-24.04", "ubuntu", "22.04", "aarch64", None, False),
+            ("ubuntu-24.04", "debian", "24.04", "aarch64", None, False),
+            ("ubuntu-24.04", "ubuntu", "24.04", "x86_64", None, False),
+            ("rocky-9", "rocky", "9.7", "aarch64", None, True),
+            ("rocky-9", "rocky", "10.1", "aarch64", None, False),
+            ("rocky-9", "ubuntu", "9.7", "aarch64", None, False),
+            ("rocky-9", "rocky", "9.7", "x86_64", None, False),
+            ("ubuntu-22.04", "ubuntu", "22.04", "x86_64", "x86_64", True),
+            ("ubuntu-24.04", "ubuntu", "24.04", "x86_64", "x86_64", True),
+            ("alpine-3.24", "alpine", "3.24.4", "x86_64", "x86_64", True),
+            ("alpine-3.24", "alpine", "3.23.8", "x86_64", "x86_64", False),
+            ("alpine-3.24", "ubuntu", "3.24.4", "x86_64", "x86_64", False),
+            ("alpine-3.24", "alpine", "3.24.4", "aarch64", "x86_64", False),
         ):
             with self.subTest(requested=requested, distribution=distribution, actual=actual, arch=arch):
                 release.write_text(f'ID={distribution}\nVERSION_ID="{actual}"\n')
+                command = ["/bin/sh", "-c", script, "toolchain-guest.sh", requested, "unused", "unused"]
+                if expected_arch:
+                    command.append(expected_arch)
                 result = subprocess.run(
-                    ["/bin/sh", "-c", script, "tart-guest.sh", requested, "unused", "unused"],
+                    command,
                     env=dict(env, TART_TEST_ARCH=arch), capture_output=True, text=True,
                 )
                 self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)
@@ -226,7 +235,7 @@ esac
             TMPDIR=str(guest_tmp), TART_TEST_LOG=str(log),
         )
         command = [
-            "/bin/sh", str(ROOT / "test/tart-guest.sh"), "sequoia",
+            "/bin/sh", str(ROOT / "test/toolchain-guest.sh"), "sequoia",
             str(archive), str(ROOT / "test/smoketest/main.cpp"),
         ]
         for enabled in (False, True):
