@@ -20,7 +20,7 @@ class TartBuildTest(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="tart-build-test-", dir=ROOT / "o/tmp")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        for name in ("Makefile", "VERSION", "LICENSE", "README.md", "build.sh", "build_with_tart.sh"):
+        for name in ("Makefile", "VERSION", "LICENSE", "README.md", "build_native.sh", "build_with_tart.sh"):
             shutil.copyfile(ROOT / name, self.root / name)
         for name in ("scripts", "configs", "defaults", "patches"):
             shutil.copytree(ROOT / name, self.root / name)

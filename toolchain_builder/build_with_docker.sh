@@ -57,7 +57,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 mkdir "$RUN_DIR/source" "$RUN_DIR/artifacts"
-cp "$ROOT"/{Makefile,VERSION,LICENSE,README.md,build.sh} "$RUN_DIR/source/"
+cp "$ROOT"/{Makefile,VERSION,LICENSE,README.md,build_native.sh} "$RUN_DIR/source/"
 cp -R "$ROOT"/{scripts,configs,defaults,patches} "$RUN_DIR/source/"
 echo "Building $CONFIG in $IMAGE (linux/amd64)"
 timeout --kill-after=10 1200 docker build --pull --platform linux/amd64 \
@@ -86,7 +86,7 @@ test "$(uname -m)" = x86_64
 WORKSPACE=/tmp/nerves-toolchain-builder
 mkdir -p "$WORKSPACE"
 tar -C /source -cf - . | tar -C "$WORKSPACE" -xf -
-bash "$WORKSPACE/build.sh" "$CONFIG" </dev/null
+bash "$WORKSPACE/build_native.sh" "$CONFIG" </dev/null
 BUILD_SCRIPT
 
 docker cp "$CONTAINER:$WORKSPACE/o/artifacts/." "$RUN_DIR/artifacts"

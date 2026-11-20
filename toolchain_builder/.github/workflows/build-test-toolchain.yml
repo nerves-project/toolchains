@@ -63,7 +63,7 @@ jobs:
         env:
           TOOLCHAIN: ${{ inputs.toolchain }}
         run: |
-          bash build.sh "$TOOLCHAIN"
+          bash build_native.sh "$TOOLCHAIN"
           archive="$(find o/artifacts -name '*.tar.xz' -print -quit)"
           bash scripts/smoketest.sh "$archive" "$PWD/o/smoketest.elf"
       - uses: actions/upload-artifact@v7

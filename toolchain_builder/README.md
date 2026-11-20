@@ -36,7 +36,7 @@ brew install python3 gawk binutils xz zstd wget automake gnu-tar help2man \
 export PATH="$(brew --prefix gcc@16)/bin:$PATH"
 ```
 
-Builds need a case-sensitive filesystem on macOS; `build.sh` creates a disk image.
+Builds need a case-sensitive filesystem on macOS; `build_native.sh` creates a disk image.
 The packaged headers retain the existing workaround that removes case-conflicting
 netfilter headers so that toolchains can be extracted on case-insensitive hosts.
 
@@ -46,18 +46,18 @@ Run these commands from this directory, whether it is nested or a repository roo
 
 ```sh
 make list
-bash build.sh armv7-nerves-linux-gnueabihf--gcc15
+bash build_native.sh armv7-nerves-linux-gnueabihf--gcc15
 ```
 
 Builds resolve the config with the pinned, locally patched crosstool-NG and
 reject changes to explicit target settings, even when `savedefconfig` omits
 them as defaults. `make ctng` builds and installs crosstool-NG under `o/ct-ng/`;
-`build.sh` runs this automatically. Make rebuilds it when the Makefile, patch
+`build_native.sh` runs this automatically. Make rebuilds it when the Makefile, patch
 script, or patches change. Build temporary files stay under `o/tmp/`.
 Downloaded sources are the sole exception to keeping build files under `o/`:
 they are cached in `~/.nerves/dl/`.
 
-The argument to `build.sh` is a filename from `configs/` without `.defconfig`.
+The argument to `build_native.sh` is a filename from `configs/` without `.defconfig`.
 Work goes in `o/<config>`; release pairs go in `o/artifacts/`. Optional second
 and third arguments override the work and output directories. After compilation,
 packaging derives its release filename from the installed compiler's target,
@@ -84,7 +84,7 @@ bash build_with_tart.sh linux armv7-nerves-linux-gnueabihf--gcc16
 `ghcr.io/cirruslabs/ubuntu:22.04`. The image mapping is at the top of
 `build_with_tart.sh`. The wrapper installs build prerequisites automatically, copies
 the current source (including uncommitted changes) into the guest's native
-filesystem, and runs `build.sh`. Builds run as the image's `admin` user.
+filesystem, and runs `build_native.sh`. Builds run as the image's `admin` user.
 
 The guest uses 4 CPUs, 8 GiB RAM and a 100 GB virtual disk. It is stopped and
 deleted on exit; prerequisites and guest-local build/source caches are not
@@ -93,7 +93,7 @@ retained. VM image downloads share the smoke-test cache under
 remain under `o/tart-builds/run-*/`.
 
 Successful archive/checksum pairs are verified and published to the host's
-`o/artifacts/` without replacing existing files. As with `build.sh`, an existing
+`o/artifacts/` without replacing existing files. As with `build_native.sh`, an existing
 matching pair is verified and skipped; move it aside or change the release
 version to rebuild it. macOS guests produce `darwin_arm` artifacts; Linux
 guests produce `linux_aarch64` artifacts.
@@ -115,7 +115,7 @@ installs and caches the build prerequisites in that image; Erlang and Elixir
 are not required.
 
 The wrapper snapshots the current build inputs, mounts them read-only, and
-runs `build.sh` as a non-root `builder` user on the container's native
+runs `build_native.sh` as a non-root `builder` user on the container's native
 filesystem. Successful archive/checksum pairs are verified and published to
 `o/artifacts/` without overwriting existing files. Existing matching pairs
 are verified and skipped, just like native and Tart builds.

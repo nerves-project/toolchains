@@ -5,5 +5,5 @@
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for config in "$ROOT"/configs/*.defconfig; do
-    bash "$ROOT/build.sh" "$(basename "$config" .defconfig)"
+    bash "$ROOT/build_native.sh" "$(basename "$config" .defconfig)"
 done

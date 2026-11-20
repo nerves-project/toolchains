@@ -85,7 +85,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 mkdir "$RUN_DIR/source" "$RUN_DIR/artifacts"
-cp "$ROOT"/{Makefile,VERSION,LICENSE,README.md,build.sh} "$RUN_DIR/source/"
+cp "$ROOT"/{Makefile,VERSION,LICENSE,README.md,build_native.sh} "$RUN_DIR/source/"
 cp -R "$ROOT"/{scripts,configs,defaults,patches} "$RUN_DIR/source/"
 echo "Building $CONFIG in $IMAGE"
 "$TIMEOUT" 3600 tart pull "$IMAGE"
@@ -136,7 +136,7 @@ case "$(uname -s)" in
         ;;
     *) echo "Unsupported guest OS" >&2; exit 1 ;;
 esac
-bash "$WORKSPACE/build.sh" "$CONFIG" </dev/null
+bash "$WORKSPACE/build_native.sh" "$CONFIG" </dev/null
 GUEST_SCRIPT
 
 tart exec "$VM" tar -C "$WORKSPACE/o/artifacts" -cf - . | tar -C "$RUN_DIR/artifacts" -xf -

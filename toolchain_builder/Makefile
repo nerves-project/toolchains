@@ -45,7 +45,7 @@ o/ct-ng/.installed: Makefile scripts/apply-patches.sh patches/crosstool-ng $(wil
 	touch $@
 
 build:
-	bash build.sh "$(TOOLCHAIN)"
+	bash build_native.sh "$(TOOLCHAIN)"
 
 build-all:
 	bash build_all.sh

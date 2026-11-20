@@ -4,7 +4,7 @@
 
 # Example
 #
-# build.sh <config name> [work directory] [output directory]
+# build_native.sh <config name> [work directory] [output directory]
 
 set -eo pipefail
 

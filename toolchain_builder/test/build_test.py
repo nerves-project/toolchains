@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 
-BUILD = Path(__file__).resolve().parents[1] / "build.sh"
+BUILD = Path(__file__).resolve().parents[1] / "build_native.sh"
 class BuildDiskImageTest(unittest.TestCase):
     def test_exit_removes_image_unless_debug_is_set_or_unmount_fails(self):
         source = BUILD.read_text()
@@ -142,7 +142,7 @@ printf '%s\\n' "$TARGET_TUPLE" "$INSTALL_DIR"
     def test_completed_archive_skips_build_without_touching_work_directory(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            shutil.copyfile(BUILD, root / "build.sh")
+            shutil.copyfile(BUILD, root / "build_native.sh")
             for name in ["configs", "scripts"]:
                 (root / name).symlink_to(BUILD.parent / name, target_is_directory=True)
             for name in ["VERSION"]:
@@ -163,7 +163,7 @@ printf '%s\\n' "$TARGET_TUPLE" "$INSTALL_DIR"
             marker = work / "preserve"
             marker.write_text("build data")
             env = dict(os.environ, HOST_OS="linux", HOST_ARCH="x86_64")
-            command = ["bash", str(root / "build.sh"), f"{target}--gcc15"]
+            command = ["bash", str(root / "build_native.sh"), f"{target}--gcc15"]
             result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=15)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("Skipping", result.stdout)
