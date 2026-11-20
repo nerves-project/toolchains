@@ -174,5 +174,76 @@ printf '%s\\n' "$TARGET_TUPLE" "$INSTALL_DIR"
             self.assertNotIn("Skipping", result.stdout)
             self.assertTrue(marker.exists())
 
+
+class BuildAllTest(unittest.TestCase):
+    def setUp(self):
+        root = BUILD.parent
+        (root / "o/tmp").mkdir(parents=True, exist_ok=True)
+        self.temporary = tempfile.TemporaryDirectory(prefix="build-all-test-", dir=root / "o/tmp")
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.script = self.root / "build_all.sh"
+        shutil.copyfile(root / "build_all.sh", self.script)
+        configs = self.root / "configs"
+        configs.mkdir()
+        self.configs = ["armv7-nerves-linux-gnueabihf--gcc15", "x86_64-nerves-linux-gnu--gcc16"]
+        for config in self.configs:
+            (configs / f"{config}.defconfig").touch()
+        tools = self.root / "tools"
+        tools.mkdir()
+        uname = tools / "uname"
+        uname.write_text(
+            '#!/bin/sh\nif [ "$1" = -s ]; then echo "$BUILD_ALL_TEST_OS"; '
+            'else echo "$BUILD_ALL_TEST_ARCH"; fi\n'
+        )
+        uname.chmod(0o755)
+        for kind in ("tart", "docker"):
+            (self.root / f"build_with_{kind}.sh").write_text(
+                f'printf "%s\\n" "{kind} $*" >> "$BUILD_ALL_TEST_LOG"\n'
+                'exit "${BUILD_ALL_TEST_STATUS:-0}"\n'
+            )
+        self.log = self.root / "commands.log"
+        self.env = dict(
+            os.environ, PATH=f"{tools}:{os.environ['PATH']}", BUILD_ALL_TEST_LOG=str(self.log),
+        )
+
+    def run_script(self, os_name, arch, **env):
+        return subprocess.run(
+            ["/bin/bash", str(self.script)],
+            env=dict(self.env, BUILD_ALL_TEST_OS=os_name, BUILD_ALL_TEST_ARCH=arch, **env),
+            capture_output=True, text=True, timeout=30,
+        )
+
+    def test_dispatches_all_configs_to_platform_wrappers(self):
+        for os_name, arch, commands in (
+            ("Darwin", "arm64", ["tart macos", "tart linux"]),
+            ("Linux", "x86_64", ["docker"]),
+        ):
+            with self.subTest(os=os_name, arch=arch):
+                result = self.run_script(os_name, arch)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(
+                    self.log.read_text().splitlines(),
+                    [f"{command} {config}" for config in self.configs for command in commands],
+                )
+                self.log.unlink()
+
+    def test_rejects_unsupported_hosts_without_building(self):
+        for os_name, arch in (("Linux", "aarch64"), ("Darwin", "x86_64"), ("FreeBSD", "amd64")):
+            with self.subTest(os=os_name, arch=arch):
+                result = self.run_script(os_name, arch)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Unsupported build host", result.stderr)
+                self.assertFalse(self.log.exists())
+
+    def test_build_failure_stops_remaining_builds_and_preserves_status(self):
+        for os_name, arch in (("Darwin", "arm64"), ("Linux", "x86_64")):
+            with self.subTest(os=os_name):
+                result = self.run_script(os_name, arch, BUILD_ALL_TEST_STATUS="23")
+                self.assertEqual(result.returncode, 23, result.stderr)
+                self.assertEqual(len(self.log.read_text().splitlines()), 1)
+                self.log.unlink()
+
+
 if __name__ == "__main__":
     unittest.main()

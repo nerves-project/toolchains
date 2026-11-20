@@ -67,8 +67,11 @@ the same target, GCC track, host, and release after verifying its checksum.
 On macOS, the build drive is unmounted
 and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set.
 
-`bash build_all.sh` builds all toolchains on this host. It does not publish
-anything. Builds are expensive; build one when testing.
+`bash build_all.sh` builds every config sequentially. On Apple Silicon macOS,
+it uses Tart for both macOS (`darwin_arm`) and Linux (`linux_aarch64`) builds.
+On x86_64 Linux, it uses Docker for `linux_x86_64` builds. Other hosts are
+rejected. It stops on the first failure and does not publish remotely.
+Builds are expensive; build one when testing.
 
 ### Building in Tart
 
