@@ -69,8 +69,9 @@ and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set
 
 `bash build_all.sh` builds every config sequentially. On Apple Silicon macOS,
 it uses Tart for both macOS (`darwin_arm`) and Linux (`linux_aarch64`) builds.
-On x86_64 Linux, it uses Docker for `linux_x86_64` builds. Other hosts are
-rejected. It stops on the first failure and does not publish remotely.
+On x86_64 macOS, it uses `build_native.sh`. On x86_64 Linux, it uses Docker
+for `linux_x86_64` builds. Other hosts are rejected. It stops on the first
+failure and does not publish remotely.
 Builds are expensive; build one when testing.
 
 ### Building in Tart

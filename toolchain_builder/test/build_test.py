@@ -197,8 +197,12 @@ class BuildAllTest(unittest.TestCase):
             'else echo "$BUILD_ALL_TEST_ARCH"; fi\n'
         )
         uname.chmod(0o755)
-        for kind in ("tart", "docker"):
-            (self.root / f"build_with_{kind}.sh").write_text(
+        for kind, script in (
+            ("tart", "build_with_tart.sh"),
+            ("docker", "build_with_docker.sh"),
+            ("native", "build_native.sh"),
+        ):
+            (self.root / script).write_text(
                 f'printf "%s\\n" "{kind} $*" >> "$BUILD_ALL_TEST_LOG"\n'
                 'exit "${BUILD_ALL_TEST_STATUS:-0}"\n'
             )
@@ -217,6 +221,7 @@ class BuildAllTest(unittest.TestCase):
     def test_dispatches_all_configs_to_platform_wrappers(self):
         for os_name, arch, commands in (
             ("Darwin", "arm64", ["tart macos", "tart linux"]),
+            ("Darwin", "x86_64", ["native"]),
             ("Linux", "x86_64", ["docker"]),
         ):
             with self.subTest(os=os_name, arch=arch):
@@ -229,7 +234,7 @@ class BuildAllTest(unittest.TestCase):
                 self.log.unlink()
 
     def test_rejects_unsupported_hosts_without_building(self):
-        for os_name, arch in (("Linux", "aarch64"), ("Darwin", "x86_64"), ("FreeBSD", "amd64")):
+        for os_name, arch in (("Linux", "aarch64"), ("Darwin", "i386"), ("FreeBSD", "amd64")):
             with self.subTest(os=os_name, arch=arch):
                 result = self.run_script(os_name, arch)
                 self.assertNotEqual(result.returncode, 0)
@@ -237,7 +242,7 @@ class BuildAllTest(unittest.TestCase):
                 self.assertFalse(self.log.exists())
 
     def test_build_failure_stops_remaining_builds_and_preserves_status(self):
-        for os_name, arch in (("Darwin", "arm64"), ("Linux", "x86_64")):
+        for os_name, arch in (("Darwin", "arm64"), ("Darwin", "x86_64"), ("Linux", "x86_64")):
             with self.subTest(os=os_name):
                 result = self.run_script(os_name, arch, BUILD_ALL_TEST_STATUS="23")
                 self.assertEqual(result.returncode, 23, result.stderr)
