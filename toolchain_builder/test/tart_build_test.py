@@ -29,6 +29,7 @@ class TartBuildTest(unittest.TestCase):
         self.log = self.root / "commands.log"
         self.guest_output = self.root / "guest-output"
         self.guest_output.mkdir()
+        self.guest_log = self.root / "guest-ctng.log"
         for name, source in {
             "uname": '#!/bin/sh\nif [ "$1" = -s ]; then echo Darwin; else echo arm64; fi\n',
             "tart": """#!/usr/bin/env bash
@@ -45,6 +46,10 @@ case "$1" in
             */bin/bash\\ -s\\ --*)
                 cat > "$TART_TEST_SCRIPT"
                 exit "${TART_TEST_BUILD_STATUS:-0}"
+                ;;
+            *o/logs/*)
+                if [[ -f "$TART_TEST_CTNG_LOG" ]]; then cat "$TART_TEST_CTNG_LOG"; fi
+                exit "${TART_TEST_LOG_EXPORT_STATUS:-0}"
                 ;;
             *tar\\ -C*)
                 exec tar -C "$TART_TEST_OUTPUT" -cf - .
@@ -64,6 +69,7 @@ esac
         self.env = dict(
             os.environ, PATH=f"{tools}:{os.environ['PATH']}", TART_TEST_LOG=str(self.log),
             TART_TEST_SCRIPT=str(self.root / "guest-script"), TART_TEST_OUTPUT=str(self.guest_output),
+            TART_TEST_CTNG_LOG=str(self.guest_log),
         )
 
     def archive(self, host, contents=b"compiler"):
@@ -82,6 +88,7 @@ esac
         )
 
     def test_builds_both_host_types_and_exports_verified_pairs(self):
+        self.guest_log.write_text("full successful build log\n")
         for guest, host, image in (
             ("macos", "darwin_arm", "macos-sequoia-base:latest"),
             ("linux", "linux_aarch64", "ubuntu:22.04"),
@@ -98,14 +105,35 @@ esac
                 self.assertIn(":ro,tag=nerves-build", self.log.read_text())
                 self.assertIn("stop --timeout 5", self.log.read_text())
                 self.assertIn("delete ", self.log.read_text())
+                run_dir = Path(result.stdout.split("Build logs: ", 1)[1].strip())
+                self.assertEqual(
+                    (run_dir / "ct-ng.log").read_text(), self.guest_log.read_text(),
+                )
                 archive.unlink()
                 Path(str(archive) + ".sha256").unlink()
 
     def test_build_failure_is_propagated_without_publishing(self):
+        self.guest_log.write_text("install: underlying glibc failure\n")
         self.archive("darwin_arm")
         result = self.run_script("macos", TART_TEST_BUILD_STATUS="23")
         self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
         self.assertEqual(list((self.root / "o/artifacts").iterdir()), [])
+        self.assertIn("stop --timeout 5", self.log.read_text())
+        self.assertIn("delete ", self.log.read_text())
+        run_dir = Path(result.stdout.split("Build logs: ", 1)[1].strip())
+        self.assertEqual((run_dir / "ct-ng.log").read_text(), self.guest_log.read_text())
+        commands = self.log.read_text()
+        self.assertLess(commands.index("o/logs/"), commands.index("stop --timeout 5"))
+
+    def test_log_export_failure_preserves_build_error_and_still_cleans_vm(self):
+        self.guest_log.write_text("detailed failure")
+        result = self.run_script(
+            "macos", TART_TEST_BUILD_STATUS="23", TART_TEST_LOG_EXPORT_STATUS="17",
+        )
+        self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
+        self.assertIn("Could not retrieve crosstool-NG log", result.stderr)
+        run_dir = Path(result.stdout.split("Build logs: ", 1)[1].strip())
+        self.assertFalse((run_dir / "ct-ng.log").exists())
         self.assertIn("stop --timeout 5", self.log.read_text())
         self.assertIn("delete ", self.log.read_text())
 

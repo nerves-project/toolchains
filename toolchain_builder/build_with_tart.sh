@@ -63,9 +63,22 @@ RUN_DIR=$(mktemp -d "$ROOT/o/tart-builds/run-XXXXXX")
 VM="toolchain-build-${RUN_DIR##*/}"
 PID=
 CLONED=false
+BUILD_STARTED=false
 cleanup()
 {
     local status=$?
+    if $BUILD_STARTED; then
+        # shellcheck disable=SC2016
+        if ! "$TIMEOUT" 60 tart exec "$VM" /bin/sh -c \
+            'if [ -f "$1" ]; then cat "$1"; elif [ -f "$2" ]; then cat "$2"; fi' \
+            sh "$WORKSPACE/o/logs/$CONFIG.log" "$WORKSPACE/o/$CONFIG/build/build.log" \
+            > "$RUN_DIR/ct-ng.log" 2>> "$RUN_DIR/vm.log"; then
+            echo "Could not retrieve crosstool-NG log; see $RUN_DIR/vm.log" >&2
+            rm -f "$RUN_DIR/ct-ng.log" || true
+        elif [[ ! -s "$RUN_DIR/ct-ng.log" ]]; then
+            rm -f "$RUN_DIR/ct-ng.log" || true
+        fi
+    fi
     if [[ -n "$PID" ]]; then
         if kill -0 "$PID" 2>/dev/null; then
             if ! "$TIMEOUT" 15 tart stop --timeout 5 "$VM" >> "$RUN_DIR/vm.log" 2>&1; then
@@ -108,6 +121,7 @@ else
     mount="sudo -n mount -t virtiofs nerves-build"
 fi
 tart exec "$VM" /bin/sh -ec "mkdir -p $SHARE; $mount $SHARE"
+BUILD_STARTED=true
 tart exec -i "$VM" sudo -n -iu admin /bin/bash -s -- "$CONFIG" 2>&1 <<'GUEST_SCRIPT' | tee "$RUN_DIR/build.log"
 set -euo pipefail
 CONFIG=$1

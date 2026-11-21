@@ -11,10 +11,24 @@ set -eo pipefail
 cleanup()
 {
     local status=$?
+    if ! save_build_log; then
+        echo "Could not preserve crosstool-NG log" >&2
+    fi
     if ! cleanup_build_drive; then
         if [[ $status = 0 ]]; then status=1; fi
     fi
     exit "$status"
+}
+
+save_build_log()
+{
+    if [[ ! -f ${CTNG_LOG_FILE:-} ]]; then
+        return 0
+    fi
+    local log="$SCRIPT_DIR/o/logs/$TOOLCHAIN_NAME.log"
+    mkdir -p "$SCRIPT_DIR/o/logs" || return
+    cp "$CTNG_LOG_FILE" "$log" || return
+    echo "crosstool-NG log: $log"
 }
 
 cleanup_build_drive()
@@ -236,6 +250,7 @@ build_gcc()
     # savedefconfig omits explicit defaults; validate against the full configuration.
     bash "$SCRIPT_DIR/scripts/archive.sh" --check-config "$BASE_CONFIG" "$WORK_DIR/build/.config"
 
+    CTNG_LOG_FILE="$WORK_DIR/build/build.log"
     $CTNG $CTNG_BUILD
 
     local compilers=("$GCC_INSTALL_DIR"/*/bin/*-gcc)

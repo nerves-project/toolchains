@@ -23,6 +23,9 @@ class BuildDiskImageTest(unittest.TestCase):
                     root = Path(directory)
                     mount = root / "mount"
                     mount.mkdir()
+                    (mount / "build").mkdir()
+                    build_log = mount / "build/build.log"
+                    build_log.write_text("detailed compiler failure\n")
                     work = root / "work"
                     work.symlink_to(mount)
                     image = root / "work.dmg"
@@ -30,12 +33,17 @@ class BuildDiskImageTest(unittest.TestCase):
                     env = dict(os.environ, SCRIPT_DIR=directory, WORK_DIR=str(work),
                                WORK_DMG=str(image), WORK_DMG_CREATED="true",
                                WORK_DMG_DEVICE="/dev/disk99", WORK_DMG_VOLNAME="test",
-                               TEST_STATUS=str(status), EJECT_STATUS=str(eject_status))
+                               TEST_STATUS=str(status), EJECT_STATUS=str(eject_status),
+                               CTNG_LOG_FILE=str(build_log), TOOLCHAIN_NAME="test-config")
                     env.pop("DEBUG", None)
                     if debug is not None:
                         env["DEBUG"] = debug
                     result = subprocess.run(["bash", "-c", functions + """
-diskutil() { echo "$*" > "$SCRIPT_DIR/ejected"; return "$EJECT_STATUS"; }
+diskutil() {
+    test -f "$SCRIPT_DIR/o/logs/$TOOLCHAIN_NAME.log" || return 1
+    echo "$*" > "$SCRIPT_DIR/ejected"
+    return "$EJECT_STATUS"
+}
 cd "$WORK_DIR"
 trap cleanup EXIT
 exit "$TEST_STATUS"
@@ -44,6 +52,38 @@ exit "$TEST_STATUS"
                     self.assertEqual(image.exists(), debug is not None or eject_status != 0)
                     self.assertEqual(work.is_symlink(), image.exists())
                     self.assertEqual((root / "ejected").exists(), debug is None)
+                    self.assertEqual(
+                        (root / "o/logs/test-config.log").read_text(),
+                        "detailed compiler failure\n",
+                    )
+
+    def test_log_copy_failure_preserves_build_error_and_still_cleans_drive(self):
+        functions = BUILD.read_text().split("\ntrap cleanup EXIT", 1)[0]
+        (BUILD.parent / "o/tmp").mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=BUILD.parent / "o/tmp") as directory:
+            root = Path(directory)
+            image = root / "work.dmg"
+            image.touch()
+            log = root / "build.log"
+            log.write_text("detailed failure")
+            result = subprocess.run(
+                ["/bin/bash", "-c", functions + """
+cp() { return 1; }
+diskutil() { return 0; }
+trap cleanup EXIT
+exit 23
+"""],
+                env=dict(
+                    os.environ, SCRIPT_DIR=directory, CTNG_LOG_FILE=str(log),
+                    TOOLCHAIN_NAME="test-config", WORK_DIR=str(root / "work"),
+                    WORK_DMG=str(image), WORK_DMG_CREATED="true",
+                    WORK_DMG_DEVICE="/dev/disk99", WORK_DMG_VOLNAME="test",
+                ),
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 23, result.stderr)
+            self.assertIn("Could not preserve crosstool-NG log", result.stderr)
+            self.assertFalse(image.exists())
 
     def run_init(self, image_api, filesystem_option):
         source = BUILD.read_text()

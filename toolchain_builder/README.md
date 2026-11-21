@@ -66,6 +66,8 @@ or checksums are never replaced. Builds skip an existing archive/checksum pair f
 the same target, GCC track, host, and release after verifying its checksum.
 On macOS, the build drive is unmounted
 and its backing `.dmg` removed on exit, including failure, unless `DEBUG` is set.
+The detailed crosstool-NG log is saved to `o/logs/<config>.log` before cleanup,
+on both successful and failed builds.
 
 `bash build_all.sh` builds every config sequentially. On Apple Silicon macOS,
 it uses Tart for both macOS (`darwin_arm`) and Linux (`linux_aarch64`) builds.
@@ -95,6 +97,8 @@ deleted on exit; prerequisites and guest-local build/source caches are not
 retained. VM image downloads share the smoke-test cache under
 `o/tart-tests/tart/`. Build logs, the source snapshot and incoming artifacts
 remain under `o/tart-builds/run-*/`.
+The full crosstool-NG log is copied to that run directory as `ct-ng.log`
+before the VM is stopped, including on build failure when the log is available.
 
 Successful archive/checksum pairs are verified and published to the host's
 `o/artifacts/` without replacing existing files. As with `build_native.sh`, an existing
