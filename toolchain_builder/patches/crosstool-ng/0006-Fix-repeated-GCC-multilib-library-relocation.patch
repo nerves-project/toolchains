@@ -1,0 +1,28 @@
+Subject: [PATCH] Fix repeated GCC multilib library relocation
+
+RISC-V's default multilib and an explicit variant can share an OS library
+directory. After the first relocation, GCC's directory contains symlinks
+to the sysroot libraries. Relocating that directory again makes GNU mv
+reject the source and destination as the same file.
+
+Skip files that already refer to their destination, while still moving
+other files and preserving the existing symlink handling.
+
+diff --git a/scripts/build/cc/gcc.sh b/scripts/build/cc/gcc.sh
+--- a/scripts/build/cc/gcc.sh
++++ b/scripts/build/cc/gcc.sh
+@@ -893,10 +893,14 @@
+                 # finding them there.
+                 continue
+                 ;;
+         esac
+         if [ -f "${gcc_dir}/${f}" ]; then
++            # Another multilib may have already relocated this library.
++            if [ "${gcc_dir}/${f}" -ef "${dst_dir}/${f}" ]; then
++                continue
++            fi
+             CT_DoExecLog ALL mkdir -p "${dst_dir}"
+             CT_DoExecLog ALL mv "${gcc_dir}/${f}" "${dst_dir}/${f}"
+             CT_DoExecLog ALL ln -sf "${rel}/${dst_dir#${canon_prefix}/}/${f}" "${gcc_dir}/${f}"
+         fi
+     done
