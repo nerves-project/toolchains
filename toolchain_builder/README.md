@@ -90,7 +90,7 @@ bash build_with_tart.sh linux armv7-nerves-linux-gnueabihf--gcc16
 the current source (including uncommitted changes) into the guest's native
 filesystem, and runs `build_native.sh`. Builds run as the image's `admin` user.
 
-The guest uses 4 CPUs, 8 GiB RAM and a 100 GB virtual disk. It is stopped and
+The guest uses 4 CPUs, 12 GiB RAM and a 100 GB virtual disk. It is stopped and
 deleted on exit; prerequisites and guest-local build/source caches are not
 retained. VM image downloads share the smoke-test cache under
 `o/tart-tests/tart/`. Build logs, the source snapshot and incoming artifacts

@@ -91,7 +91,7 @@ echo "Building $CONFIG in $IMAGE"
 "$TIMEOUT" 3600 tart pull "$IMAGE"
 "$TIMEOUT" 3600 tart clone "$IMAGE" "$VM"
 CLONED=true
-tart set "$VM" --cpu 4 --memory 8192 --disk-size 100
+tart set "$VM" --cpu 4 --memory 12288 --disk-size 100
 tart run "$VM" --no-graphics --dir "$RUN_DIR/source:ro,tag=nerves-build" > "$RUN_DIR/vm.log" 2>&1 &
 PID=$!
 deadline=$((SECONDS + 300))
