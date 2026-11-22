@@ -1,0 +1,27 @@
+Subject: [PATCH] Serialize glibc installation
+
+Recursive parallel installs can write the same temporary file, such as
+libc.so.6.new, at the same time. This can make install fail while changing
+permissions after another job removes or renames that file.
+
+Use one job for installation on all hosts. Keep compilation parallel.
+
+diff --git a/scripts/build/libc/glibc.sh b/scripts/build/libc/glibc.sh
+--- a/scripts/build/libc/glibc.sh
++++ b/scripts/build/libc/glibc.sh
+@@ -271,13 +271,14 @@
+     CT_DoLog EXTRA "Building C library"
+     CT_DoExecLog ALL make ${CT_JOBSFLAGS}         \
+                           "${extra_make_args[@]}" \
+                           all
+ 
+     CT_DoLog EXTRA "Installing C library"
++    # Recursive installs share temporary files, so run installation serially.
+-    CT_DoExecLog ALL make ${CT_JOBSFLAGS}                 \
++    CT_DoExecLog ALL make -j1                             \
+                           "${extra_make_args[@]}"         \
+                           install_root="${multi_root}"    \
+                           install
+ 
+     if [ "${CT_BUILD_MANUALS}" = "y" -a "${multi_index}" = "${multi_count}" ]; then
+         # We only need to build the manuals once. Only build them on the
