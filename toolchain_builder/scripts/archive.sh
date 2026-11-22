@@ -45,13 +45,6 @@ case "${1:-}:$#" in
         ;;
     --find:5)
         directory=$2 config=$3 host=$4 release=$5
-        if [[ $config = *--mingw_x86_64 ]]; then
-            config=${config%--mingw_x86_64}
-            if [[ $host != mingw_x86_64 ]]; then
-                echo "Windows Canadian configs require mingw_x86_64 artifacts; use build_with_docker.sh" >&2
-                exit 1
-            fi
-        fi
         target=${config%--gcc*}
         major=${config##*--gcc}
         component "$target"

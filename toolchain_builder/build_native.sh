@@ -79,13 +79,11 @@ if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
 
-if [[ $TOOLCHAIN_NAME = *--mingw_x86_64 ]]; then
-    if [[ $BUILD_OS != linux || $BUILD_ARCH != x86_64 ]]; then
+if [[ $HOST_OS = mingw ]]; then
+    if [[ $BUILD_OS != linux || $BUILD_ARCH != x86_64 || $HOST_ARCH != x86_64 ]]; then
         echo "Windows Canadian builds require x86_64 Linux; use build_with_docker.sh" >&2
         exit 1
     fi
-    HOST_OS=mingw
-    HOST_ARCH=x86_64
 fi
 
 ARTIFACT_HOST_ARCH=$HOST_ARCH

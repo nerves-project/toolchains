@@ -72,9 +72,10 @@ on both successful and failed builds.
 `bash build_all.sh` builds every config sequentially. On Apple Silicon macOS,
 it uses Tart for both macOS (`darwin_arm`) and Linux (`linux_aarch64`) builds.
 On x86_64 macOS, it uses `build_native.sh`. On x86_64 Linux, it uses Docker
-for `linux_x86_64` builds. Other hosts are rejected. It stops on the first
+for both `linux_x86_64` and Windows-hosted Canadian `mingw_x86_64` builds
+of every config. Windows hosts are not included in macOS batch builds.
+Other hosts are rejected. It stops on the first
 failure and does not publish remotely.
-Windows-hosted Canadian configurations always use Docker, including on macOS.
 Builds are expensive; build one when testing.
 
 ### Building in Tart
@@ -141,11 +142,13 @@ builds significantly slower. Containers use the Docker host's kernel.
 For a Windows-hosted AArch64 Linux/glibc GCC 16 toolchain:
 
 ```sh
-bash build_with_docker.sh aarch64-nerves-linux-gnu--gcc16--mingw_x86_64
+HOST_OS=mingw bash build_with_docker.sh aarch64-nerves-linux-gnu--gcc16
 ```
 
 This Canadian cross builds on x86_64 Linux for an x86_64 MinGW-w64 host and
-an AArch64 Linux target. Its separate cached image installs the POSIX-thread
+an AArch64 Linux target. Any target config can use the
+`defaults/mingw_x86_64_defconfig` host fragment, which selects Canadian builds
+and the `x86_64-w64-mingw32` host. Its separate cached image installs the POSIX-thread
 MinGW-w64 C/C++ compilers. Host executables are linked statically, and
 archives use the `mingw_x86_64` label. Packaging copies symbolic and hard
 links as regular files so extraction does not require Windows symlink privileges.
@@ -156,7 +159,6 @@ uses GCC 15.3.0 and Linux 6.1.175 headers. A newer GCC 16.2 track is planned.
 Both tracks should receive current stable libc releases rather than freezing
 libc with the compiler: currently glibc 2.43 or musl 1.2.6. glibc's minimum
 runtime kernel is explicitly 6.1.0, independent of the headers' patch level.
-Windows Canadian configs append `--mingw_x86_64` after the GCC track.
 
 Keep both the Kconfig selector and resolved version in each config, including
 defaults. Pin crosstool-NG with `CTNG_TAG` in the Makefile. Host fragments live in

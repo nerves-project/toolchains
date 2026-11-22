@@ -147,6 +147,46 @@ ln() { printf 'ln %s\\n' "$*" >> "$COMMAND_LOG"; }
 
 
 class BuildProcessTest(unittest.TestCase):
+    def test_regular_target_configs_get_canadian_settings_from_host_fragment(self):
+        source = BUILD.read_text()
+        build_gcc = source[source.index("\nbuild_gcc()\n"):source.index("\nsave_build_info()\n")]
+        (BUILD.parent / "o/tmp").mkdir(parents=True, exist_ok=True)
+        for config in ("aarch64-nerves-linux-gnu--gcc16", "armv7-nerves-linux-gnueabihf--gcc15"):
+            with self.subTest(config=config), tempfile.TemporaryDirectory(dir=BUILD.parent / "o/tmp") as directory:
+                root = Path(directory)
+                (root / "scripts").symlink_to(BUILD.parent / "scripts", target_is_directory=True)
+                ctng = root / "o/ct-ng/bin/ct-ng"
+                ctng.parent.mkdir(parents=True)
+                ctng.write_text("""#!/usr/bin/env bash
+set -e
+case "$1" in
+    defconfig) cp defconfig .config ;;
+    savedefconfig) ;;
+    build)
+        grep -Fx 'CT_CANADIAN=y' .config
+        grep -Fx 'CT_HOST="x86_64-w64-mingw32"' .config
+        grep -Fx '# CT_STRIP_HOST_TOOLCHAIN_EXECUTABLES is not set' .config
+        mkdir -p "$GCC_INSTALL_DIR/$TEST_TARGET/bin"
+        touch "$GCC_INSTALL_DIR/$TEST_TARGET/bin/$TEST_TARGET-gcc.exe"
+        ;;
+esac
+""")
+                ctng.chmod(0o755)
+                target = config.split("--gcc")[0]
+                result = subprocess.run(
+                    ["/bin/bash", "-c", "set -e\nmake() { :; }\n" + build_gcc + "\nbuild_gcc\n"],
+                    env=dict(
+                        os.environ, SCRIPT_DIR=directory, WORK_DIR=str(root / "work"),
+                        GCC_INSTALL_DIR=str(root / "work/x-tools"), BUILD_OS="linux", HOST_OS="mingw",
+                        BASE_CONFIG=str(BUILD.parent / f"configs/{config}.defconfig"),
+                        HOST_CONFIG=str(BUILD.parent / "defaults/mingw_x86_64_defconfig"),
+                        CI="false", CTNG_BUILD="build", TEST_TARGET=target,
+                    ),
+                    capture_output=True, text=True, timeout=15,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertTrue((root / f"work/x-tools/{target}/bin/{target}-gcc.exe").is_file())
+
     def test_installed_target_requires_exactly_one_compiler(self):
         source = BUILD.read_text()
         post_build = source.split("    $CTNG $CTNG_BUILD\n", 1)[1]
@@ -243,8 +283,11 @@ class BuildAllTest(unittest.TestCase):
             ("docker", "build_with_docker.sh"),
             ("native", "build_native.sh"),
         ):
+            label = f"{kind} $*"
+            if kind == "docker":
+                label = 'docker ${HOST_OS}_${HOST_ARCH} $*'
             (self.root / script).write_text(
-                f'printf "%s\\n" "{kind} $*" >> "$BUILD_ALL_TEST_LOG"\n'
+                f'printf "%s\\n" "{label}" >> "$BUILD_ALL_TEST_LOG"\n'
                 'exit "${BUILD_ALL_TEST_STATUS:-0}"\n'
             )
         self.log = self.root / "commands.log"
@@ -263,7 +306,7 @@ class BuildAllTest(unittest.TestCase):
         for os_name, arch, commands in (
             ("Darwin", "arm64", ["tart macos", "tart linux"]),
             ("Darwin", "x86_64", ["native"]),
-            ("Linux", "x86_64", ["docker"]),
+            ("Linux", "x86_64", ["docker linux_x86_64", "docker mingw_x86_64"]),
         ):
             with self.subTest(os=os_name, arch=arch):
                 result = self.run_script(os_name, arch)
@@ -274,15 +317,17 @@ class BuildAllTest(unittest.TestCase):
                 )
                 self.log.unlink()
 
-    def test_canadian_config_uses_docker_on_every_supported_host(self):
-        config = "aarch64-nerves-linux-gnu--gcc16--mingw_x86_64"
-        (self.root / "configs" / f"{config}.defconfig").touch()
-        for os_name, arch in (("Darwin", "arm64"), ("Darwin", "x86_64"), ("Linux", "x86_64")):
-            with self.subTest(os=os_name, arch=arch):
-                result = self.run_script(os_name, arch)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(self.log.read_text().splitlines()[0], f"docker {config}")
-                self.log.unlink()
+    def test_canadian_build_failure_stops_remaining_linux_builds(self):
+        (self.root / "build_with_docker.sh").write_text(
+            'printf "%s\\n" "docker ${HOST_OS}_${HOST_ARCH} $*" >> "$BUILD_ALL_TEST_LOG"\n'
+            'if [[ $HOST_OS = mingw ]]; then exit 23; fi\n'
+        )
+        result = self.run_script("Linux", "x86_64")
+        self.assertEqual(result.returncode, 23, result.stderr)
+        self.assertEqual(
+            self.log.read_text().splitlines(),
+            [f"docker {host} {self.configs[0]}" for host in ("linux_x86_64", "mingw_x86_64")],
+        )
 
     def test_rejects_unsupported_hosts_without_building(self):
         for os_name, arch in (("Linux", "aarch64"), ("Darwin", "i386"), ("FreeBSD", "amd64")):

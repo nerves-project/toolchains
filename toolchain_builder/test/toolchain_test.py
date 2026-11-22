@@ -128,11 +128,11 @@ class ToolchainTest(unittest.TestCase):
             self.assertEqual(
                 contents.extractfile(f"installed/bin/{TARGET}-cc.exe").read(), b"compiler",
             )
-        config = f"{TARGET}--gcc99--mingw_x86_64"
+        config = f"{TARGET}--gcc99"
         result = self.helper("--find", self.output, config, "mingw_x86_64", RELEASE)
         self.assertEqual(result.stdout.strip(), str(archive))
-        self.assertNotEqual(
-            self.helper("--find", self.output, config, "linux_x86_64", RELEASE).returncode, 0,
+        self.assertEqual(
+            self.helper("--find", self.output, config, "linux_x86_64", RELEASE).stdout, "",
         )
 
     def test_compression_failure_does_not_publish_or_damage_installation(self):

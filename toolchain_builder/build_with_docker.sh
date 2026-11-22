@@ -14,6 +14,7 @@ WORKSPACE=/tmp/nerves-toolchain-builder
 usage()
 {
     echo "Usage: bash build_with_docker.sh <config>"
+    echo "Set HOST_OS=mingw for an x86_64 Windows-hosted Canadian build."
 }
 
 if [[ ${1:-} = --help || ${1:-} = -h ]]; then usage; exit 0; fi
@@ -23,10 +24,18 @@ if [[ ! $CONFIG =~ ^[A-Za-z0-9][A-Za-z0-9_.+-]*$ || ! -f "$ROOT/configs/$CONFIG.
     echo "Unknown toolchain config: $CONFIG" >&2
     exit 1
 fi
-HOST=linux_x86_64
+HOST_OS=${HOST_OS:-linux}
+HOST_ARCH=${HOST_ARCH:-x86_64}
+HOST=${HOST_OS}_${HOST_ARCH}
+case "$HOST" in
+    linux_x86_64|mingw_x86_64) ;;
+    *)
+        echo "Unsupported Docker toolchain host: $HOST (requires linux_x86_64 or mingw_x86_64)" >&2
+        exit 1
+        ;;
+esac
 EXTRA_PACKAGES=
-if [[ $CONFIG = *--mingw_x86_64 ]]; then
-    HOST=mingw_x86_64
+if [[ $HOST_OS = mingw ]]; then
     BUILD_IMAGE=$WINDOWS_BUILD_IMAGE
     EXTRA_PACKAGES="gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix"
 fi
@@ -88,7 +97,7 @@ DOCKERFILE
 
 docker run -i --name "$CONTAINER" --platform linux/amd64 \
     --mount "type=bind,source=$RUN_DIR/source,target=/source,readonly" \
-    "$BUILD_IMAGE" /bin/bash -s -- "$CONFIG" 2>&1 <<'BUILD_SCRIPT' | tee "$RUN_DIR/build.log"
+    "$BUILD_IMAGE" /bin/bash -s -- "$CONFIG" "$HOST_OS" "$HOST_ARCH" 2>&1 <<'BUILD_SCRIPT' | tee "$RUN_DIR/build.log"
 set -euo pipefail
 CONFIG=$1
 test "$(uname -s)" = Linux
@@ -96,7 +105,7 @@ test "$(uname -m)" = x86_64
 WORKSPACE=/tmp/nerves-toolchain-builder
 mkdir -p "$WORKSPACE"
 tar -C /source -cf - . | tar -C "$WORKSPACE" -xf -
-bash "$WORKSPACE/build_native.sh" "$CONFIG" </dev/null
+HOST_OS=$2 HOST_ARCH=$3 bash "$WORKSPACE/build_native.sh" "$CONFIG" </dev/null
 BUILD_SCRIPT
 
 docker cp "$CONTAINER:$WORKSPACE/o/artifacts/." "$RUN_DIR/artifacts"
