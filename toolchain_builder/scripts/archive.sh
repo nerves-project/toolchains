@@ -45,6 +45,13 @@ case "${1:-}:$#" in
         ;;
     --find:5)
         directory=$2 config=$3 host=$4 release=$5
+        if [[ $config = *--mingw_x86_64 ]]; then
+            config=${config%--mingw_x86_64}
+            if [[ $host != mingw_x86_64 ]]; then
+                echo "Windows Canadian configs require mingw_x86_64 artifacts; use build_with_docker.sh" >&2
+                exit 1
+            fi
+        fi
         target=${config%--gcc*}
         major=${config##*--gcc}
         component "$target"
@@ -63,12 +70,15 @@ case "${1:-}:$#" in
         ;;
     --name:3)
         install=$2 host=$3
-        compilers=("$install"/bin/*-gcc)
+        suffix=
+        if [[ $host = mingw_x86_64 ]]; then suffix=.exe; fi
+        compilers=("$install"/bin/*-gcc"$suffix")
         if [[ ${#compilers[@]} != 1 || ! -f ${compilers[0]} ]]; then
             echo "Expected exactly one installed *-gcc compiler" >&2
             exit 1
         fi
         target=${compilers[0]##*/}
+        target=${target%.exe}
         target=${target%-gcc}
         versions=$(awk -F= '
             /^CT_[A-Z0-9_]+=/ {

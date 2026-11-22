@@ -35,6 +35,10 @@ TAR=tar
 if [[ $(uname -s) = Darwin ]]; then
     TAR=gtar
 fi
+TAR_OPTIONS=()
+if [[ $HOST = mingw_x86_64 ]]; then
+    TAR_OPTIONS=(--dereference --hard-dereference)
+fi
 
 TMP_DIR=$(mktemp -d "$OUTPUT_DIR/.toolchain.XXXXXX")
 cleanup()
@@ -43,7 +47,7 @@ cleanup()
     rmdir "$TMP_DIR"
 }
 trap cleanup EXIT
-"$TAR" -c -C "$PARENT_DIR" -f - \
+"$TAR" "${TAR_OPTIONS[@]}" -c -C "$PARENT_DIR" -f - \
     --exclude="$INSTALL_NAME/toolchain-builder.metadata" \
     --exclude="$INSTALL_NAME/toolchain-builder.version" \
     --exclude="$INSTALL_NAME/share/toolchain-builder/build-info.json" "$INSTALL_NAME" | \

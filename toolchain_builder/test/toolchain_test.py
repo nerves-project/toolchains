@@ -105,6 +105,36 @@ class ToolchainTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Invalid archive name component", result.stderr)
 
+    def test_windows_package_recognizes_exe_and_dereferences_links(self):
+        compiler = self.install / "bin" / f"{TARGET}-gcc"
+        executable = compiler.with_name(compiler.name + ".exe")
+        compiler.rename(executable)
+        alias = self.install / "bin" / f"{TARGET}-cc"
+        alias.unlink()
+        alias.with_name(alias.name + ".exe").symlink_to(executable.name)
+        (self.install / "bin" / f"{TARGET}-gcc-version.exe").hardlink_to(executable)
+        self.config.write_text(
+            self.config.read_text() + 'CT_CANADIAN=y\nCT_HOST="x86_64-w64-mingw32"\n',
+        )
+        result = self.package("mingw_x86_64")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        archive = next(self.output.glob("*.tar.xz"))
+        self.assertEqual(
+            archive.name,
+            f"{TARGET}--gcc-99.2.1-glibc-2.99-linux-6.12.3--{RELEASE}--mingw_x86_64.tar.xz",
+        )
+        with tarfile.open(archive, "r:xz") as contents:
+            self.assertFalse(any(member.issym() or member.islnk() for member in contents))
+            self.assertEqual(
+                contents.extractfile(f"installed/bin/{TARGET}-cc.exe").read(), b"compiler",
+            )
+        config = f"{TARGET}--gcc99--mingw_x86_64"
+        result = self.helper("--find", self.output, config, "mingw_x86_64", RELEASE)
+        self.assertEqual(result.stdout.strip(), str(archive))
+        self.assertNotEqual(
+            self.helper("--find", self.output, config, "linux_x86_64", RELEASE).returncode, 0,
+        )
+
     def test_compression_failure_does_not_publish_or_damage_installation(self):
         xz = self.root / "xz"
         xz.write_text("#!/bin/sh\nexit 9\n")

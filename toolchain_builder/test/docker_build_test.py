@@ -13,6 +13,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = "armv7-nerves-linux-gnueabihf--gcc16"
+WINDOWS_CONFIG = "aarch64-nerves-linux-gnu--gcc16--mingw_x86_64"
 
 
 class DockerBuildTest(unittest.TestCase):
@@ -55,9 +56,9 @@ if args[0] == "cp":
             DOCKER_BUILD_TEST_OUTPUT=str(self.output), DOCKER_BUILD_TEST_SCRIPTS=str(self.scripts),
         )
 
-    def archive(self, host="linux_x86_64"):
+    def archive(self, host="linux_x86_64", target="armv7-nerves-linux-gnueabihf"):
         release = (self.root / "VERSION").read_text().strip()
-        name = f"armv7-nerves-linux-gnueabihf--gcc-16.2.0-glibc-2.44-linux-6.12.112--{release}--{host}.tar.xz"
+        name = f"{target}--gcc-16.2.0-glibc-2.44-linux-6.12.112--{release}--{host}.tar.xz"
         archive = self.output / name
         archive.write_bytes(b"compiler")
         digest = hashlib.sha256(archive.read_bytes()).hexdigest()
@@ -111,6 +112,34 @@ if args[0] == "cp":
                 self.assertEqual(len(self.calls("rm")), 1)
                 self.assertEqual(list((self.root / "o/artifacts").iterdir()), [])
                 self.log.unlink()
+
+    def test_canadian_build_exports_windows_pair_and_skips_completed_build(self):
+        archive = self.archive("mingw_x86_64", "aarch64-nerves-linux-gnu")
+        result = self.run_script(WINDOWS_CONFIG)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        build = self.calls("build")[0]
+        self.assertEqual(
+            build[build.index("--tag") + 1], "nerves-toolchain-builder:ubuntu-22.04-mingw",
+        )
+        self.assertIn(
+            "EXTRA_PACKAGES=gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix", build,
+        )
+        run = self.calls("run")[0]
+        self.assertEqual(run[run.index("--platform") + 1], "linux/amd64")
+        self.assertEqual(run[-1], WINDOWS_CONFIG)
+        self.assertEqual((self.root / "o/artifacts" / archive.name).read_bytes(), b"compiler")
+        calls = self.log.read_text()
+        result = self.run_script(WINDOWS_CONFIG)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Skipping", result.stdout)
+        self.assertEqual(self.log.read_text(), calls)
+
+    def test_canadian_build_rejects_linux_host_archive(self):
+        self.archive("linux_x86_64", "aarch64-nerves-linux-gnu")
+        result = self.run_script(WINDOWS_CONFIG)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Expected one mingw_x86_64 archive", result.stderr)
+        self.assertEqual(list((self.root / "o/artifacts").iterdir()), [])
 
     def test_export_rejects_bad_checksum_wrong_host_and_missing_archives(self):
         archive = self.archive()

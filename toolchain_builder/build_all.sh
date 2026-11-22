@@ -16,7 +16,9 @@ esac
 
 for config in "$ROOT"/configs/*.defconfig; do
     config=$(basename "$config" .defconfig)
-    if [[ $OS = Darwin && $ARCH = arm64 ]]; then
+    if [[ $config = *--mingw_x86_64 ]]; then
+        bash "$ROOT/build_with_docker.sh" "$config"
+    elif [[ $OS = Darwin && $ARCH = arm64 ]]; then
         bash "$ROOT/build_with_tart.sh" macos "$config"
         bash "$ROOT/build_with_tart.sh" linux "$config"
     elif [[ $OS = Darwin ]]; then

@@ -183,6 +183,16 @@ esac
                 self.assertIn("<macos|linux>", result.stderr)
                 self.assertFalse(self.log.exists())
 
+    def test_canadian_config_requires_docker_before_starting_vm(self):
+        for guest in ("macos", "linux"):
+            with self.subTest(guest=guest):
+                result = self.run_script(
+                    guest, config="aarch64-nerves-linux-gnu--gcc16--mingw_x86_64",
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("build_with_docker.sh", result.stderr)
+                self.assertFalse(self.log.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

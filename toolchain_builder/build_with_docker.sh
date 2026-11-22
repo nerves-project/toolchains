@@ -6,6 +6,7 @@ set -euo pipefail
 
 IMAGE=docker.io/library/ubuntu:22.04
 BUILD_IMAGE=nerves-toolchain-builder:ubuntu-22.04
+WINDOWS_BUILD_IMAGE=nerves-toolchain-builder:ubuntu-22.04-mingw
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE=/tmp/nerves-toolchain-builder
@@ -22,6 +23,13 @@ if [[ ! $CONFIG =~ ^[A-Za-z0-9][A-Za-z0-9_.+-]*$ || ! -f "$ROOT/configs/$CONFIG.
     echo "Unknown toolchain config: $CONFIG" >&2
     exit 1
 fi
+HOST=linux_x86_64
+EXTRA_PACKAGES=
+if [[ $CONFIG = *--mingw_x86_64 ]]; then
+    HOST=mingw_x86_64
+    BUILD_IMAGE=$WINDOWS_BUILD_IMAGE
+    EXTRA_PACKAGES="gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix"
+fi
 for command in docker timeout sha256sum; do
     if ! command -v "$command" >/dev/null; then
         echo "Missing command: $command (requires Docker and GNU coreutils)" >&2
@@ -30,7 +38,7 @@ for command in docker timeout sha256sum; do
 done
 
 mkdir -p "$ROOT/o/artifacts" "$ROOT/o/docker-builds"
-EXISTING=$(bash "$ROOT/scripts/archive.sh" --find "$ROOT/o/artifacts" "$CONFIG" linux_x86_64 "$(cat "$ROOT/VERSION")")
+EXISTING=$(bash "$ROOT/scripts/archive.sh" --find "$ROOT/o/artifacts" "$CONFIG" "$HOST" "$(cat "$ROOT/VERSION")")
 if [[ -n "$EXISTING" ]]; then
     (cd "$ROOT/o/artifacts" && sha256sum -- "${EXISTING##*/}" | cmp - "${EXISTING##*/}.sha256")
     echo "Skipping $CONFIG: already built at $EXISTING"
@@ -59,17 +67,19 @@ trap 'exit 143' TERM
 mkdir "$RUN_DIR/source" "$RUN_DIR/artifacts"
 cp "$ROOT"/{Makefile,VERSION,LICENSE,README.md,build_native.sh} "$RUN_DIR/source/"
 cp -R "$ROOT"/{scripts,configs,defaults,patches} "$RUN_DIR/source/"
-echo "Building $CONFIG in $IMAGE (linux/amd64)"
+echo "Building $CONFIG for $HOST in $IMAGE (linux/amd64)"
 timeout --kill-after=10 1200 docker build --pull --platform linux/amd64 \
-    --build-arg "BASE=$IMAGE" --tag "$BUILD_IMAGE" - > "$RUN_DIR/image.log" 2>&1 <<'DOCKERFILE'
+    --build-arg "BASE=$IMAGE" --build-arg "EXTRA_PACKAGES=$EXTRA_PACKAGES" \
+    --tag "$BUILD_IMAGE" - > "$RUN_DIR/image.log" 2>&1 <<'DOCKERFILE'
 ARG BASE
 FROM ${BASE}
+ARG EXTRA_PACKAGES
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential bison flex gperf libncurses-dev texinfo help2man \
         libssl-dev gawk libtool-bin automake autoconf lzip unzip python3 wget \
         curl ca-certificates xz-utils zstd openssl git file patch rsync pkg-config \
-        bzip2 passwd && \
+        bzip2 passwd $EXTRA_PACKAGES && \
     apt-get clean && \
     useradd --create-home --shell /bin/bash builder
 ENV HOME=/home/builder
@@ -92,8 +102,8 @@ BUILD_SCRIPT
 docker cp "$CONTAINER:$WORKSPACE/o/artifacts/." "$RUN_DIR/artifacts"
 shopt -s nullglob
 artifacts=("$RUN_DIR/artifacts"/*.tar.xz)
-if [[ ${#artifacts[@]} != 1 || ${artifacts[0]} != *--linux_x86_64.tar.xz ]]; then
-    echo "Expected one linux_x86_64 archive from the container" >&2
+if [[ ${#artifacts[@]} != 1 || ${artifacts[0]} != *--"$HOST".tar.xz ]]; then
+    echo "Expected one $HOST archive from the container" >&2
     exit 1
 fi
 archive=${artifacts[0]}

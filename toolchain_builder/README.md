@@ -74,6 +74,7 @@ it uses Tart for both macOS (`darwin_arm`) and Linux (`linux_aarch64`) builds.
 On x86_64 macOS, it uses `build_native.sh`. On x86_64 Linux, it uses Docker
 for `linux_x86_64` builds. Other hosts are rejected. It stops on the first
 failure and does not publish remotely.
+Windows-hosted Canadian configurations always use Docker, including on macOS.
 Builds are expensive; build one when testing.
 
 ### Building in Tart
@@ -117,7 +118,7 @@ With Docker and GNU coreutils installed:
 bash build_with_docker.sh armv7-nerves-linux-gnueabihf--gcc16
 ```
 
-This builds only `linux_x86_64` toolchains. The Ubuntu 22.04 image and local
+This normally builds `linux_x86_64` toolchains. The Ubuntu 22.04 image and local
 builder image tag are listed at the top of `build_with_docker.sh`. Docker
 installs and caches the build prerequisites in that image; Erlang and Elixir
 are not required.
@@ -137,11 +138,25 @@ The wrapper requests `linux/amd64`, so native x86_64 Linux is recommended.
 Other Docker hosts require working amd64 emulation, which can make compiler
 builds significantly slower. Containers use the Docker host's kernel.
 
+For a Windows-hosted AArch64 Linux/glibc GCC 16 toolchain:
+
+```sh
+bash build_with_docker.sh aarch64-nerves-linux-gnu--gcc16--mingw_x86_64
+```
+
+This Canadian cross builds on x86_64 Linux for an x86_64 MinGW-w64 host and
+an AArch64 Linux target. Its separate cached image installs the POSIX-thread
+MinGW-w64 C/C++ compilers. Host executables are linked statically, and
+archives use the `mingw_x86_64` label. Packaging copies symbolic and hard
+links as regular files so extraction does not require Windows symlink privileges.
+The existing Linux and Tart validation runners do not execute Windows binaries.
+
 Flat configs are named `<target>--<track>.defconfig`. The initial `gcc15` track
 uses GCC 15.3.0 and Linux 6.1.175 headers. A newer GCC 16.2 track is planned.
 Both tracks should receive current stable libc releases rather than freezing
 libc with the compiler: currently glibc 2.43 or musl 1.2.6. glibc's minimum
 runtime kernel is explicitly 6.1.0, independent of the headers' patch level.
+Windows Canadian configs append `--mingw_x86_64` after the GCC track.
 
 Keep both the Kconfig selector and resolved version in each config, including
 defaults. Pin crosstool-NG with `CTNG_TAG` in the Makefile. Host fragments live in
@@ -212,8 +227,8 @@ bash scripts/package.sh path/to/installed/toolchain o/artifacts linux_x86_64
 The installation must contain `ct-ng.config`. Repackaging uses the current
 builder's `VERSION`, not the original installation's release.
 The host argument is one of `linux_x86_64`, `linux_aarch64`, `darwin_x86_64`,
-or `darwin_arm` and is used unchanged in the archive filename. The Linux host
-label does not imply a glibc runtime requirement.
+`darwin_arm`, or `mingw_x86_64` and is used unchanged in the archive filename.
+The Linux host label does not imply a glibc runtime requirement.
 
 Consumers can derive a checksum URL by appending `.sha256` to the archive URL.
 They must verify it before extraction.

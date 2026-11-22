@@ -79,6 +79,15 @@ if [[ -z $HOST_OS ]]; then
     HOST_OS=$BUILD_OS
 fi
 
+if [[ $TOOLCHAIN_NAME = *--mingw_x86_64 ]]; then
+    if [[ $BUILD_OS != linux || $BUILD_ARCH != x86_64 ]]; then
+        echo "Windows Canadian builds require x86_64 Linux; use build_with_docker.sh" >&2
+        exit 1
+    fi
+    HOST_OS=mingw
+    HOST_ARCH=x86_64
+fi
+
 ARTIFACT_HOST_ARCH=$HOST_ARCH
 if [[ $HOST_OS = "darwin" && ( $HOST_ARCH = "arm64" || $HOST_ARCH = "aarch64" ) ]]; then
     ARTIFACT_HOST_ARCH="arm"
@@ -253,12 +262,15 @@ build_gcc()
     CTNG_LOG_FILE="$WORK_DIR/build/build.log"
     $CTNG $CTNG_BUILD
 
-    local compilers=("$GCC_INSTALL_DIR"/*/bin/*-gcc)
+    local suffix=
+    if [[ $HOST_OS = mingw ]]; then suffix=.exe; fi
+    local compilers=("$GCC_INSTALL_DIR"/*/bin/*-gcc"$suffix")
     if [[ ${#compilers[@]} != 1 || ! -f ${compilers[0]} ]]; then
         echo "Expected exactly one installed *-gcc compiler under $GCC_INSTALL_DIR" >&2
         exit 1
     fi
     TARGET_TUPLE=${compilers[0]##*/}
+    TARGET_TUPLE=${TARGET_TUPLE%.exe}
     TARGET_TUPLE=${TARGET_TUPLE%-gcc}
     INSTALL_DIR=${compilers[0]%/bin/*}
 

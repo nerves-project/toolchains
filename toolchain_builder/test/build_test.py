@@ -156,16 +156,17 @@ finish_build
 printf '%s\\n' "$TARGET_TUPLE" "$INSTALL_DIR"
 """
         target = "x86_64-nerves-linux-gnu"
-        for count in [0, 1, 2]:
-            with self.subTest(compilers=count), tempfile.TemporaryDirectory() as directory:
+        for host, count in [(host, count) for host in ("linux", "mingw") for count in (0, 1, 2)]:
+            with self.subTest(host=host, compilers=count), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory) / "x tools"
                 root.mkdir()
                 for index in range(count):
                     install = root / f"install{index}"
                     (install / "bin").mkdir(parents=True)
-                    (install / "bin" / f"{target}-gcc").touch()
+                    suffix = ".exe" if host == "mingw" else ""
+                    (install / "bin" / f"{target}-gcc{suffix}").touch()
                     (install / "build.log.bz2").touch()
-                env = dict(os.environ, GCC_INSTALL_DIR=str(root))
+                env = dict(os.environ, GCC_INSTALL_DIR=str(root), HOST_OS=host)
                 result = subprocess.run(
                     ["bash", "-c", script], env=env, capture_output=True, text=True
                 )
@@ -271,6 +272,16 @@ class BuildAllTest(unittest.TestCase):
                     self.log.read_text().splitlines(),
                     [f"{command} {config}" for config in self.configs for command in commands],
                 )
+                self.log.unlink()
+
+    def test_canadian_config_uses_docker_on_every_supported_host(self):
+        config = "aarch64-nerves-linux-gnu--gcc16--mingw_x86_64"
+        (self.root / "configs" / f"{config}.defconfig").touch()
+        for os_name, arch in (("Darwin", "arm64"), ("Darwin", "x86_64"), ("Linux", "x86_64")):
+            with self.subTest(os=os_name, arch=arch):
+                result = self.run_script(os_name, arch)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(self.log.read_text().splitlines()[0], f"docker {config}")
                 self.log.unlink()
 
     def test_rejects_unsupported_hosts_without_building(self):
